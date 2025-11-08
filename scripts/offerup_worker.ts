@@ -6,7 +6,7 @@ type Job = {
   id: string;
   search_id: string;
   created_at: string;
-  status: 'pending'|'running'|'success'|'error';
+  status: 'pending'|'running'|'success'|'error'|'cancelled';
   params: any;
 };
 
@@ -40,7 +40,7 @@ async function claimJob(): Promise<Job | null> {
   return updated as Job;
 }
 
-function runOfferupWithEnv(params: any): Promise<{ ok: boolean; inserted?: number; skipped?: number; errors?: number; raw?: string }>
+function runOfferupWithEnv(jobId: string, params: any): Promise<{ ok: boolean; inserted?: number; skipped?: number; errors?: number; raw?: string; cancelled?: boolean }>
 {
   return new Promise((resolve) => {
     const env = { ...process.env };
@@ -63,17 +63,31 @@ function runOfferupWithEnv(params: any): Promise<{ ok: boolean; inserted?: numbe
     child.stdout.on('data', (d) => { out += String(d); });
     child.stderr.on('data', (d) => { out += String(d); });
 
+    // Poll for cancellation signal
+    let cancelled = false;
+    const iv = setInterval(async () => {
+      try {
+        const { data } = await supaSvc.from('offerup_jobs').select('status').eq('id', jobId).maybeSingle();
+        if (data && (data as any).status === 'cancelled') {
+          cancelled = true;
+          clearInterval(iv);
+          try { child.kill('SIGTERM'); } catch {}
+        }
+      } catch {}
+    }, 2000);
+
     child.on('close', () => {
+      clearInterval(iv);
       // Find JSON summary in output
       const m = out.match(/\{\s*"ok"\s*:\s*true[\s\S]*?\}\s*$/m);
       if (m) {
         try {
           const j = JSON.parse(m[0]);
-          resolve({ ok: true, inserted: j.inserted, skipped: j.skipped, errors: j.errors, raw: out });
+          resolve({ ok: true, inserted: j.inserted, skipped: j.skipped, errors: j.errors, raw: out, cancelled });
           return;
         } catch {}
       }
-      resolve({ ok: false, raw: out });
+      resolve({ ok: false, raw: out, cancelled });
     });
   });
 }
@@ -83,9 +97,11 @@ function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
 async function processOne() {
   const job = await claimJob();
   if (!job) return false;
-  const result = await runOfferupWithEnv(job.params || {});
+  const result = await runOfferupWithEnv(job.id, job.params || {});
   const patch: any = { finished_at: new Date().toISOString() };
-  if (result.ok) {
+  if (result.cancelled) {
+    patch.status = 'cancelled';
+  } else if (result.ok) {
     patch.status = 'success';
     patch.result = { inserted: result.inserted || 0, skipped: result.skipped || 0, errors: result.errors || 0 };
   } else {
@@ -105,9 +121,11 @@ async function main() {
     const toRun = starts.filter(Boolean) as Job[];
     if (!toRun.length) { await sleep(5000); continue; }
     await Promise.all(toRun.map(async (j) => {
-      const result = await runOfferupWithEnv(j.params || {});
+      const result = await runOfferupWithEnv(j.id, j.params || {});
       const patch: any = { finished_at: new Date().toISOString() };
-      if (result.ok) {
+      if (result.cancelled) {
+        patch.status = 'cancelled';
+      } else if (result.ok) {
         patch.status = 'success';
         patch.result = { inserted: result.inserted || 0, skipped: result.skipped || 0, errors: result.errors || 0 };
       } else {

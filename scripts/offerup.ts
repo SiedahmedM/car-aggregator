@@ -22,6 +22,8 @@ const HEADLESS = (process.env.OU_HEADLESS ?? 'true').toLowerCase() === 'true';
 const LAT = Number(process.env.OU_LAT ?? '33.8166');
 const LNG = Number(process.env.OU_LNG ?? '-118.0373');
 const RADIUS = parseInt(process.env.OU_RADIUS_MILES || '35', 10);
+const DETAIL_CONCURRENCY = parseInt(process.env.OU_DETAIL_CONCURRENCY || '2', 10);
+const FAST_MODE = (process.env.OU_FAST_MODE ?? 'false').toLowerCase() === 'true';
 const allowedCities = (process.env.OU_ALLOWED_CITIES || '')
   .split(',')
   .map(s => s.trim().toLowerCase())
@@ -256,6 +258,13 @@ async function run() {
     }),
     domain: 'offerup.com', path: '/', httpOnly: false, secure: true, sameSite: 'Lax'
   }]);
+
+  // Block heavy resources to speed up page loads
+  await ctx.route('**/*', (route) => {
+    const rt = route.request().resourceType();
+    if (rt === 'image' || rt === 'font' || rt === 'media' || rt === 'stylesheet') return route.abort();
+    return route.continue();
+  });
 
   // Context-level route to ensure we rewrite GraphQL feed requests before any page navigation
   await ctx.route('**/api/graphql', async (route) => {
@@ -616,7 +625,7 @@ await pRetry(async () => {
       }
 
       // Apply filters before upsert
-      const candidate = {
+      const candidate: any = {
         source: 'offerup',
         remote_id,
         url,
@@ -629,8 +638,8 @@ await pRetry(async () => {
         year: sanitizeYear(data.year),
         make: data.make,
         model: data.model,
-        posted_at,
-      } as const;
+      };
+      if (posted_at) candidate.posted_at = posted_at;
 
       if (!matchesFilters({
         price: candidate.price ?? null,

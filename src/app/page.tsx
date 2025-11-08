@@ -1,5 +1,6 @@
 // app/page.tsx
 import { supaAdmin } from '@/lib/supabase-admin';
+import Link from 'next/link';
 
 function Badge({ children, color }: { children: React.ReactNode; color: 'green'|'red'|'gray' }) {
   const map = { green: 'bg-green-100 text-green-800', red: 'bg-red-100 text-red-800', gray:'bg-gray-100 text-gray-800' };
@@ -67,7 +68,7 @@ export default async function Page({ searchParams }: { searchParams?: Record<str
     <main className="p-6">
       <h1 className="text-2xl font-semibold mb-4">Listings</h1>
       <div className="mb-3 text-sm">
-        <a href="/offerup" className="underline text-blue-400">Manage OfferUp Saved Searches →</a>
+        <Link href="/offerup" className="underline text-blue-400">Manage OfferUp Saved Searches →</Link>
       </div>
 
       {/* Filters */}
@@ -128,7 +129,7 @@ export default async function Page({ searchParams }: { searchParams?: Record<str
           </div>
           <div className="md:col-span-6 flex gap-2 pt-1">
             <button type="submit" className="rounded-md bg-blue-600 hover:bg-blue-500 px-3 py-2 text-sm">Apply</button>
-            <a href="/" className="rounded-md bg-neutral-800 hover:bg-neutral-700 px-3 py-2 text-sm">Reset</a>
+            <Link href="/" className="rounded-md bg-neutral-800 hover:bg-neutral-700 px-3 py-2 text-sm">Reset</Link>
           </div>
         </div>
       </form>

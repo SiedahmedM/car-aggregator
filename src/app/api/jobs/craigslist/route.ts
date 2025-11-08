@@ -14,7 +14,7 @@ function extractRemoteId(url: string): string | null {
   return m ? m[1] : extractFromLib(url);
 }
 
-function toArray<T = any>(x: any): T[] {
+function toArray<T = unknown>(x: unknown): T[] {
   if (Array.isArray(x)) return x as T[];
   return x ? [x as T] : [];
 }
@@ -40,6 +40,32 @@ function extractLinksFromSearchHtml(html: string): string[] {
   return Array.from(links);
 }
 
+type FeedDebug = {
+  rssUrl?: string;
+  itemsFromRss: number;
+  itemsFromHtml: number;
+  sampleLinks: string[];
+  itemErrors: string[];
+};
+
+type DebugInfo = {
+  envOk: boolean;
+  feedsCount: number;
+  usedBee: boolean;
+  strategy: string;
+  feeds: FeedDebug[];
+};
+
+type SourceRow = { config?: unknown } & Record<string, unknown>;
+
+function getConfigString(config: unknown, key: string): string | undefined {
+  if (config && typeof config === 'object') {
+    const v = (config as Record<string, unknown>)[key];
+    if (typeof v === 'string') return v;
+  }
+  return undefined;
+}
+
 export async function GET() {
   const envOk =
     Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
@@ -62,22 +88,22 @@ export async function GET() {
   let inserted = 0;
   let skipped = 0;
   const errors: string[] = [];
-  const debug: any = {
+  const debug: DebugInfo = {
     envOk,
     feedsCount: feeds?.length || 0,
     usedBee: Boolean(process.env.SCRAPINGBEE_KEY),
     strategy: 'RSS first; fallback to HTML search when blocked',
-    feeds: [] as any[],
+    feeds: [],
   };
 
   for (const f of feeds || []) {
-    const rssUrl: string | undefined = (f.config as any)?.rss;
-    const feedDbg: any = {
+    const rssUrl: string | undefined = getConfigString((f as SourceRow).config, 'rss');
+    const feedDbg: FeedDebug = {
       rssUrl,
       itemsFromRss: 0,
       itemsFromHtml: 0,
-      sampleLinks: [] as string[],
-      itemErrors: [] as string[],
+      sampleLinks: [],
+      itemErrors: [],
     };
     debug.feeds.push(feedDbg);
 
@@ -94,23 +120,32 @@ export async function GET() {
 
     let candidateLinks: string[] = [];
 
+    // Map link->pubDate for later use
+    const pubByLink = new Map<string, string>();
+
     if (rssResp.ok && !/Your request has been blocked/i.test(rssResp.text)) {
       // Parse RSS
       try {
         const j = parser.parse(rssResp.text);
-        const items = toArray<any>(j?.rss?.channel?.item);
+        type RssItem = { link?: string | string[]; pubDate?: string };
+        const items = toArray<RssItem>(j?.rss?.channel?.item);
         feedDbg.itemsFromRss = items.length;
-        candidateLinks = items
-          .map((it: any) =>
-            typeof it?.link === 'string'
-              ? it.link
-              : Array.isArray(it?.link)
-              ? it.link[0]
-              : null
-          )
-          .filter(Boolean);
-      } catch (e: any) {
-        feedDbg.itemErrors.push(`RSS parse failed: ${e?.message}`);
+        const links: string[] = [];
+        for (const it of items) {
+          const link: string | null =
+            typeof it?.link === 'string' ? it.link
+            : Array.isArray(it?.link) && typeof it.link[0] === 'string' ? it.link[0]
+            : null;
+          if (link) {
+            links.push(link);
+            const pd: string | null = typeof it?.pubDate === 'string' ? it.pubDate : null;
+            if (pd) pubByLink.set(link, pd);
+          }
+        }
+        candidateLinks = links;
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : 'unknown error';
+        feedDbg.itemErrors.push(`RSS parse failed: ${msg}`);
       }
     } else {
       feedDbg.itemErrors.push(`RSS blocked or bad status`);
@@ -166,25 +201,33 @@ export async function GET() {
       }
 
       const parsed = parseListingHtml(detailResp.text);
+      // Prefer RSS pubDate when available; else use parsed postedAt
+      let posted_at: string | null = null;
+      const pd = pubByLink.get(link);
+      if (pd) {
+        try { const d = new Date(pd); if (!isNaN(d.getTime())) posted_at = d.toISOString(); } catch {}
+      }
+      if (!posted_at && parsed.postedAt) posted_at = parsed.postedAt;
 
-      const { error: upErr } = await supaAdmin.from('listings').upsert(
-        {
-          source: 'craigslist',
-          remote_id: remoteId,
-          url: link,
-          title: parsed.title ?? null,
-          price: parsed.price,
-          city: parsed.city,
-          mileage: parsed.mileage,
-          title_status: parsed.titleStatus,
-          vin: parsed.vin,
-          year: parsed.year,
-          make: parsed.make,
-          model: parsed.model,
-          posted_at: null, // no pubDate when from HTML list; it's fine
-        },
-        { onConflict: 'source,remote_id' }
-      );
+      const row: Record<string, unknown> = {
+        source: 'craigslist',
+        remote_id: remoteId,
+        url: link,
+        title: parsed.title ?? null,
+        price: parsed.price,
+        city: parsed.city,
+        mileage: parsed.mileage,
+        title_status: parsed.titleStatus,
+        vin: parsed.vin,
+        year: parsed.year,
+        make: parsed.make,
+        model: parsed.model,
+      };
+      if (posted_at) row.posted_at = posted_at;
+
+      const { error: upErr } = await supaAdmin
+        .from('listings')
+        .upsert(row, { onConflict: 'source,remote_id' });
       if (upErr) {
         feedDbg.itemErrors.push(`upsert error: ${upErr.message} :: ${link}`);
         continue;

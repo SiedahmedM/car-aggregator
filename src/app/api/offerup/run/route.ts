@@ -4,9 +4,11 @@ import { supaAdmin } from '@/lib/supabase-admin';
 
 export const runtime = 'nodejs';
 
-async function getSearchesForTodayOrLast() {
+type OfferupSearch = { id: string; params: unknown; created_at?: string; date_key?: string; active?: boolean };
+
+async function getSearchesForTodayOrLast(): Promise<OfferupSearch[]> {
   const today = new Date().toISOString().slice(0, 10);
-  let { data: todays, error } = await supaAdmin
+  const { data: todays, error } = await supaAdmin
     .from('offerup_searches')
     .select('*')
     .eq('date_key', today)
@@ -35,24 +37,26 @@ async function getSearchesForTodayOrLast() {
 }
 
 export async function POST(req: Request) {
-  let body: any = {};
+  type RunBody = { searchIds?: string[] };
+  let body: Partial<RunBody> = {};
   const ctype = req.headers.get('content-type') || '';
   if (ctype.includes('application/json')) {
-    body = await req.json().catch(() => ({}));
+    const parsed = await req.json().catch(() => ({}));
+    body = (parsed && typeof parsed === 'object') ? (parsed as Partial<RunBody>) : {};
   } else {
     const fd = await req.formData();
     const ids = fd.getAll('searchIds[]').map(String).filter(Boolean);
     body.searchIds = ids.length ? ids : undefined;
   }
   const searchIds: string[] | undefined = body.searchIds;
-  let searches: any[] = [];
+  let searches: OfferupSearch[] = [];
   if (Array.isArray(searchIds) && searchIds.length) {
     const { data, error } = await supaAdmin
       .from('offerup_searches')
       .select('*')
       .in('id', searchIds);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    searches = data || [];
+    searches = (data || []) as OfferupSearch[];
   } else {
     searches = await getSearchesForTodayOrLast();
   }

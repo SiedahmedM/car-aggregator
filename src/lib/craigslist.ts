@@ -17,6 +17,7 @@ export function parseListingHtml(html: string) {
     make: null,
     model: null,
     title: null,
+    postedAt: null,
   }
 
   const priceMatch = html.match(/<span[^>]*class=['"]price['"][^>]*>\s*\$?([\d,.]+)/i)
@@ -37,6 +38,22 @@ export function parseListingHtml(html: string) {
   const titleMatch = html.match(/<span[^>]*id=['"]titletextonly['"][^>]*>([^<]+)<\/span>/i)
   const title = titleMatch ? titleMatch[1].trim() : null
 
+  // Posted date: try <time datetime="..."> then meta tags as fallback
+  let postedAt: string | null = null
+  const timeMatch = html.match(/<time[^>]*datetime=['"]([^'"]+)['"]/i)
+  if (timeMatch) {
+    const raw = timeMatch[1].trim()
+    const iso = toIsoMaybe(raw)
+    if (iso) postedAt = iso
+  } else {
+    // Sometimes appears in JSON-LD or meta name="date"/"pubdate"
+    const metaMatch = html.match(/<meta[^>]+(itemprop|name)=["'](?:datePublished|date|pubdate)["'][^>]*content=["']([^"']+)["'][^>]*>/i)
+    if (metaMatch) {
+      const iso = toIsoMaybe(metaMatch[2])
+      if (iso) postedAt = iso
+    }
+  }
+
   let year: number | null = null
   let make: string | null = null
   let model: string | null = null
@@ -49,7 +66,7 @@ export function parseListingHtml(html: string) {
     }
   }
 
-  return { price, city, mileage, titleStatus, vin, year, make, model, title }
+  return { price, city, mileage, titleStatus, vin, year, make, model, title, postedAt }
 }
 
 function toNumber(s: string): number | null {
@@ -59,3 +76,12 @@ function toNumber(s: string): number | null {
 
 function capitalize(s: string) { return s ? s[0].toUpperCase() + s.slice(1) : s }
 
+function toIsoMaybe(s: string): string | null {
+  try {
+    // normalize space to 'T' if needed
+    const norm = /\d{2}:\d{2}/.test(s) && !/T/.test(s) ? s.replace(' ', 'T') : s
+    const d = new Date(norm)
+    if (isNaN(d.getTime())) return null
+    return d.toISOString()
+  } catch { return null }
+}

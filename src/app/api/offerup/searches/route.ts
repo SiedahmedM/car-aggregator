@@ -18,26 +18,40 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  let body: any = {};
+  type OfferupParams = {
+    minYear?: number;
+    maxYear?: number;
+    models?: string[];
+    minPrice?: number;
+    maxPrice?: number;
+    postedWithinHours?: number;
+    radius?: number;
+  };
+  type CreateBody = { name?: string; params?: OfferupParams; date_key?: string };
+  let body: Partial<CreateBody> = {};
   const ctype = req.headers.get('content-type') || '';
   if (ctype.includes('application/json')) {
-    body = await req.json().catch(() => ({}));
+    const parsed = await req.json().catch(() => ({}));
+    body = (parsed && typeof parsed === 'object') ? (parsed as Partial<CreateBody>) : {};
   } else {
     const fd = await req.formData();
-    body = Object.fromEntries(fd.entries());
+    const entries = Object.fromEntries(fd.entries()) as Record<string, FormDataEntryValue>;
+    body = {};
     // Map discrete fields into params JSON
-    const p: any = {};
-    if (body.minYear) p.minYear = parseInt(String(body.minYear), 10) || undefined;
-    if (body.maxYear) p.maxYear = parseInt(String(body.maxYear), 10) || undefined;
-    if (body.models) p.models = String(body.models).split(',').map((s: string) => s.trim()).filter(Boolean);
-    if (body.minPrice) p.minPrice = parseInt(String(body.minPrice), 10) || undefined;
-    if (body.maxPrice) p.maxPrice = parseInt(String(body.maxPrice), 10) || undefined;
-    if (body.postedWithinHours) p.postedWithinHours = parseInt(String(body.postedWithinHours), 10) || undefined;
-    if (body.radius) p.radius = parseInt(String(body.radius), 10) || undefined;
+    const p: OfferupParams = {};
+    if (entries.minYear) p.minYear = parseInt(String(entries.minYear), 10) || undefined;
+    if (entries.maxYear) p.maxYear = parseInt(String(entries.maxYear), 10) || undefined;
+    if (entries.models) p.models = String(entries.models).split(',').map((s: string) => s.trim()).filter(Boolean);
+    if (entries.minPrice) p.minPrice = parseInt(String(entries.minPrice), 10) || undefined;
+    if (entries.maxPrice) p.maxPrice = parseInt(String(entries.maxPrice), 10) || undefined;
+    if (entries.postedWithinHours) p.postedWithinHours = parseInt(String(entries.postedWithinHours), 10) || undefined;
+    if (entries.radius) p.radius = parseInt(String(entries.radius), 10) || undefined;
     body.params = p;
+    if (entries.name) body.name = String(entries.name);
+    if (entries.date_key) body.date_key = String(entries.date_key);
   }
   const name: string = body.name || 'Search';
-  const params: any = body.params || {};
+  const params: OfferupParams = body.params || {};
   const date_key: string = body.date_key || new Date().toISOString().slice(0, 10);
   const { data, error } = await supaAdmin
     .from('offerup_searches')

@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-type Search = { id: string; name: string; params: any; created_at: string; date_key: string; active: boolean };
-type Job = { id: string; search_id: string; status: string; created_at: string; started_at?: string; finished_at?: string; result?: any; error?: string };
+type Search = { id: string; name: string; params: unknown; created_at: string; date_key: string; active: boolean };
+type JobResult = { inserted?: number; skipped?: number; errors?: unknown };
+type Job = { id: string; search_id: string; status: string; created_at: string; started_at?: string; finished_at?: string; result?: JobResult; error?: string };
 
 export default function SearchesClient({ initialSearches, initialJobs }: { initialSearches: Search[]; initialJobs: Job[] }) {
   const [searches, setSearches] = useState<Search[]>(initialSearches);
@@ -34,9 +35,10 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
 
   async function onSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const form = e.currentTarget;
     setBusy(true);
     try {
-      const fd = new FormData(e.currentTarget);
+      const fd = new FormData(form);
       const body = {
         name: String(fd.get('name') || 'Search'),
         params: {
@@ -52,7 +54,7 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
       const res = await fetch('/api/offerup/searches', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
       if (res.ok) {
         await refreshSearches();
-        e.currentTarget.reset();
+        form.reset();
       }
     } finally { setBusy(false); }
   }
@@ -71,6 +73,21 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
       await fetch('/api/offerup/run', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ searchIds: [id] }) });
       await refreshJobs();
     } finally { setBusy(false); }
+  }
+
+  async function cancelJob(id: string) {
+    setBusy(true);
+    try {
+      await fetch('/api/offerup/jobs/cancel', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jobIds: [id] }) });
+      await refreshJobs();
+    } finally { setBusy(false); }
+  }
+
+  function formatErrors(value: unknown, status: string): string {
+    if (value == null) return status === 'error' ? '1+' : '-';
+    if (Array.isArray(value)) return String(value.length);
+    if (typeof value === 'string' || typeof value === 'number') return String(value);
+    return '-';
   }
 
   return (
@@ -119,6 +136,7 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
                 <th className="py-2 pr-3">Inserted</th>
                 <th className="py-2 pr-3">Skipped</th>
                 <th className="py-2 pr-3">Errors</th>
+                <th className="py-2 pr-3">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -128,7 +146,12 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
                   <td className="py-2 pr-3">{j.status}</td>
                   <td className="py-2 pr-3">{j.result?.inserted ?? '-'}</td>
                   <td className="py-2 pr-3">{j.result?.skipped ?? '-'}</td>
-                  <td className="py-2 pr-3">{j.result?.errors ?? (j.status === 'error' ? '1+' : '-')}</td>
+                  <td className="py-2 pr-3">{formatErrors(j.result?.errors, j.status)}</td>
+                  <td className="py-2 pr-3">
+                    {(j.status === 'running' || j.status === 'pending') && (
+                      <button onClick={() => cancelJob(j.id)} disabled={busy} className="rounded bg-red-600 hover:bg-red-500 px-2 py-1 text-xs text-white">Stop</button>
+                    )}
+                  </td>
                 </tr>
               ))}
               {!jobs.length && (
@@ -141,4 +164,3 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
     </div>
   );
 }
-
