@@ -47,9 +47,15 @@ function runOfferupWithEnv(jobId: string, params: any): Promise<{ ok: boolean; i
     // Map params to env filters
     if (params.minYear) env.OU_FILTER_MIN_YEAR = String(params.minYear);
     if (params.maxYear) env.OU_FILTER_MAX_YEAR = String(params.maxYear);
+    if (params.minMileage) env.OU_FILTER_MIN_MILEAGE = String(params.minMileage);
+    if (params.maxMileage) env.OU_FILTER_MAX_MILEAGE = String(params.maxMileage);
     if (params.minPrice) env.OU_FILTER_MIN_PRICE = String(params.minPrice);
     if (params.maxPrice) env.OU_FILTER_MAX_PRICE = String(params.maxPrice);
     if (Array.isArray(params.models) && params.models.length) env.OU_FILTER_MODELS = params.models.join(',');
+    // If no explicit models, treat the saved-search name as a model hint
+    if ((!params.models || params.models.length === 0) && params.name) {
+      env.OU_FILTER_MODELS = String(params.name);
+    }
     if (params.postedWithinHours) env.OU_FILTER_POSTED_WITHIN_HOURS = String(params.postedWithinHours);
     if (params.lat) env.OU_LAT = String(params.lat);
     if (params.lng) env.OU_LNG = String(params.lng);
@@ -103,10 +109,21 @@ async function processOne() {
     patch.status = 'cancelled';
   } else if (result.ok) {
     patch.status = 'success';
-    patch.result = { inserted: result.inserted || 0, skipped: result.skipped || 0, errors: result.errors || 0 };
+    patch.result = {
+      inserted: result.inserted || 0,
+      skipped: result.skipped || 0,
+      errors: result.errors || 0,
+      log: (result.raw || '').slice(0, 20000),
+    };
   } else {
     patch.status = 'error';
     patch.error = (result.raw || '').slice(0, 10000);
+    patch.result = {
+      inserted: result.inserted || 0,
+      skipped: result.skipped || 0,
+      errors: result.errors || 0,
+      log: (result.raw || '').slice(0, 20000),
+    };
   }
   const { error } = await supaSvc.from('offerup_jobs').update(patch).eq('id', job.id);
   if (error) console.error('update job error:', error.message);
@@ -127,10 +144,21 @@ async function main() {
         patch.status = 'cancelled';
       } else if (result.ok) {
         patch.status = 'success';
-        patch.result = { inserted: result.inserted || 0, skipped: result.skipped || 0, errors: result.errors || 0 };
+        patch.result = {
+          inserted: result.inserted || 0,
+          skipped: result.skipped || 0,
+          errors: result.errors || 0,
+          log: (result.raw || '').slice(0, 20000),
+        };
       } else {
         patch.status = 'error';
         patch.error = (result.raw || '').slice(0, 10000);
+        patch.result = {
+          inserted: result.inserted || 0,
+          skipped: result.skipped || 0,
+          errors: result.errors || 0,
+          log: (result.raw || '').slice(0, 20000),
+        };
       }
       const { error } = await supaSvc.from('offerup_jobs').update(patch).eq('id', j.id);
       if (error) console.error('update job error:', error.message);

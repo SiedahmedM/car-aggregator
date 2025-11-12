@@ -111,3 +111,25 @@ The worker maps saved-search params to these env vars and executes the script vi
 Notes:
 - Running Playwright in serverless (e.g., Vercel) is not recommended. Keep the worker on a long-lived host/VM/container with Chrome dependencies installed.
 - Geolocation/UA settings remain as in `scripts/offerup.ts`; adjust `OU_LAT`, `OU_LNG`, `OU_RADIUS_MILES` per search if needed.
+
+### OfferUp performance knobs and tuning
+
+New optional environment flags to speed up scraping:
+
+- `OU_FAST_MODE` (default: false): Skip the homepage prime, reduce scroll passes and sleeps, and tighten timeouts.
+- `OU_DETAIL_CONCURRENCY` (default: 2): Number of Playwright pages used in parallel to enrich item details. Pages are reused via a small pool to avoid frequent creation/teardown costs.
+- `OU_WORKER_CONCURRENCY` (default: 1): Number of OfferUp jobs to process in parallel in `scripts/offerup_worker.ts`. Prefer scaling `OU_DETAIL_CONCURRENCY` first before increasing this.
+- `OU_FEED_ONLY` (default: false): Insert listings immediately from the client feed (no VIN/description). Use a later run (or another job) to enrich details.
+- `OU_DIRECT_FEED` (default: false): Attempt to reuse the last captured client feed request (saved in `offerup_feed_req.json`) to fetch looseTiles directly without scrolling the browser. Falls back to the browser path if unavailable or blocked.
+
+Sizing guidance (starting points):
+
+- 2 vCPU / 4 GB RAM host:
+  - `OU_DETAIL_CONCURRENCY=3`, `OU_WORKER_CONCURRENCY=1`
+- 4 vCPU / 8 GB RAM host:
+  - `OU_DETAIL_CONCURRENCY=4..6`, `OU_WORKER_CONCURRENCY=1..2`
+
+How to find safe values for your environment:
+1. Start with `OU_DETAIL_CONCURRENCY=2`, run one job, and observe CPU and memory (each Playwright page can consume ~150–300 MB RSS depending on site).
+2. Increase `OU_DETAIL_CONCURRENCY` by 1 until you observe timeouts/retries or sustained CPU > ~85%, then back off by one.
+3. If running many saved searches together, prefer keeping `OU_WORKER_CONCURRENCY` low (often 1) and rely on detail concurrency for throughput.

@@ -21,6 +21,8 @@ export async function POST(req: Request) {
   type OfferupParams = {
     minYear?: number;
     maxYear?: number;
+    minMileage?: number;
+    maxMileage?: number;
     models?: string[];
     minPrice?: number;
     maxPrice?: number;
@@ -41,6 +43,8 @@ export async function POST(req: Request) {
     const p: OfferupParams = {};
     if (entries.minYear) p.minYear = parseInt(String(entries.minYear), 10) || undefined;
     if (entries.maxYear) p.maxYear = parseInt(String(entries.maxYear), 10) || undefined;
+    if (entries.minMileage) p.minMileage = parseInt(String(entries.minMileage), 10) || undefined;
+    if (entries.maxMileage) p.maxMileage = parseInt(String(entries.maxMileage), 10) || undefined;
     if (entries.models) p.models = String(entries.models).split(',').map((s: string) => s.trim()).filter(Boolean);
     if (entries.minPrice) p.minPrice = parseInt(String(entries.minPrice), 10) || undefined;
     if (entries.maxPrice) p.maxPrice = parseInt(String(entries.maxPrice), 10) || undefined;
@@ -51,7 +55,11 @@ export async function POST(req: Request) {
     if (entries.date_key) body.date_key = String(entries.date_key);
   }
   const name: string = body.name || 'Search';
-  const params: OfferupParams = body.params || {};
+  const params: OfferupParams = { ...(body.params || {}) };
+  // If user didn't explicitly provide models, treat the "name" as model hint
+  if ((!params.models || params.models.length === 0) && name && name !== 'Search') {
+    params.models = [name.trim()];
+  }
   const date_key: string = body.date_key || new Date().toISOString().slice(0, 10);
   const { data, error } = await supaAdmin
     .from('offerup_searches')

@@ -24,6 +24,8 @@ const LNG = Number(process.env.OU_LNG ?? '-118.0373');
 const RADIUS = parseInt(process.env.OU_RADIUS_MILES || '35', 10);
 const DETAIL_CONCURRENCY = parseInt(process.env.OU_DETAIL_CONCURRENCY || '2', 10);
 const FAST_MODE = (process.env.OU_FAST_MODE ?? 'false').toLowerCase() === 'true';
+const FEED_ONLY = (process.env.OU_FEED_ONLY ?? 'false').toLowerCase() === 'true';
+const DIRECT_FEED = (process.env.OU_DIRECT_FEED ?? 'false').toLowerCase() === 'true';
 const allowedCities = (process.env.OU_ALLOWED_CITIES || '')
   .split(',')
   .map(s => s.trim().toLowerCase())
@@ -35,6 +37,8 @@ const F_MIN_YEAR = parseInt(process.env.OU_FILTER_MIN_YEAR || '', 10) || null;
 const F_MAX_YEAR = parseInt(process.env.OU_FILTER_MAX_YEAR || '', 10) || null;
 const F_MIN_PRICE = parseInt(process.env.OU_FILTER_MIN_PRICE || '', 10) || null;
 const F_MAX_PRICE = parseInt(process.env.OU_FILTER_MAX_PRICE || '', 10) || null;
+const F_MIN_MILEAGE = parseInt(process.env.OU_FILTER_MIN_MILEAGE || '', 10) || null;
+const F_MAX_MILEAGE = parseInt(process.env.OU_FILTER_MAX_MILEAGE || '', 10) || null;
 const F_MODELS = (process.env.OU_FILTER_MODELS || '')
   .split(',')
   .map(s => s.trim().toLowerCase())
@@ -45,6 +49,11 @@ const F_POSTED_WITHIN_HOURS = parseInt(process.env.OU_FILTER_POSTED_WITHIN_HOURS
 // ---------- Helpers ----------
 function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
 function jitter(min=200, max=450) { return Math.floor(Math.random()*(max-min+1))+min; }
+function chunked<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i=0;i<arr.length;i+=size) out.push(arr.slice(i, i+size));
+  return out;
+}
 function parseMi(s?: string|null): number|null {
   if (!s) return null;
   const m = s.match(/(\d{1,3})\s*mi\b/i);
@@ -103,17 +112,32 @@ type FeedItem = {
   postedAt?: string | null;
 };
 
+function inferFromTitle(title?: string|null): { year: number|null; make: string|null; model: string|null } {
+  if (!title) return { year: null, make: null, model: null };
+  let year: number|null = null;
+  const y = title.match(/\b(19|20)\d{2}\b/);
+  if (y) year = sanitizeYear(parseInt(y[0], 10));
+  const t = y ? title.replace(/\b(19|20)\d{2}\b/, '').trim() : title.trim();
+  const parts = t.split(/\s+/).filter(Boolean);
+  const make = parts[0] || null;
+  const model = parts.length > 1 ? parts.slice(1).join(' ') : null;
+  return { year, make, model };
+}
+
 function matchesFilters(row: {
   price: number|null;
   year: number|null;
+  mileage: number|null;
   model: string|null;
   posted_at: string|null;
 }): boolean {
-  const { price, year, model, posted_at } = row;
+  const { price, year, mileage, model, posted_at } = row;
   if (F_MIN_YEAR != null && (year == null || year < F_MIN_YEAR)) return false;
   if (F_MAX_YEAR != null && (year == null || year > F_MAX_YEAR)) return false;
   if (F_MIN_PRICE != null && (price == null || price < F_MIN_PRICE)) return false;
   if (F_MAX_PRICE != null && (price == null || price > F_MAX_PRICE)) return false;
+  if (F_MIN_MILEAGE != null && (mileage == null || mileage < F_MIN_MILEAGE)) return false;
+  if (F_MAX_MILEAGE != null && (mileage == null || mileage > F_MAX_MILEAGE)) return false;
   if (F_MODELS.length) {
     const m = (model || '').toLowerCase();
     if (!F_MODELS.some(x => m.includes(x))) return false;
@@ -216,6 +240,35 @@ async function readFromAria(page: Page): Promise<FeedItem[]> {
     out.push({ id, url, city, distanceMi });
   }
   return out;
+}
+
+async function withPagePool<T>(
+  ctx: import('playwright').BrowserContext,
+  urls: string[],
+  concurrency: number,
+  worker: (page: Page, url: string) => Promise<T|null|undefined>
+): Promise<T[]> {
+  const pages = await Promise.all(Array.from({ length: Math.max(1, concurrency) }, () => ctx.newPage()));
+  const results: T[] = [];
+  let cursor = 0;
+  await Promise.all(pages.map(async (page) => {
+    try {
+      // round-robin consumption
+      for (;;) {
+        const idx = cursor++;
+        const url = urls[idx];
+        if (!url) break;
+        try {
+          const res = await worker(page, url);
+          if (res != null) results.push(res as T);
+        } catch {}
+        await sleep(180 + jitter(60, 180));
+      }
+    } finally {
+      await page.close().catch(() => {});
+    }
+  }));
+  return results;
 }
 
 async function confirmGeo(p: Page) {
@@ -380,17 +433,49 @@ async function run() {
     await route.continue();
   });
 
-// ---------- Prime on homepage only ----------
-await pRetry(async () => {
-  await page.goto('https://offerup.com/', { waitUntil: 'domcontentloaded', timeout: 60_000 });
-  const accept = page.getByRole('button', { name: /accept/i });
-  if (await accept.count()) await accept.first().click().catch(() => {});
-  // optional: resolve navigator.geolocation (won't hurt)
-  await page.evaluate(() => new Promise<void>(res => {
-    try { navigator.geolocation.getCurrentPosition(() => res(), () => res()); } catch { res(); }
-  }));
-  await page.waitForTimeout(700);
-}, { retries: 2, minTimeout: 800 });
+// ---------- Optional direct feed shortcut (no scrolling) ----------
+let directFeedUsed = false;
+if (DIRECT_FEED) {
+  try {
+    const reqRaw = await fs.readFile('offerup_feed_req.json', 'utf8').catch(() => null);
+    if (reqRaw) {
+      const saved = JSON.parse(reqRaw) as { url: string; method: string; headers: Record<string,string>; postData: string };
+      const headers: Record<string, string> = { ...(saved.headers || {}) };
+      // Remove hop-by-hop / compression specifics that can cause issues
+      delete (headers as any)['content-length'];
+      delete (headers as any)['accept-encoding'];
+      const resp = await fetch(saved.url, {
+        method: saved.method || 'POST',
+        headers,
+        body: saved.postData,
+      });
+      if (resp.ok) {
+        const body = await resp.json().catch(() => null);
+        if (body && JSON.stringify(body).includes('"looseTiles"')) {
+          apiFeedJson = body;
+          directFeedUsed = true;
+          console.log('Direct feed fetched via saved request (OU_DIRECT_FEED=true)');
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('DIRECT_FEED failed, will fall back to browser:', (e as any)?.message || e);
+  }
+}
+
+// ---------- Prime on homepage (skip in FAST_MODE) ----------
+if (!FAST_MODE) {
+  await pRetry(async () => {
+    await page.goto('https://offerup.com/', { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    const accept = page.getByRole('button', { name: /accept/i });
+    if (await accept.count()) await accept.first().click().catch(() => {});
+    // optional: resolve navigator.geolocation (won't hurt)
+    await page.evaluate(() => new Promise<void>(res => {
+      try { navigator.geolocation.getCurrentPosition(() => res(), () => res()); } catch { res(); }
+    }));
+    await page.waitForTimeout(500);
+  }, { retries: 2, minTimeout: 800 });
+}
 
 // ---------- Category ----------
 console.log('Navigating category:', SEARCH_URL);
@@ -424,12 +509,15 @@ await pRetry(async () => {
 
   
 
-
   // ---------- Scroll to load ----------
-  for (let i=0;i<SCROLLS;i++){
-    await page.mouse.wheel(0, 3500);
-    await sleep(700 + jitter());
-    await page.waitForSelector('[data-testid="feed-item-card"], a[href*="/item/detail/"]', { timeout: 15000 }).catch(() => {});
+  const intendedScrolls = FAST_MODE ? Math.min(SCROLLS, 2) : SCROLLS;
+  // If directFeed already captured enough, skip scrolls
+  if (!(directFeedUsed && apiFeedJson)) {
+    for (let i=0;i<intendedScrolls;i++){
+      await page.mouse.wheel(0, 3500);
+      await sleep(FAST_MODE ? 250 + jitter(40,120) : 700 + jitter());
+      await page.waitForSelector('[data-testid="feed-item-card"], a[href*="/item/detail/"]', { timeout: 15000 }).catch(() => {});
+    }
   }
 
   // ---------- Prefer client feed over SSR if available ----------
@@ -459,6 +547,7 @@ await pRetry(async () => {
   console.log('Sample feed cities:', sampleCities);
 
   // ---------- Filter by radius / cities (safety net) ----------
+  const t0 = Date.now();
   let candidates = feed.filter(c => (c.distanceMi == null ? true : c.distanceMi <= RADIUS));
   if (allowedCities.length) {
     candidates = candidates.filter(c => (c.city ? allowedCities.includes(c.city.toLowerCase()) : true));
@@ -477,8 +566,89 @@ await pRetry(async () => {
 
   console.log(`Feed items: ${feed.length}; after filter: ${links.length}`);
 
-  // ---------- Detail loop & insert ----------
-  let inserted = 0, skipped = 0, errors = 0;
+  // ---------- Batch-exists check (avoid per-item queries) ----------
+  const remoteIds = links
+    .map(u => u.match(/\/item\/detail\/([^/?#]+)/)?.[1] || null)
+    .filter((x): x is string => Boolean(x));
+
+  let existingIds = new Set<string>();
+  if (remoteIds.length) {
+    const { data: rows, error } = await supaSvc
+      .from('listings')
+      .select('remote_id')
+      .eq('source', 'offerup')
+      .in('remote_id', remoteIds);
+    if (error) {
+      console.warn('batch exists error:', error.message);
+    } else {
+      existingIds = new Set((rows || []).map(r => (r as any).remote_id));
+    }
+  }
+  const newIds = new Set(remoteIds.filter(id => !existingIds.has(id)));
+
+  const REQUIRE_DETAIL_FOR_TIME = F_POSTED_WITHIN_HOURS != null;
+
+  // ---------- Feed-first upsert for new items ----------
+  const feedToInsert = feed
+    .filter(f => f.id && newIds.has(f.id))
+    .map(f => {
+      const inferred = inferFromTitle(f.title || null);
+      return { f, inferred };
+    })
+    // Apply strict filters that are reliable from feed (price/year/model).
+    // Skip postedWithinHours here because feed often lacks timestamps; enforce it in detail phase.
+    .filter(({ f, inferred }) => {
+      return matchesFilters({
+        price: f.price ?? null,
+        year: inferred.year,
+        mileage: f.mileage ?? null,
+        model: (inferred.model || '').toLowerCase() || null,
+        posted_at: REQUIRE_DETAIL_FOR_TIME ? new Date().toISOString() : (f.postedAt ?? null),
+      });
+    })
+    .map(({ f, inferred }) => ({ f, inferred }));
+  let inserted = 0, skipped = remoteIds.length - feedToInsert.length, errors = 0;
+  // If hours filter is set, avoid inserting from feed (timestamps unreliable). Defer to detail phase.
+  if (feedToInsert.length && !REQUIRE_DETAIL_FOR_TIME) {
+    for (const group of chunked(feedToInsert, 100)) {
+      const payload = group.map(({ f, inferred }) => ({
+        source: 'offerup',
+        remote_id: f.id!,
+        url: f.url,
+        title: f.title ?? null,
+        price: f.price ?? null,
+        city: f.city ?? null,
+        mileage: f.mileage ?? null,
+        posted_at: f.postedAt ?? null,
+        year: inferred.year,
+        make: inferred.make,
+        model: inferred.model,
+      }));
+      const up = await supaSvc.from('listings').upsert(payload, { onConflict: 'source,remote_id' });
+      if (up.error) {
+        console.warn('feed upsert error', up.error.message);
+        errors++;
+      } else {
+        inserted += payload.length;
+      }
+    }
+  }
+  const feedPhaseMs = Date.now() - t0;
+  console.log(`Feed-phase: ${REQUIRE_DETAIL_FOR_TIME ? 'skipped upsert due to hours filter' : `upserted ${feedToInsert.length} new`} in ${feedPhaseMs} ms (skipped existing: ${skipped})`);
+
+  if (FEED_ONLY && !REQUIRE_DETAIL_FOR_TIME) {
+    console.log(JSON.stringify({ ok: true, inserted, skipped, errors, mode: 'FEED_ONLY' }, null, 2));
+    await browser.close();
+    return;
+  }
+
+  // Only enrich details for new items
+  const linksForNew = links.filter(u => {
+    const id = u.match(/\/item\/detail\/([^/?#]+)/)?.[1] || null;
+    return id && newIds.has(id);
+  });
+  // ---------- Detail enrichment & batch upsert ----------
+  const enrichT0 = Date.now();
 
   // Tiny helper for detail parsing (title/price/city/VIN and mild heuristics)
   const VIN_RE = /\b[A-HJ-NPR-Z0-9]{17}\b/i;
@@ -582,49 +752,31 @@ await pRetry(async () => {
     if (f.id) feedById.set(f.id, f);
   }
 
-  for (const url of links) {
+  const detailCandidates = await withPagePool<any>(ctx, linksForNew, DETAIL_CONCURRENCY, async (detail, url) => {
     const remote_id = url.match(/\/item\/detail\/([^/?#]+)/)?.[1] || null;
-    if (!remote_id) { skipped++; continue; }
-
-    // exists?
-    const { data: exists, error: exErr } = await supaSvc
-      .from('listings')
-      .select('id')
-      .eq('source', 'offerup')
-      .eq('remote_id', remote_id)
-      .limit(1)
-      .maybeSingle();
-
-    if (exErr) { console.warn('exists check error', exErr.message); errors++; continue; }
-    if (exists) { skipped++; continue; }
-
-    const detail = await ctx.newPage();
+    if (!remote_id) return null;
     try {
       await pRetry(async () => {
-        await detail.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+        await detail.goto(url, { waitUntil: 'domcontentloaded', timeout: FAST_MODE ? 15_000 : 45_000 });
         await Promise.race([
-          detail.waitForSelector('[data-testid="listing-price"]', { timeout: 8000 }),
-          detail.waitForSelector('h1', { timeout: 8000 }),
+          detail.waitForSelector('[data-testid="listing-price"]', { timeout: 6000 }),
+          detail.waitForSelector('h1', { timeout: 6000 }),
         ]).catch(() => {});
-      }, { retries: 2, minTimeout: 1200, factor: 1.5 });
+      }, { retries: 2, minTimeout: FAST_MODE ? 600 : 1200, factor: 1.5 });
 
-      await sleep(700 + jitter());
+      if (!FAST_MODE) await sleep(500 + jitter(80, 160));
       const data = await parseDetail(detail);
       const feedItem = feedById.get(remote_id);
-      // Fallbacks from client feed when detail parsing is missing
       const price = data.price ?? feedItem?.price ?? null;
       const city = data.city ?? feedItem?.city ?? null;
       const mileage = data.mileage ?? feedItem?.mileage ?? null;
       const posted_at = data.posted_at ?? feedItem?.postedAt ?? null;
-      // Enrich title_status from feed title when available
       let title_status = data.title_status;
       if (!title_status && (feedItem?.title || '').toLowerCase()) {
         const t = (feedItem?.title || '').toLowerCase();
         if (/salvage/.test(t)) title_status = 'salvage';
         else if (/clean\s*title|clean-title|clean\s*ttl/.test(t)) title_status = 'clean';
       }
-
-      // Apply filters before upsert
       const candidate: any = {
         source: 'offerup',
         remote_id,
@@ -640,33 +792,35 @@ await pRetry(async () => {
         model: data.model,
       };
       if (posted_at) candidate.posted_at = posted_at;
-
       if (!matchesFilters({
         price: candidate.price ?? null,
         year: candidate.year ?? null,
+        mileage: candidate.mileage ?? null,
         model: candidate.model ?? null,
         posted_at: candidate.posted_at ?? null,
       })) {
-        skipped++;
-        continue;
+        return null;
       }
-
-      const up = await supaSvc.from('listings').upsert(candidate, { onConflict: 'source,remote_id' });
-
-      if (up.error) {
-        console.warn('upsert error', up.error.message, url);
-        errors++;
-      } else {
-        inserted++;
-      }
+      return candidate;
     } catch (e: any) {
       console.warn('detail error', e?.message, url);
       errors++;
-    } finally {
-      await detail.close();
-      await sleep(220 + jitter());
+      return null;
+    }
+  });
+
+  // Batch upsert detail-enriched rows
+  if (detailCandidates.length) {
+    for (const group of chunked(detailCandidates, 75)) {
+      const up = await supaSvc.from('listings').upsert(group, { onConflict: 'source,remote_id' });
+      if (up.error) {
+        console.warn('detail upsert error', up.error.message);
+        errors++;
+      }
     }
   }
+  const enrichMs = Date.now() - enrichT0;
+  console.log(`Detail-phase: enriched ${detailCandidates.length} in ${enrichMs} ms with concurrency=${DETAIL_CONCURRENCY}`);
 
   console.log(JSON.stringify({ ok: true, inserted, skipped, errors }, null, 2));
   await browser.close();
