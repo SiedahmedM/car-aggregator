@@ -23,6 +23,7 @@ export async function POST(req: Request) {
     maxYear?: number;
     minMileage?: number;
     maxMileage?: number;
+    makes?: string[];
     models?: string[];
     minPrice?: number;
     maxPrice?: number;
@@ -45,6 +46,7 @@ export async function POST(req: Request) {
     if (entries.maxYear) p.maxYear = parseInt(String(entries.maxYear), 10) || undefined;
     if (entries.minMileage) p.minMileage = parseInt(String(entries.minMileage), 10) || undefined;
     if (entries.maxMileage) p.maxMileage = parseInt(String(entries.maxMileage), 10) || undefined;
+    if (entries.makes) p.makes = String(entries.makes).split(',').map((s: string) => s.trim()).filter(Boolean);
     if (entries.models) p.models = String(entries.models).split(',').map((s: string) => s.trim()).filter(Boolean);
     if (entries.minPrice) p.minPrice = parseInt(String(entries.minPrice), 10) || undefined;
     if (entries.maxPrice) p.maxPrice = parseInt(String(entries.maxPrice), 10) || undefined;

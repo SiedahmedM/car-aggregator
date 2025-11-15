@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "offerup": "dotenv -e .env.local -- tsx ./scripts/offerup.ts",
-    "offerup:worker": "dotenv -e .env.local -- tsx ./scripts/offerup_worker.ts"
+    "offerup:worker": "dotenv -e .env.local -- tsx ./scripts/offerup_worker.ts",
+    "test:offerup:filters": "tsx ./scripts/tests/offerup_filters_test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.74.0",

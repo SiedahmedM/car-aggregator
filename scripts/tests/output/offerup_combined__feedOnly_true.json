@@ -1,0 +1,54 @@
+{
+  "ok": true,
+  "inserted": 0,
+  "skipped": 10,
+  "errors": 0,
+  "feedCount": 46,
+  "radiusCityCandidatesCount": 10,
+  "eligibleInFeed": 0,
+  "filteredIdsCount": 0,
+  "stats": {
+    "feedIntercepted": 0,
+    "feedInjected": 0,
+    "wrongFeedSkipped": 4,
+    "similarSkipped": 0,
+    "uiInteractions": 0,
+    "modelSrc": {
+      "title": 0,
+      "details": 0,
+      "jsonld": 0,
+      "nextdata": 0
+    },
+    "postedSrc": {
+      "timeTag": 0,
+      "jsonld": 0,
+      "nextdata": 0,
+      "relative": 0,
+      "missing": 0
+    },
+    "filterHintsReady": 0
+  },
+  "mode": "FEED_ONLY",
+  "filtersUsed": {
+    "minPrice": 4000,
+    "maxPrice": 25000,
+    "minYear": 2012,
+    "maxYear": 2022,
+    "minMileage": null,
+    "maxMileage": 150000,
+    "makes": [
+      "honda"
+    ],
+    "models": [
+      "civic"
+    ],
+    "postedWithinHours": null,
+    "radiusMiles": 35,
+    "lat": 33.8166,
+    "lng": -118.0373,
+    "strictModel": false,
+    "feedOnly": true,
+    "injectServerFilters": true
+  },
+  "results": []
+}

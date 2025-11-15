@@ -1,4 +1,5 @@
 import { chromium } from 'playwright';
+import fs from 'node:fs/promises';
 
 (async () => {
   const browser = await chromium.launch({ headless: false }); // headful so you can click
@@ -12,6 +13,34 @@ import { chromium } from 'playwright';
     viewport: { width: 430, height: 860 },
     timezoneId: 'America/Los_Angeles',
     locale: 'en-US',
+  });
+
+  await ctx.route("**/api/graphql", async (route) => {
+    const response = await route.fetch();
+
+    let text = "";
+    try {
+      // Playwright APIResponse
+      const buf = await response.body();
+      text = buf.toString("utf8");
+    } catch {
+      try {
+        // Browser Response fallback (rare)
+        text = await (response as any).text();
+      } catch {}
+    }
+
+    if (text && text.includes("modularFeed")) {
+      await fs.writeFile(
+        `offerup_gql_feed_CAPTURED_${Date.now()}.json`,
+        text
+      ).catch(() => {});
+      console.log("🟢 CAPTURED FEED FROM BOOTSTRAP/MAIN SCRIPT!");
+    }
+
+    return route.fulfill({
+      response, // passthrough
+    });
   });
 
   const page = await ctx.newPage();
@@ -29,5 +58,3 @@ import { chromium } from 'playwright';
   await browser.close();
   process.exit(0);
 })();
-
-

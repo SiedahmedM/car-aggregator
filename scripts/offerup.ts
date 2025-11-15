@@ -1,6 +1,5 @@
 // scripts/offerup.ts
 import { chromium, Page } from 'playwright';
-import pRetry from 'p-retry';
 import fs from 'node:fs/promises';
 import { createClient } from '@supabase/supabase-js';
 
@@ -15,21 +14,17 @@ const supaSvc = createClient(SUPA_URL, SUPA_KEY, {
 });
 
 // ---------- Env knobs ----------
-const SEARCH_URL = process.env.OFFERUP_URL || 'https://offerup.com/explore/k/cars-trucks';
-const MAX = parseInt(process.env.OU_MAX_ITEMS || '40', 10);
-const SCROLLS = parseInt(process.env.OU_SCROLL_PASSES || '6', 10);
+// Note: legacy OFFERUP_URL is ignored; we now rely solely on GraphQL active feed.
+// Item cap
+const MAX_ITEMS = parseInt(process.env.OU_MAX_ITEMS || '60', 10);
+// UI scroll passes removed
 const HEADLESS = (process.env.OU_HEADLESS ?? 'true').toLowerCase() === 'true';
 const LAT = Number(process.env.OU_LAT ?? '33.8166');
 const LNG = Number(process.env.OU_LNG ?? '-118.0373');
 const RADIUS = parseInt(process.env.OU_RADIUS_MILES || '35', 10);
-const DETAIL_CONCURRENCY = parseInt(process.env.OU_DETAIL_CONCURRENCY || '2', 10);
-const FAST_MODE = (process.env.OU_FAST_MODE ?? 'false').toLowerCase() === 'true';
-const FEED_ONLY = (process.env.OU_FEED_ONLY ?? 'false').toLowerCase() === 'true';
-const DIRECT_FEED = (process.env.OU_DIRECT_FEED ?? 'false').toLowerCase() === 'true';
-const allowedCities = (process.env.OU_ALLOWED_CITIES || '')
-  .split(',')
-  .map(s => s.trim().toLowerCase())
-  .filter(Boolean);
+const DETAIL_CONCURRENCY = Math.min(3, parseInt(process.env.OU_DETAIL_CONCURRENCY || '3', 10) || 3);
+const PAGINATE_PAGES = parseInt(process.env.OU_PAGINATE_PAGES || '6', 10);
+// UI/scroll/mobile fallbacks removed entirely
 
 // ---------- Optional filter knobs (applied before upsert) ----------
 // These allow the script to be driven by saved-search parameters.
@@ -43,8 +38,18 @@ const F_MODELS = (process.env.OU_FILTER_MODELS || '')
   .split(',')
   .map(s => s.trim().toLowerCase())
   .filter(Boolean);
+const F_MAKES = (process.env.OU_FILTER_MAKES || '')
+  .split(',')
+  .map(s => s.trim().toLowerCase())
+  .filter(Boolean);
 // Hours ago window, e.g. 24 means only posted within last 24h
+// No default; only filter by hours when explicitly provided
 const F_POSTED_WITHIN_HOURS = parseInt(process.env.OU_FILTER_POSTED_WITHIN_HOURS || '', 10) || null;
+
+// Desktop Chrome on macOS (force everywhere)
+const DESKTOP_UA =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
+  '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
 // ---------- Helpers ----------
 function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
@@ -54,6 +59,717 @@ function chunked<T>(arr: T[], size: number): T[][] {
   for (let i=0;i<arr.length;i+=size) out.push(arr.slice(i, i+size));
   return out;
 }
+
+// ---- GraphQL tapping & dumps -------------------------------------------
+const TAP_GQL = (process.env.OU_TAP_GQL ?? 'true').toLowerCase() === 'true';
+const GQL_DUMP_LIMIT = parseInt(process.env.OU_GQL_DUMP_LIMIT || '5', 10);
+const GQL_LOG_NONFEED = (process.env.OU_GQL_LOG_NONFEED ?? 'true').toLowerCase() === 'true';
+
+function tryParseJSON(s: string): any | null { try { return JSON.parse(s); } catch { return null; } }
+
+// Minimal client-trigger scroll removed; no DOM scroll used
+
+// ----- Active Feed (GraphQL) helpers -----
+type ModularFeedBody = {
+  data?: {
+    modularFeed?: {
+      looseTiles?: any[];
+      items?: any[];
+      pageCursor?: string | null;
+      nextCursor?: string | null;
+    }
+  }
+};
+
+function extractTilesAndCursorFromModularFeed(b: any): { tiles: any[]; cursor: string | null } {
+  try {
+    const mf = b?.data?.modularFeed;
+    if (!mf) return { tiles: [], cursor: null };
+    const loose = Array.isArray(mf.looseTiles) ? mf.looseTiles : [];
+    const items = Array.isArray(mf.items) ? mf.items : [];
+    const tiles = [...loose, ...items];
+    const cursor = mf.nextCursor ?? mf.pageCursor ?? null;
+    return { tiles, cursor };
+  } catch {
+    return { tiles: [], cursor: null };
+  }
+}
+
+async function fetchActiveFeedPages(
+  baseUrl: string,
+  headers: Record<string,string>,
+  searchParams: { key: string; value: string }[],
+  maxPages: number
+): Promise<ModularFeedBody[]> {
+  const bodies: ModularFeedBody[] = [];
+  const basePayload = {
+    operationName: 'GetModularFeed',
+    variables: { debug: false, searchParams },
+    query: null as any,
+  };
+  let cursor: string | null = null;
+  let pagesFetched = 0;
+  while (pagesFetched < maxPages) {
+    const payload: any = { ...basePayload, variables: { ...basePayload.variables } };
+    const params = Array.isArray(payload.variables.searchParams) ? [...payload.variables.searchParams] : [];
+    for (let i = params.length - 1; i >= 0; i--) {
+      const k = String(params[i]?.key || '').toLowerCase();
+      if (k.includes('cursor')) params.splice(i, 1);
+    }
+    if (cursor) params.push({ key: 'cursor', value: cursor });
+    payload.variables.searchParams = params;
+
+    const resp = await fetch(baseUrl, { method: 'POST', headers, body: JSON.stringify(payload) });
+    if (!resp.ok) break;
+    const json = await resp.json().catch(() => null);
+    if (!json || !json.data || !json.data.modularFeed) break;
+    bodies.push(json);
+    pagesFetched++;
+    const mf = json.data.modularFeed;
+    const srf = (json.data as any)?.searchFeedResponse;
+    const next = mf?.nextCursor ?? mf?.pageCursor ?? srf?.nextCursor ?? srf?.pageCursor ?? null;
+    if (!next || next === cursor) break;
+    cursor = next;
+  }
+  return bodies;
+}
+
+async function fetchActiveFeedPagesFromSaved(maxPages: number): Promise<ModularFeedBody[]> {
+  const bodies: ModularFeedBody[] = [];
+  let cursor: string | null = null;
+  let pagesFetched = 0;
+
+  let savedRaw: string | null = null;
+  try {
+    savedRaw = await fs.readFile('offerup_gql_feed_req.json', 'utf8');
+  } catch {
+    return bodies;
+  }
+  if (!savedRaw) return bodies;
+
+  const saved = JSON.parse(savedRaw) as {
+    url: string;
+    method: string;
+    headers: Record<string, string>;
+    postData: string;
+  };
+
+  const baseHeaders = { ...(saved.headers || {}) } as Record<string, string>;
+  delete (baseHeaders as any)['content-length'];
+  delete (baseHeaders as any)['accept-encoding'];
+
+  const originalBody = JSON.parse(saved.postData || '{}');
+  if (!originalBody || !originalBody.variables) return bodies;
+
+  while (pagesFetched < maxPages) {
+    const body = JSON.parse(JSON.stringify(originalBody));
+    const params: any[] = Array.isArray(body?.variables?.searchParams)
+      ? body.variables.searchParams
+      : [];
+
+    for (let i = params.length - 1; i >= 0; i--) {
+      const k = String(params[i]?.key || '').toLowerCase();
+      if (k.includes('cursor')) params.splice(i, 1);
+    }
+    const cap = Math.max(50, Math.min(200, Number(process.env.OU_MAX_ITEMS || '200')));
+    const li = params.findIndex((p: any) => String(p?.key || '').toUpperCase() === 'LIMIT');
+    if (li >= 0) params[li].value = String(cap); else params.push({ key: 'LIMIT', value: String(cap) });
+
+    if (cursor) params.push({ key: 'PAGE_CURSOR', value: cursor });
+    body.variables.searchParams = params;
+
+    const resp = await fetch(saved.url, {
+      method: saved.method || 'POST',
+      headers: baseHeaders,
+      body: JSON.stringify(body),
+    });
+    if (!resp.ok) break;
+
+    const json = (await resp.json().catch(() => null)) as ModularFeedBody | null;
+    if (!json) break;
+
+    const { tiles, cursor: next } = extractTilesAndCursorFromModularFeed(json);
+    if (!tiles.length) break;
+
+    bodies.push(json);
+    pagesFetched++;
+    cursor = next;
+    if (!cursor) break;
+  }
+
+  return bodies;
+}
+
+// Vehicle make/model dictionary for parsing from titles
+const VEHICLE_DICTIONARY: { makes: Record<string, string[]> } = {
+  makes: {
+    "acura": ["rsx","tl","tsx","ilx","rl","mdx","rdx","tlx"],
+    "audi": ["a3","a4","a5","a6","a7","a8","q3","q5","q7","tt","s4","s5"],
+    "bmw": ["320","328","330","335","528","535","740","x1","x3","x5","m3","m5"],
+    "cadillac": ["cts","ats","xt5","escalade","srx"],
+    "chevrolet": ["camaro","malibu","impala","cruze","equinox","tahoe","silverado","trailblazer"],
+    "chrysler": ["200","300","pacifica","town and country"],
+    "dodge": ["charger","challenger","dart","durango","journey","ram"],
+    "ford": ["focus","fusion","mustang","escape","explorer","f150","fiesta","edge","ranger"],
+    "gmc": ["terrain","acadia","yukon","sierra"],
+    "honda": ["civic","accord","cr-v","crv","fit","pilot","odyssey","crosstour"],
+    "hyundai": ["elantra","sonata","tucson","accent","veloster","santa fe","kona","venue"],
+    "infiniti": ["g35","g37","qx60","qx80","q50","q60"],
+    "jeep": ["wrangler","grand cherokee","cherokee","compass","patriot","renegade"],
+    "kia": ["optima","soul","sportage","sorento","forte","rio","stinger"],
+    "lexus": ["es350","is250","is350","gs350","rx350","nx200t"],
+    "mazda": ["mazda3","mazda6","cx-5","cx5","cx-9","cx9"],
+    "mercedes": ["c300","e350","glc300","glk350","s550"],
+    "nissan": ["altima","sentra","maxima","rogue","pathfinder","versa","murano"],
+    "subaru": ["wrx","forester","outback","impreza","legacy"],
+    "toyota": ["camry","corolla","rav4","tundra","tacoma","prius","highlander","avalon","sequoia"],
+    "volkswagen": ["jetta","golf","passat","tiguan","beetle"],
+    "volvo": ["s60","xc60","xc90"],
+    "ram": ["1500","2500","3500"],
+    "tesla": ["model s","model 3","model x","model y"],
+    "mitsubishi": ["lancer","outlander","mirage"],
+    "buick": ["encore","enclave","lacrosse"],
+    "pontiac": ["g6","g8","vibe"],
+    "lincoln": ["mkz","mkx","navigator"],
+    "porsche": ["cayenne","macan","911"],
+    "jaguar": ["xf","xe","f-type"],
+    "mini": ["cooper","countryman"]
+  }
+};
+
+function parseModelFromTitle(title?: string | null): { year: number | null; make: string | null; model: string | null } {
+  if (!title) return { year: null, make: null, model: null };
+  let s = title.toLowerCase();
+  s = s.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+
+  // Extract year
+  let year: number | null = null;
+  const ym = s.match(/\b(19|20)\d{2}\b/);
+  if (ym) {
+    const y = parseInt(ym[0], 10);
+    if (y >= 1950 && y <= 2100) year = y;
+  }
+
+  // Detect make
+  const makes = Object.keys(VEHICLE_DICTIONARY.makes);
+  let make: string | null = null;
+  for (const mk of makes) {
+    if (s.startsWith(mk + ' ') || s === mk || s.includes(' ' + mk + ' ')) { make = mk; break; }
+  }
+  if (!make) {
+    for (const mk of makes) { if (s.includes(mk)) { make = mk; break; } }
+  }
+
+  // Detect model
+  let model: string | null = null;
+  const tryModels = (mk: string) => {
+    const list = VEHICLE_DICTIONARY.makes[mk] || [];
+    // choose the longest match present in title
+    let best: string | null = null;
+    for (const m of list) {
+      if (s.includes(' ' + m + ' ') || s.endsWith(' ' + m) || s.startsWith(m + ' ') || s === m) {
+        if (!best || m.length > best.length) best = m;
+      }
+    }
+    return best;
+  };
+  if (make) {
+    model = tryModels(make) || null;
+  } else {
+    // dictionary-wide fallback
+    for (const mk of makes) {
+      const best = tryModels(mk);
+      if (best) { make = mk; model = best; break; }
+    }
+  }
+
+  try { console.log('[MODEL-PARSE] parsed', { year, make, model, title }); } catch {}
+  return { year, make, model };
+}
+
+function parseCarTitleOrNull(title?: string | null): { year: number | null; make: string | null; model: string | null; title: string } {
+  const parsed = parseModelFromTitle(title || null);
+  return { year: parsed.year, make: parsed.make, model: parsed.model, title: title || '' };
+}
+
+// --- GraphQL next-page fetch using saved request (APQ-safe) --------------
+async function gqlFetchNextPageFromSaved(cursor: string): Promise<any | null> {
+  try {
+    const raw = await fs.readFile('offerup_gql_feed_req.json', 'utf8');
+    const saved = JSON.parse(raw) as { url: string; method: string; headers: Record<string,string>; postData: string; };
+    const headers = { ...(saved.headers || {}) } as Record<string,string>;
+    delete (headers as any)['content-length'];
+    delete (headers as any)['accept-encoding'];
+    const body = JSON.parse(saved.postData || '{}');
+    const params: any[] = Array.isArray(body?.variables?.searchParams) ? body.variables.searchParams : [];
+    for (let i = params.length - 1; i >= 0; i--) {
+      const k = String(params[i]?.key || '').toLowerCase();
+      if (k.includes('cursor')) params.splice(i, 1);
+    }
+    // No server-side recency filters; recency is enforced client-side during detail phase
+    params.push({ key: 'PAGE_CURSOR', value: cursor });
+    body.variables = body.variables || {};
+    body.variables.searchParams = params;
+    const resp = await fetch(saved.url, { method: saved.method || 'POST', headers, body: JSON.stringify(body) });
+    if (!resp.ok) return null;
+    return await resp.json().catch(() => null);
+  } catch {
+    return null;
+  }
+}
+
+// Initial GraphQL fetch from saved request body, sanitized (no server-side recency)
+async function gqlFetchInitialPageFromSaved(): Promise<any | null> {
+  try {
+    const raw = await fs.readFile('offerup_gql_feed_req.json', 'utf8');
+    const saved = JSON.parse(raw) as { url: string; method: string; headers: Record<string,string>; postData: string; };
+    const headers = { ...(saved.headers || {}) } as Record<string,string>;
+    delete (headers as any)['content-length'];
+    delete (headers as any)['accept-encoding'];
+    const body = JSON.parse(saved.postData || '{}');
+    const params: any[] = Array.isArray(body?.variables?.searchParams) ? [...body.variables.searchParams] : [];
+
+    // Remove cursors and any posted_* keys (no server-side recency)
+    for (let i = params.length - 1; i >= 0; i--) {
+      const k = String(params[i]?.key || '').toLowerCase();
+      if (k.includes('cursor')) params.splice(i, 1);
+      if (k.startsWith('posted')) params.splice(i, 1);
+    }
+    // Ensure q from makes/models
+    const qParts: string[] = [];
+    if (F_MAKES.length) qParts.push(...F_MAKES);
+    if (F_MODELS.length) qParts.push(...F_MODELS);
+    const q = qParts.join(' ').trim();
+    if (q) {
+      for (let i = params.length - 1; i >= 0; i--) {
+        if (String(params[i]?.key || '').toLowerCase() === 'q') params.splice(i, 1);
+      }
+      params.push({ key: 'q', value: q });
+    }
+    // Ensure location and limit
+    const ensureKV = (key: string, value: string) => {
+      const idx = params.findIndex(p => String(p?.key || '').toLowerCase() === key.toLowerCase());
+      if (idx >= 0) params[idx] = { key, value }; else params.push({ key, value });
+    };
+    ensureKV('lat', String(LAT));
+    ensureKV('lon', String(LNG));
+    ensureKV('radius', String(RADIUS));
+    ensureKV('limit', String(Math.min(MAX_ITEMS, 50)));
+
+    body.variables = body.variables || {};
+    body.variables.searchParams = params;
+    const resp = await fetch(saved.url, { method: saved.method || 'POST', headers, body: JSON.stringify(body) });
+    if (!resp.ok) return null;
+    return await resp.json().catch(() => null);
+  } catch {
+    return null;
+  }
+}
+
+// Manually request the primary OfferUp search feed (page 1), APQ-safe:
+// reuse the saved GraphQL body (operationName/query/extensions) and only
+// adjust variables.searchParams (strip cursors, set LIMIT).
+// fetchInitialSearchFeed removed (GraphQL no longer used)
+
+// ---------- Run stats ----------
+const RUN_STATS = {
+  feedIntercepted: 0,
+  feedInjected: 0,
+  wrongFeedSkipped: 0,
+  similarSkipped: 0,
+  uiInteractions: 0,
+  modelSrc: { title: 0, details: 0, jsonld: 0, nextdata: 0 },
+  postedSrc: { timeTag: 0, jsonld: 0, nextdata: 0, relative: 0, missing: 0 },
+  filterHintsReady: 0,
+  postedRejected: 0 as number,
+  postedKept: 0 as number,
+  missingTimestamp: 0 as number,
+};
+
+// ---------- Fast detail helpers (bounded waits, JSON fallbacks) ----------
+const DETAIL_SELECTOR_TIMEOUT_MS = parseInt(process.env.OU_DETAIL_SELECTOR_TIMEOUT_MS || '4000', 10);
+
+// Filter hints discovered from the first feed response (modular feed filters)
+type FilterHints = {
+  price: { minKey: string; maxKey: string } | null;
+  year: { minKey: string; maxKey: string } | null;
+  mileageBands: number[]; // ascending numeric bands
+  makeOptions: { value: string; label: string }[];
+  sortOptions?: string[];
+};
+const FILTER_HINTS: FilterHints = {
+  price: null,
+  year: null,
+  mileageBands: [],
+  makeOptions: [],
+  sortOptions: [],
+};
+const LAST_INJECTED: { mileageBand?: number } = {};
+
+// Short, bounded selector wait to avoid long locator hangs
+async function getTextFast(page: Page, selector: string, timeout = DETAIL_SELECTOR_TIMEOUT_MS): Promise<string|null> {
+  try {
+    const loc = page.locator(selector).first();
+    await loc.waitFor({ state: 'attached', timeout });
+    return await loc.evaluate((el: Element) => el.textContent);
+  } catch {
+    return null;
+  }
+}
+
+async function getJsonLd(page: Page): Promise<any[]> {
+  try {
+    const loc = page.locator('script[type="application/ld+json"]');
+    const count = await loc.count().catch(() => 0);
+    const out: any[] = [];
+    for (let i=0;i<count;i++) {
+      const raw = await loc.nth(i).textContent().catch(() => null);
+      if (!raw) continue;
+      try { out.push(JSON.parse(raw)); } catch {}
+    }
+    return out;
+  } catch { return []; }
+}
+
+// Opportunistic scan of __NEXT_DATA__ for price-like fields
+async function getNextData(page: Page): Promise<any|null> {
+  const raw = await page.locator('#__NEXT_DATA__').first().textContent().catch(() => null);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
+}
+
+function extractPriceFromStructures(structs: any[]): number|null {
+  const tryNum = (v: any): number|null => {
+    if (v == null) return null;
+    const s = String(v);
+    const n = Number(s.replace(/[^\d.]/g, ''));
+    return Number.isFinite(n) ? Math.trunc(n) : null;
+  };
+  for (const j of structs) {
+    const candList = [
+      (j as any)?.offers?.price,
+      (Array.isArray((j as any)?.offers) ? (j as any).offers[0]?.price : undefined),
+      (j as any)?.price,
+      (j as any)?.itemOffered?.price
+    ];
+    for (const c of candList) {
+      const n = tryNum(c);
+      if (n != null) return n;
+    }
+    if (j && typeof j === 'object') {
+      for (const v of Object.values(j)) {
+        if (v && typeof v === 'object') {
+          const nested = extractPriceFromStructures([v]);
+          if (nested != null) return nested;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function slugFromUrl(url: string): string|null {
+  return url.match(/\/item\/detail\/([^/?#]+)/)?.[1] || null;
+}
+
+function extractListingIdFromNextData(nd: any): string|null {
+  if (!nd || typeof nd !== 'object') return null;
+  const stack: any[] = [nd];
+  while (stack.length) {
+    const cur = stack.pop();
+    if (cur && typeof cur === 'object') {
+      if ((cur as any).listingId || (cur as any).id) {
+        const val = String((cur as any).listingId ?? (cur as any).id);
+        if (val) return val;
+      }
+      for (const v of Object.values(cur)) if (v && typeof v === 'object') stack.push(v);
+    }
+  }
+  return null;
+}
+function extractYearFromStructures(structs: any[]): number|null {
+  const tryYear = (val: any): number|null => {
+    if (val == null) return null;
+    const s = String(val);
+    const m = s.match(/\b(19|20)\d{2}\b/);
+    if (!m) return null;
+    const n = parseInt(m[0], 10);
+    return (n >= 1950 && n <= 2100) ? n : null;
+  };
+  for (const j of structs) {
+    const candidates = [
+      (j as any)?.vehicle?.modelDate, (j as any)?.vehicleModelDate, (j as any)?.modelDate,
+      (j as any)?.productionDate, (j as any)?.dateManufactured, (j as any)?.itemOffered?.modelDate,
+      (j as any)?.itemOffered?.productionDate, (j as any)?.year
+    ];
+    for (const c of candidates) {
+      const yr = tryYear(c);
+      if (yr != null) return yr;
+    }
+    if (j && typeof j === 'object') {
+      for (const v of Object.values(j)) {
+        if (v && typeof v === 'object') {
+          const nested = extractYearFromStructures([v]);
+          if (nested != null) return nested;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function extractYearFromNextData(nd: any): number|null {
+  if (!nd || typeof nd !== 'object') return null;
+  const stack: any[] = [nd];
+  while (stack.length) {
+    const cur = stack.pop();
+    if (!cur || typeof cur !== 'object') continue;
+    for (const key of ['vehicleYear', 'modelYear', 'year']) {
+      if (Object.prototype.hasOwnProperty.call(cur, key)) {
+        const val = (cur as any)[key];
+        const m = String(val).match(/\b(19|20)\d{2}\b/);
+        if (m) {
+          const n = parseInt(m[0], 10);
+          if (n >= 1950 && n <= 2100) return n;
+        }
+      }
+    }
+    for (const v of Object.values(cur)) if (v && typeof v === 'object') stack.push(v);
+  }
+  return null;
+}
+function extractMileageFromStructures(structs: any[]): number|null {
+  for (const j of structs) {
+    // JSON-LD commonly uses mileageFromOdometer
+    const cand = j?.mileageFromOdometer?.value ?? j?.mileage ?? j?.itemOffered?.mileageFromOdometer?.value;
+    if (cand != null) {
+      const n = Number(String(cand).replace(/[^\d.]/g, ''));
+      if (Number.isFinite(n)) return Math.trunc(n);
+    }
+    if (j && typeof j === 'object') {
+      for (const v of Object.values(j)) {
+        if (v && typeof v === 'object') {
+          const nested = extractMileageFromStructures([v]);
+          if (nested != null) return nested;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function extractPostedAtFromNextData(nd: any, remoteId?: string): string|null {
+  if (!nd || typeof nd !== 'object') return null;
+  // Prefer nodes with matching id/slug
+  const preferStack: any[] = [nd];
+  while (preferStack.length) {
+    const cur = preferStack.pop();
+    if (!cur || typeof cur !== 'object') continue;
+    const hasId =
+      (remoteId && (cur as any)?.listingId === remoteId) ||
+      (remoteId && (cur as any)?.id === remoteId) ||
+      (remoteId && typeof (cur as any)?.slug === 'string' && (cur as any).slug.includes(remoteId));
+    if (hasId) {
+      const getStr = (k: string) => (cur as any)[k];
+      const stringTs =
+        getStr('createdAt') || getStr('postedAt') || getStr('createdDate') ||
+        getStr('datePosted') || getStr('datePublished') || getStr('dateCreated');
+      if (typeof stringTs === 'string') {
+        const d = new Date(stringTs);
+        if (!isNaN(d.getTime())) return d.toISOString();
+      }
+      for (const k of ['createdAtMs','postedDateMs','createdTimeMs','timestamp']) {
+        const n = (cur as any)[k];
+        if (typeof n === 'number') {
+          const d = new Date(n);
+          if (!isNaN(d.getTime())) return d.toISOString();
+        }
+      }
+    }
+    for (const v of Object.values(cur)) if (v && typeof v === 'object') preferStack.push(v);
+  }
+  // Fallback generic scan
+  const stack: any[] = [nd];
+  while (stack.length) {
+    const cur = stack.pop();
+    if (!cur || typeof cur !== 'object') continue;
+    for (const [k, v] of Object.entries(cur)) {
+      if (typeof v === 'string' && /(created|posted|publish).*(at|time|date|timestamp)/i.test(k)) {
+        const d = new Date(v as string);
+        if (!isNaN(d.getTime())) return d.toISOString();
+      }
+      if (typeof v === 'number' && /(created|posted|publish).*(ms|time|timestamp)/i.test(k)) {
+        const d = new Date(v as number);
+        if (!isNaN(d.getTime())) return d.toISOString();
+      }
+      if (v && typeof v === 'object') stack.push(v);
+    }
+  }
+  return null;
+}
+
+function extractPostedAtFromJsonLd(structs: any[]): string | null {
+  for (const j of structs) {
+    const obj = (j as any) || {};
+    const item = obj.itemOffered || obj;
+    const strKeys = ['datePublished','datePosted','dateCreated','createdAt','postedAt','createdDate'];
+    for (const k of strKeys) {
+      const v = (item as any)[k] ?? (obj as any)[k];
+      if (typeof v === 'string') {
+        const d = new Date(v);
+        if (!isNaN(d.getTime())) return d.toISOString();
+      }
+    }
+    const numKeys = ['createdAtMs','postedDateMs','createdTimeMs','timestamp'];
+    for (const k of numKeys) {
+      const v = (item as any)[k] ?? (obj as any)[k];
+      if (typeof v === 'number') {
+        const d = new Date(v);
+        if (!isNaN(d.getTime())) return d.toISOString();
+      }
+    }
+  }
+  return null;
+}
+
+// Removed old fuzzy token matching helpers
+
+// UI-driven search and filters removed (no UI interactions)
+
+// HTML search URL builder removed (use only GraphQL)
+
+// Parse "Posted ... ago" textual timestamps on detail pages
+function parseRelativePostedText(s: string): string | null {
+  if (!s) return null;
+  s = s.toLowerCase();
+  const now = Date.now();
+  if (/posted\s+today\b/.test(s)) return new Date(now).toISOString();
+  if (/posted\s+yesterday\b/.test(s)) return new Date(now - 24*60*60*1000).toISOString();
+  // Posted X ago
+  let m = s.match(/(?:posted|listed)\s+(?:about\s+)?(\d+)\s+(minute|hour|day|week|month|year)s?\s+ago/);
+  if (m) {
+    const qty = parseInt(m[1], 10);
+    const unit = m[2];
+    const ms =
+      unit === 'minute' ? qty * 60_000 :
+      unit === 'hour'   ? qty * 3_600_000 :
+      unit === 'day'    ? qty * 86_400_000 :
+      unit === 'week'   ? qty * 604_800_000 :
+      unit === 'month'  ? qty * 30 * 86_400_000 :
+      unit === 'year'   ? qty * 365 * 86_400_000 : 0;
+    if (ms > 0) return new Date(now - ms).toISOString();
+  }
+  // Last updated X ago
+  m = s.match(/(?:updated|last\s+updated)\s+(?:about\s+)?(\d+)\s+(minute|hour|day|week|month|year)s?\s+ago/);
+  if (m) {
+    const qty = parseInt(m[1], 10);
+    const unit = m[2];
+    const ms =
+      unit === 'minute' ? qty * 60_000 :
+      unit === 'hour'   ? qty * 3_600_000 :
+      unit === 'day'    ? qty * 86_400_000 :
+      unit === 'week'   ? qty * 604_800_000 :
+      unit === 'month'  ? qty * 30 * 86_400_000 :
+      unit === 'year'   ? qty * 365 * 86_400_000 : 0;
+    if (ms > 0) return new Date(now - ms).toISOString();
+  }
+  return null;
+}
+async function getPostedAtFromPage(detail: Page): Promise<string|null> {
+  const cands: (string|null)[] = await Promise.all([
+    getTextFast(detail, 'text=/^Posted\\b/i'),
+    getTextFast(detail, 'text=/Posted\\s+(?:about\\s+)?\\d+\\s+(minute|hour|day|week|month|year)s?\\s+ago/i'),
+    getTextFast(detail, 'main'),
+  ]);
+  const joined = cands.filter(Boolean).join(' ');
+  return parseRelativePostedText(joined);
+}
+
+// Optional: crude vehicle-only heuristic to drop obvious parts listings
+// Removed old title heuristics
+function extractMileageFromNextData(nd: any): number|null {
+  if (!nd || typeof nd !== 'object') return null;
+  const stack: any[] = [nd];
+  while (stack.length) {
+    const cur = stack.pop();
+    if (!cur || typeof cur !== 'object') continue;
+    for (const key of ['vehicleMiles', 'mileage', 'odometer']) {
+      if (Object.prototype.hasOwnProperty.call(cur, key)) {
+        const val = (cur as any)[key];
+        const n = Number(String(val).replace(/[^\d.]/g, ''));
+        if (Number.isFinite(n)) return Math.trunc(n);
+      }
+    }
+    for (const v of Object.values(cur)) if (v && typeof v === 'object') stack.push(v);
+  }
+  return null;
+}
+function extractPriceFromNextData(nd: any): number|null {
+  if (!nd || typeof nd !== 'object') return null;
+  const stack: any[] = [nd];
+  while (stack.length) {
+    const cur = stack.pop();
+    if (!cur || typeof cur !== 'object') continue;
+    const keys = ['price', 'priceCents', 'priceInCents', 'priceUSDInCents', 'rawPrice', 'formattedPrice'];
+    for (const k of keys) {
+      if (Object.prototype.hasOwnProperty.call(cur, k)) {
+        const v = (cur as any)[k];
+        if (v == null) continue;
+        if (/Cents/i.test(k)) {
+          const cents = Number(String(v).replace(/[^\d]/g, ''));
+          if (Number.isFinite(cents)) return Math.trunc(cents / 100);
+        } else {
+          const n = Number(String(v).replace(/[^\d.]/g, ''));
+          if (Number.isFinite(n)) return Math.trunc(n);
+        }
+      }
+    }
+    for (const v of Object.values(cur)) if (v && typeof v === 'object') stack.push(v);
+  }
+  return null;
+}
+function extractMakeModelFromJsonLd(structs: any[]): { make?: string|null; model?: string|null } {
+  let make: string|null|undefined, model: string|null|undefined;
+  for (const j of structs) {
+    const item = (j as any)?.itemOffered || j;
+    const tryVals = (obj: any, keys: string[]) => {
+      for (const k of keys) if (obj && typeof obj[k] === 'string') return obj[k] as string;
+      return null;
+    };
+    if (!make) {
+      make = tryVals(item || {}, ['make', 'brand', 'manufacturer', 'makeName', 'brandName']);
+      if (!make && item && typeof item.brand === 'object') make = (item.brand.name || item.brand) as string;
+    }
+    if (!model) {
+      model = tryVals(item || {}, ['model', 'modelName', 'vehicleModel', 'model_slug']);
+    }
+    if (make || model) break;
+  }
+  return { make: make ?? null, model: model ?? null };
+}
+function extractMakeModelFromNextData(nd: any): { make?: string|null; model?: string|null } {
+  if (!nd || typeof nd !== 'object') return { make: null, model: null };
+  let foundMake: string|null = null, foundModel: string|null = null;
+  const stack: any[] = [nd];
+  while (stack.length) {
+    const cur = stack.pop();
+    if (!cur || typeof cur !== 'object') continue;
+    const getStr = (obj: any, keys: string[]) => {
+      for (const k of keys) if (typeof obj[k] === 'string') return obj[k] as string;
+      return null;
+    };
+    if (!foundMake) {
+      foundMake = getStr(cur, ['make', 'makeName', 'brand', 'manufacturer', 'make_slug', 'brandName']);
+      if (!foundMake && typeof (cur as any).brand === 'object') foundMake = (cur as any).brand?.name || null;
+    }
+    if (!foundModel) {
+      foundModel = getStr(cur, ['model', 'modelName', 'vehicleModel', 'model_slug']);
+    }
+    if (foundMake && foundModel) break;
+    for (const v of Object.values(cur)) if (v && typeof v === 'object') stack.push(v);
+  }
+  return { make: foundMake, model: foundModel };
+}
 function parseMi(s?: string|null): number|null {
   if (!s) return null;
   const m = s.match(/(\d{1,3})\s*mi\b/i);
@@ -61,11 +777,31 @@ function parseMi(s?: string|null): number|null {
 }
 function normCity(raw?: string|null): string|null {
   if (!raw) return null;
-  let c = raw.replace(/\u2022/g, '•'); // normalize bullet
+  let c = String(raw);
+  c = c.replace(/\u2022/g, '•');
   c = c.includes('•') ? c.split('•').pop()!.trim() : c;
+  c = c.replace(/,\s*[A-Z]{2}\b/i, '').trim();
   c = c.split(',')[0].trim();
-  c = c.replace(/\s+ca?$/i, '').trim();
   return c || null;
+}
+
+function extractCity(input: any): string | null {
+  try {
+    if (input && typeof input === 'object') {
+      const ln = (input.locationName || input.city || input.location?.city) as string | undefined;
+      const normalized = normCity(ln || null);
+      if (normalized) return normalized;
+    }
+    if (typeof input === 'string') {
+      const s = input;
+      const m = s.match(/for\s+sale\s+in\s+([A-Za-z ]+)/i);
+      if (m) {
+        const city = normCity(m[1]);
+        if (city) return city;
+      }
+    }
+  } catch {}
+  return null;
 }
 
 function sanitizeInteger(value: unknown, opts?: { min?: number; max?: number }): number|null {
@@ -104,726 +840,631 @@ function sanitizeYear(y?: number|null): number|null {
 type FeedItem = {
   id: string;
   url: string;
+  title: string | null;
+  price: number | null;
+  mileage: number | null;
   city: string | null;
+  postedAt: Date | string | null;
+  make?: string | null;
+  model?: string | null;
+  year?: number | null;
   distanceMi: number | null;
-  title?: string | null;
-  price?: number | null;
-  mileage?: number | null;
-  postedAt?: string | null;
+  needsTimestampResolution?: boolean;
+  parsed?: { year: number | null; make: string | null; model: string | null };
 };
+
+// Alias required by strict filtering logic
+function parseListingTitle(title: string): { year: number | null; make: string | null; model: string | null } {
+  return parseModelFromTitle(title || '');
+}
 
 function inferFromTitle(title?: string|null): { year: number|null; make: string|null; model: string|null } {
   if (!title) return { year: null, make: null, model: null };
+  // Extract year
   let year: number|null = null;
   const y = title.match(/\b(19|20)\d{2}\b/);
   if (y) year = sanitizeYear(parseInt(y[0], 10));
-  const t = y ? title.replace(/\b(19|20)\d{2}\b/, '').trim() : title.trim();
-  const parts = t.split(/\s+/).filter(Boolean);
-  const make = parts[0] || null;
-  const model = parts.length > 1 ? parts.slice(1).join(' ') : null;
+  // Remove year and common noise/qualifiers
+  let remaining = (y ? title.replace(/\b(19|20)\d{2}\b/, ' ') : title)
+    .replace(/\b(clean\s*title|salvage|rebuilt|branded)\b/gi, ' ')
+    .replace(/\b(fwd|rwd|awd|4wd|2wd)\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const parts = remaining.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { year, make: null, model: null };
+  if (parts.length === 1) return { year, make: parts[0], model: null };
+  const make = parts[0];
+  // Model: keep the first 1–2 significant tokens after make (e.g., "Tacoma TRD" → "Tacoma")
+  const modelParts = parts.slice(1);
+  const model = modelParts.slice(0, 2).join(' ').trim() || null;
   return { year, make, model };
 }
 
-function matchesFilters(row: {
-  price: number|null;
-  year: number|null;
-  mileage: number|null;
-  model: string|null;
-  posted_at: string|null;
-}): boolean {
-  const { price, year, mileage, model, posted_at } = row;
-  if (F_MIN_YEAR != null && (year == null || year < F_MIN_YEAR)) return false;
-  if (F_MAX_YEAR != null && (year == null || year > F_MAX_YEAR)) return false;
-  if (F_MIN_PRICE != null && (price == null || price < F_MIN_PRICE)) return false;
-  if (F_MAX_PRICE != null && (price == null || price > F_MAX_PRICE)) return false;
-  if (F_MIN_MILEAGE != null && (mileage == null || mileage < F_MIN_MILEAGE)) return false;
-  if (F_MAX_MILEAGE != null && (mileage == null || mileage > F_MAX_MILEAGE)) return false;
-  if (F_MODELS.length) {
-    const m = (model || '').toLowerCase();
-    if (!F_MODELS.some(x => m.includes(x))) return false;
-  }
-  if (F_POSTED_WITHIN_HOURS != null) {
-    const since = Date.now() - F_POSTED_WITHIN_HOURS * 60 * 60 * 1000;
-    const t = posted_at ? Date.parse(posted_at) : NaN;
-    if (!Number.isFinite(t) || t < since) return false;
-  }
-  return true;
-}
+// Removed old filter stats and fuzzy matching; filtering happens in detail-phase
 
-// Prefer client-feed JSON tiles if available
-function parseLooseTiles(payload: any): FeedItem[] {
-  const tiles =
-    payload?.props?.pageProps?.searchFeedResponse?.looseTiles ??
-    payload?.searchFeedResponse?.looseTiles ??
-    payload?.data?.searchFeedResponse?.looseTiles ??
-    [];
-  return tiles
-    .filter((t: any) => t?.tileType === 'LISTING' && t?.listing)
-    .map((t: any) => {
-      const L = t.listing;
-      const id = L?.listingId || L?.id;
-      const slug = L?.slug || L?.listingId;
-      const url = slug ? `https://offerup.com/item/detail/${slug}` : null;
-      const city = (L?.locationName || L?.sellerLocationName || '')
-        .replace(/\s+CA?$/i, '')
-        .split(',')[0]
-        .trim() || null;
-      const distanceMi = L?.distanceMiles != null ? Math.round(Number(L.distanceMiles)) : null;
-      const title = L?.title ?? null;
-      const price = sanitizeInteger(L?.price, { min: 0, max: 500000 });
-      const mileage = sanitizeInteger(L?.vehicleMiles, { min: 500, max: 1500000 });
-      // Try a variety of likely timestamp fields if present
-      const postedAt =
-        (typeof L?.createdAt === 'string' ? L.createdAt : null)
-        || (typeof L?.postedAt === 'string' ? L.postedAt : null)
-        || (typeof L?.createdDate === 'string' ? L.createdDate : null)
-        || (typeof L?.createdTime === 'string' ? L.createdTime : null)
-        || (typeof L?.createdAtMs === 'number' ? new Date(L.createdAtMs).toISOString() : null)
-        || (typeof L?.postedDateMs === 'number' ? new Date(L.postedDateMs).toISOString() : null);
-      if (!id || !url) return null;
-      return { id: String(id), url, city, distanceMi, title, price, mileage, postedAt } as FeedItem;
-    })
-    .filter(Boolean) as FeedItem[];
-}
-
-// Parse OfferUp's embedded Next.js JSON for clean tiles
-async function readNextData(page: Page): Promise<FeedItem[]> {
-  const raw = await page.locator('#__NEXT_DATA__').first().textContent().catch(() => null);
-  if (!raw) return [];
-  const json = JSON.parse(raw);
-  const tiles = json?.props?.pageProps?.searchFeedResponse?.looseTiles || [];
-  const items: FeedItem[] = [];
-  for (const t of tiles) {
-    if (t?.tileType !== 'LISTING' || !t?.listing) continue;
-    const L = t.listing;
-    const id = L?.listingId || L?.id;
-    const slug = L?.slug || L?.listingId;
-    if (!id || !slug) continue;
-    const url = `https://offerup.com/item/detail/${slug}`;
-    // locationName may be like 'Cypress, CA'
-    const city = normCity(L?.locationName || L?.sellerLocationName || null);
-    // distanceMiles may be numeric in JSON
-    const distanceMi = L?.distanceMiles != null ? Math.round(Number(L.distanceMiles)) : null;
-    const title = L?.title ?? null;
-    const price = sanitizeInteger(L?.price, { min: 0, max: 500000 });
-    const mileage = sanitizeInteger(L?.vehicleMiles, { min: 500, max: 1500000 });
-    const postedAt =
-      (typeof L?.createdAt === 'string' ? L.createdAt : null)
-      || (typeof L?.postedAt === 'string' ? L.postedAt : null)
-      || (typeof L?.createdDate === 'string' ? L.createdDate : null)
-      || (typeof L?.createdTime === 'string' ? L.createdTime : null)
-      || (typeof L?.createdAtMs === 'number' ? new Date(L.createdAtMs).toISOString() : null)
-      || (typeof L?.postedDateMs === 'number' ? new Date(L.postedDateMs).toISOString() : null);
-    items.push({ id: String(id), url, city, distanceMi, title, price, mileage, postedAt });
-  }
-  return items;
-}
-
-// Fallback extractor: scrape anchors & aria-label text for location
-async function readFromAria(page: Page): Promise<FeedItem[]> {
-  const anchors = await page.$$('[data-testid="feed-item-card"] a[href*="/item/detail/"], a[href*="/item/detail/"]');
-  const seen = new Set<string>();
+// Aggregate listing tiles from modularFeed response
+function extractFeedTiles(resp: any): FeedItem[] {
   const out: FeedItem[] = [];
-  for (const a of anchors) {
-    const href = await a.getAttribute('href');
-    if (!href || !/\/item\/detail\/[a-z0-9-]+/i.test(href)) continue;
-    const url = new URL(href, 'https://offerup.com').toString();
-    const id = url.match(/\/item\/detail\/([^/?#]+)/)?.[1] || null;
-    if (!id || seen.has(id)) continue;
-    seen.add(id);
+  try {
+    const mf = resp?.data?.modularFeed ?? resp?.modularFeed ?? resp?.data ?? {};
+    const loose = Array.isArray(mf?.looseTiles) ? mf.looseTiles : [];
+    const pushFromTile = (t: any) => {
+      const tileType = t?.tileType || t?.__typename || '';
+      if (String(tileType).toUpperCase() !== 'LISTING') return;
+      const listing = t?.listing || {};
+      const id = String(listing?.listingId || listing?.id || '').trim();
+      if (!id) return;
+      const url = `https://offerup.com/item/detail/${id}`;
+      const title = typeof listing?.title === 'string' ? listing.title : null;
+      const price = sanitizeInteger(listing?.price ?? listing?.priceCents ?? listing?.priceInCents, { min: 0 });
+      const mileage = sanitizeInteger(listing?.mileage ?? listing?.vehicleMiles ?? listing?.odometer, { min: 0 });
+      const city = listing?.location?.city || listing?.city || null;
+      out.push({
+        id,
+        url,
+        title: title ?? null,
+        price: price ?? null,
+        mileage: mileage ?? null,
+        city: city ?? null,
+        postedAt: null,
+        distanceMi: null,
+      });
+    };
+    for (const t of loose) pushFromTile(t);
+    const modules = Array.isArray(mf?.modules) ? mf.modules : [];
+    for (const m of modules) {
+      const tiles = Array.isArray(m?.tiles) ? m.tiles : [];
+      for (const t of tiles) pushFromTile(t);
+    }
+  } catch {}
+  return out;
+}
 
-    // aria-label often contains "... in City, ST" or includes distance
-    const aria = (await a.getAttribute('aria-label')) || '';
-    const titleAttr = aria.replace(/\s+/g, ' ').trim();
-    const distanceMi = parseMi(titleAttr);
-    const city = normCity(titleAttr);
-    out.push({ id, url, city, distanceMi });
+function nextCursorFromResp(resp: any): string | null {
+  const mf = resp?.data?.modularFeed ?? resp?.modularFeed ?? resp?.data ?? {};
+  const c = mf?.pageCursor || null;
+  return typeof c === 'string' && c.length ? c : null;
+}
+
+// Unified timestamp extraction pipeline
+async function extractPostedAt(detail: Page, jsonLd: any[], nextData: any): Promise<{ timestamp: Date | null; source: string }>{
+  // (A) JSON-LD
+  try {
+    for (const j of jsonLd || []) {
+      const o = (j as any) || {};
+      const candidate = (o as any).datePosted || (o as any).uploadDate || (o?.itemOffered?.datePosted) || (o?.itemOffered?.uploadDate);
+      if (typeof candidate === 'string') {
+        const d = new Date(candidate);
+        if (!isNaN(d.getTime())) return { timestamp: d, source: 'jsonld' };
+      }
+    }
+  } catch {}
+
+  // (B) NEXT_DATA
+  try {
+    const keysStr = ['postedDate','createDate','createdAt'];
+    const keysNum = ['postedDateMs','createdTimeMs','timestampMs'];
+    const stack: any[] = [nextData];
+    while (stack.length) {
+      const cur = stack.pop();
+      if (!cur || typeof cur !== 'object') continue;
+      for (const k of keysStr) {
+        if (typeof cur[k] === 'string') {
+          const d = new Date(cur[k]);
+          if (!isNaN(d.getTime())) return { timestamp: d, source: 'nextdata' };
+        }
+      }
+      for (const k of keysNum) {
+        if (typeof cur[k] === 'number') {
+          const d = new Date(cur[k]);
+          if (!isNaN(d.getTime())) return { timestamp: d, source: 'nextdata' };
+        }
+      }
+      for (const v of Object.values(cur)) if (v && typeof v === 'object') stack.push(v);
+    }
+  } catch {}
+
+  // (C) Relative text
+  try {
+    const cands: (string|null)[] = await Promise.all([
+      getTextFast(detail, 'text=/^Posted\\b/i'),
+      getTextFast(detail, 'text=/Posted\\s+(?:about\\s+)?\\d+\\s+(minute|hour|day|week|month|year)s?\\s+ago/i'),
+      getTextFast(detail, 'main'),
+    ]);
+    const rel = parseRelativePostedText(cands.filter(Boolean).join(' '));
+    if (rel) {
+      const d = new Date(rel);
+      if (!isNaN(d.getTime())) return { timestamp: d, source: 'relative' };
+    }
+  } catch {}
+
+  return { timestamp: null, source: 'none' };
+}
+
+// -------- GraphQL Active Feed helpers --------
+
+// Build a searchParams array based on the saved request, but override q/lat/lon/radius/limit
+function buildSearchParamsWithFilters(baseParams: any[], q: string): any[] {
+  const params = [...baseParams];
+
+  const setParam = (key: string, value: string) => {
+    const idx = params.findIndex(p => (p?.key || '').toLowerCase() === key.toLowerCase());
+    if (idx >= 0) params[idx].value = value;
+    else params.push({ key, value });
+  };
+
+  const deleteParam = (key: string) => {
+    for (let i = params.length - 1; i >= 0; i--) {
+      const k = String(params[i]?.key || '');
+      if (k.toLowerCase() === key.toLowerCase()) params.splice(i, 1);
+    }
+  };
+
+  // strip any cursor params so we always start from the first page
+  for (let i = params.length - 1; i >= 0; i--) {
+    const k = String(params[i]?.key || '').toLowerCase();
+    if (k.includes('cursor')) params.splice(i, 1);
+  }
+
+  // q: make+model query
+  if (q && q.trim().length) {
+    setParam('q', q.trim());
+  }
+
+  // location/radius
+  setParam('lat', String(LAT));
+  setParam('lon', String(LNG));
+  if (RADIUS) setParam('radius', String(RADIUS));
+
+  // limit control based on OU_MAX_ITEMS
+  const cap = Math.max(20, Math.min(100, MAX_ITEMS));
+  setParam('limit', String(cap));
+
+  return params;
+}
+
+// Fetch the FIRST GraphQL feed page using the saved request as template.
+// This does NOT rely on page/Playwright; it uses Node fetch only.
+async function fetchActiveFeedFirstPage(q: string): Promise<any | null> {
+  try {
+    const raw = await fs.readFile('offerup_gql_feed_req.json', 'utf8').catch(() => null);
+    if (!raw) {
+      console.warn('[ACTIVE-FEED] No offerup_gql_feed_req.json template found.');
+      return null;
+    }
+    const saved = JSON.parse(raw) as {
+      url: string;
+      method: string;
+      headers: Record<string, string>;
+      postData: string;
+    };
+
+    const headers: Record<string, string> = { ...(saved.headers || {}) };
+    delete (headers as any)['content-length'];
+    delete (headers as any)['accept-encoding'];
+
+    const bodyPrev = JSON.parse(saved.postData || '{}');
+    const baseParams: any[] = Array.isArray(bodyPrev?.variables?.searchParams)
+      ? bodyPrev.variables.searchParams
+      : [];
+
+    const searchParams = buildSearchParamsWithFilters(baseParams, q);
+
+    const newBody = {
+      ...bodyPrev,
+      operationName: 'GetModularFeed',
+      variables: {
+        ...(bodyPrev.variables || {}),
+        searchParams,
+      },
+    };
+
+    const resp = await fetch(saved.url, {
+      method: saved.method || 'POST',
+      headers,
+      body: JSON.stringify(newBody),
+    });
+    if (!resp.ok) {
+      console.warn('[ACTIVE-FEED] First-page fetch failed', resp.status);
+      return null;
+    }
+    const json = await resp.json().catch(() => null);
+    if (!json) {
+      console.warn('[ACTIVE-FEED] Failed to parse first-page JSON');
+      return null;
+    }
+    return json;
+  } catch (e) {
+    console.warn('[ACTIVE-FEED] Error in fetchActiveFeedFirstPage:', (e as any)?.message || e);
+    return null;
+  }
+}
+
+// Extract tiles (plain JS objects) from a GraphQL body
+function extractFeedTilesFromBody(body: any): any[] {
+  const d = body?.data || {};
+  const loose = d?.modularFeed?.looseTiles;
+  const items = d?.modularFeed?.items;
+
+  if (Array.isArray(loose)) return loose;
+  if (Array.isArray(items)) return items;
+  return [];
+}
+
+// Convert GraphQL tiles into FeedItem[] using your existing normalization logic.
+function feedItemsFromBodies(bodies: any[]): FeedItem[] {
+  const out: FeedItem[] = [];
+  for (const b of bodies) {
+    const tiles = extractFeedTilesFromBody(b);
+    if (!Array.isArray(tiles) || !tiles.length) continue;
+
+    for (const t of tiles) {
+      const node = (t?.listing ? t.listing : t) || {};
+      const id = String(
+        node?.listingId ??
+        node?.id ??
+        node?.postId ??
+        node?.postingId ??
+        ''
+      );
+      if (!id) continue;
+
+      const slug = String(node?.slug ?? id);
+      const url = String(
+        node?.url ??
+        node?.seoUrl ??
+        node?.seo_url ??
+        `https://offerup.com/item/detail/${slug}`
+      );
+      const title = node?.title ?? null;
+      const price = sanitizeInteger(node?.price ?? node?.priceCents ?? null, { min: 0, max: 500000 });
+      const mileage = sanitizeInteger(node?.vehicleMiles ?? node?.mileage ?? null, { min: 0 });
+
+      const city = normCity(
+        node?.locationName ||
+        node?.sellerLocationName ||
+        node?.city ||
+        null
+      );
+
+      out.push({
+        id,
+        url,
+        title: title ?? null,
+        price: price ?? null,
+        mileage: mileage ?? null,
+        city: city ?? null,
+        postedAt: null,
+        distanceMi: null,
+      });
+    }
   }
   return out;
 }
 
-async function withPagePool<T>(
-  ctx: import('playwright').BrowserContext,
-  urls: string[],
-  concurrency: number,
-  worker: (page: Page, url: string) => Promise<T|null|undefined>
-): Promise<T[]> {
-  const pages = await Promise.all(Array.from({ length: Math.max(1, concurrency) }, () => ctx.newPage()));
-  const results: T[] = [];
-  let cursor = 0;
-  await Promise.all(pages.map(async (page) => {
-    try {
-      // round-robin consumption
-      for (;;) {
-        const idx = cursor++;
-        const url = urls[idx];
-        if (!url) break;
-        try {
-          const res = await worker(page, url);
-          if (res != null) results.push(res as T);
-        } catch {}
-        await sleep(180 + jitter(60, 180));
-      }
-    } finally {
-      await page.close().catch(() => {});
-    }
-  }));
-  return results;
-}
+// Follow cursors using gqlFetchNextPageFromSaved (already exists) to paginate.
+async function collectActiveFeedGraphQL(q: string): Promise<FeedItem[]> {
+  const bodies: any[] = [];
+  const first = await fetchActiveFeedFirstPage(q);
+  if (!first) {
+    console.warn('[ACTIVE-FEED] First page returned null; no active feed.');
+    return [];
+  }
 
-async function confirmGeo(p: Page) {
-  await p.evaluate(() => new Promise<void>(res => {
-    try { navigator.geolocation.getCurrentPosition(() => res(), () => res()); }
-    catch { res(); }
-  }));
-  await p.waitForTimeout(700);
+  bodies.push(first);
+  let cur = first;
+  let pagesFetched = 0;
+
+  const getNextCursor = (b: any): string | null => {
+    try {
+      const d = b?.data || {};
+      return (
+        d?.searchFeedResponse?.nextCursor ??
+        d?.searchFeedResponse?.pageCursor ??
+        d?.searchFeedResponse?.nextPageCursor ??
+        d?.searchFeedResponse?.cursor ??
+        d?.modularFeed?.nextCursor ??
+        d?.modularFeed?.pageCursor ??
+        null
+      );
+    } catch {
+      return null;
+    }
+  };
+
+  while (pagesFetched < PAGINATE_PAGES) {
+    const cursor = getNextCursor(cur);
+    if (!cursor) break;
+
+    const next = await gqlFetchNextPageFromSaved(cursor);
+    if (!next) break;
+
+    const tiles = extractFeedTilesFromBody(next);
+    if (!Array.isArray(tiles) || !tiles.length) break;
+
+    bodies.push(next);
+    cur = next;
+    pagesFetched++;
+    console.log('[ACTIVE-FEED][PAGINATE]', { pagesFetched, tiles: tiles.length });
+  }
+
+  const items = feedItemsFromBodies(bodies);
+  console.log('[ACTIVE-FEED] pages=', bodies.length, 'tiles=', items.length);
+  return items;
 }
 
 async function run() {
-  // ---------- Browser/Context ----------
-  const browser = await chromium.launch({ headless: HEADLESS });
-  const ctx = await browser.newContext({
-    geolocation: { latitude: LAT, longitude: LNG },
-    permissions: ['geolocation'],
-    isMobile: true,
-    userAgent:
-      'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
-    viewport: { width: 430, height: 860 },
-    locale: 'en-US',
-    timezoneId: 'America/Los_Angeles',
-    extraHTTPHeaders: {
-      'Accept-Language': 'en-US,en;q=0.9',
-      'Cache-Control': 'no-cache',
-      'Pragma': 'no-cache',
-    },
-  });
-  await ctx.grantPermissions(['geolocation'], { origin: 'https://offerup.com' });
-  await ctx.addInitScript(() => {
-    Object.defineProperty(navigator, 'webdriver', { get: () => false });
-  });
-
-  // Overwrite OfferUp location cookie up front (prefer manual source)
-  await ctx.addCookies([{
-    name: 'ou.location',
-    value: JSON.stringify({
-      city: 'Cypress', state: 'CA', zipCode: '90630',
-      longitude: LNG, latitude: LAT, source: 'manual'
-    }),
-    domain: 'offerup.com', path: '/', httpOnly: false, secure: true, sameSite: 'Lax'
-  }]);
-
-  // Block heavy resources to speed up page loads
-  await ctx.route('**/*', (route) => {
-    const rt = route.request().resourceType();
-    if (rt === 'image' || rt === 'font' || rt === 'media' || rt === 'stylesheet') return route.abort();
-    return route.continue();
-  });
-
-  // Context-level route to ensure we rewrite GraphQL feed requests before any page navigation
-  await ctx.route('**/api/graphql', async (route) => {
-    const req = route.request();
-    if (req.method() !== 'POST') return route.continue();
-
-    const headers = { ...req.headers() } as Record<string, string>;
-    delete (headers as any)['userdata'];
-
-    let body: any;
-    try {
-      body = (req as any).postDataJSON?.() ?? JSON.parse(req.postData() || '{}');
-    } catch {
-      return route.continue({ headers });
-    }
-
-    if (body?.operationName !== 'GetModularFeed') {
-      return route.continue({ headers });
-    }
-
-    const params = body?.variables?.searchParams;
-    if (Array.isArray(params)) {
-      let sawLat = false, sawLon = false;
-      for (const p of params) {
-        if (p?.key === 'lat') { p.value = String(LAT); sawLat = true; }
-        if (p?.key === 'lon') { p.value = String(LNG); sawLon = true; }
-      }
-      if (!sawLat) params.push({ key: 'lat', value: String(LAT) });
-      if (!sawLon) params.push({ key: 'lon', value: String(LNG) });
-    }
-
-    console.log('[GraphQL rewrite] lat/lon =>', LAT, LNG);
-    await route.continue({ headers, postData: JSON.stringify(body) });
-  });
-
-  const page = await ctx.newPage();
-  // capture the client feed early
-  let apiFeedJson: any = null;
-  page.on('response', async (resp) => {
-    try {
-      const ct = (resp.headers()['content-type'] || '').toLowerCase();
-      if (!ct.includes('application/json')) return;
-      if (!resp.url().includes('offerup.com')) return;
-
-      // safer than text+JSON.parse because responses can be gzipped
-      const body = await resp.json().catch(() => null);
-      if (!body) return;
-      const s = JSON.stringify(body);
-      if (s.includes('"looseTiles"') && s.includes('"listingId"')) {
-        apiFeedJson = body;
-        // persist the client feed response for debugging
-        await fs.writeFile('offerup_feed_resp.json', JSON.stringify(body, null, 2));
-        console.log('Saved client feed response → offerup_feed_resp.json');
-      }
-    } catch {}
-  });
-
-  // log the matching request (url + body) so we know how to rewrite it later
-  page.on('request', async (req) => {
-    try {
-      if (!req.url().includes('offerup.com')) return;
-      const pd = req.postData();
-      if (pd && /looseTiles|searchFeed/i.test(pd)) {
-        await fs.writeFile('offerup_feed_req.json', JSON.stringify({
-          url: req.url(),
-          method: req.method(),
-          headers: req.headers(),
-          postData: pd,
-        }, null, 2));
-        console.log('Saved client feed request → offerup_feed_req.json');
-      }
-    } catch {}
-  });
-
-  // (Removed page-level graphql route; handled at context-level above)
-
-  // Route and force coordinates for the client feed request (adjusts to changing endpoints)
-  await page.route('**/*', async (route) => {
-    const req = route.request();
-    if (req.url().includes('/api/graphql')) {
-      return route.continue();
-    }
-    if (req.url().includes('offerup.com') && req.method() === 'POST') {
-      const pd = req.postData();
-      if (pd && /looseTiles|searchFeed/i.test(pd)) {
-        try {
-          const body = JSON.parse(pd);
-          if (body && typeof body === 'object') {
-            // GraphQL-style variables
-            if (body.variables) {
-              if (body.variables.location) {
-                body.variables.location.latitude = LAT;
-                body.variables.location.longitude = LNG;
-              }
-              if (body.variables.lat !== undefined) body.variables.lat = LAT;
-              if (body.variables.lng !== undefined) body.variables.lng = LNG;
-              if (body.variables.latitude !== undefined) body.variables.latitude = LAT;
-              if (body.variables.longitude !== undefined) body.variables.longitude = LNG;
-            }
-            // Plain JSON shape
-            if (body.location) {
-              body.location.latitude = LAT;
-              body.location.longitude = LNG;
-            }
-          }
-          await route.continue({ postData: JSON.stringify(body) });
-          return;
-        } catch {
-          // fall through if payload isn't JSON
-        }
-      }
-    }
-    await route.continue();
-  });
-
-// ---------- Optional direct feed shortcut (no scrolling) ----------
-let directFeedUsed = false;
-if (DIRECT_FEED) {
-  try {
-    const reqRaw = await fs.readFile('offerup_feed_req.json', 'utf8').catch(() => null);
-    if (reqRaw) {
-      const saved = JSON.parse(reqRaw) as { url: string; method: string; headers: Record<string,string>; postData: string };
-      const headers: Record<string, string> = { ...(saved.headers || {}) };
-      // Remove hop-by-hop / compression specifics that can cause issues
-      delete (headers as any)['content-length'];
-      delete (headers as any)['accept-encoding'];
-      const resp = await fetch(saved.url, {
-        method: saved.method || 'POST',
-        headers,
-        body: saved.postData,
-      });
-      if (resp.ok) {
-        const body = await resp.json().catch(() => null);
-        if (body && JSON.stringify(body).includes('"looseTiles"')) {
-          apiFeedJson = body;
-          directFeedUsed = true;
-          console.log('Direct feed fetched via saved request (OU_DIRECT_FEED=true)');
-        }
-      }
-    }
-  } catch (e) {
-    console.warn('DIRECT_FEED failed, will fall back to browser:', (e as any)?.message || e);
-  }
-}
-
-// ---------- Prime on homepage (skip in FAST_MODE) ----------
-if (!FAST_MODE) {
-  await pRetry(async () => {
-    await page.goto('https://offerup.com/', { waitUntil: 'domcontentloaded', timeout: 60_000 });
-    const accept = page.getByRole('button', { name: /accept/i });
-    if (await accept.count()) await accept.first().click().catch(() => {});
-    // optional: resolve navigator.geolocation (won't hurt)
-    await page.evaluate(() => new Promise<void>(res => {
-      try { navigator.geolocation.getCurrentPosition(() => res(), () => res()); } catch { res(); }
-    }));
-    await page.waitForTimeout(500);
-  }, { retries: 2, minTimeout: 800 });
-}
-
-// ---------- Category ----------
-console.log('Navigating category:', SEARCH_URL);
-await pRetry(async () => {
-  await page.goto(SEARCH_URL, { waitUntil: 'domcontentloaded', timeout: 60_000 });
-
-  const sorry = page.getByText(/Sorry this page doesn(?:'|’|ʼ)t exist/i);
-  if (await sorry.count()) {
-    console.warn('Category 404-ish. Retrying via home → category link.');
-    await page.goto('https://offerup.com/', { waitUntil: 'domcontentloaded', timeout: 45_000 });
-    await page.click('a[href*="/explore/k/cars-trucks"]', { timeout: 8_000 }).catch(() => {});
-    await page.waitForLoadState('domcontentloaded', { timeout: 20_000 });
-  }
-
-  // Give client time to refresh feed post-initialization
-  await page.waitForSelector('[data-testid="feed-item-card"], a[href*="/item/detail/"]', { timeout: 45_000 });
-  await page.waitForTimeout(1_500);
-}, { retries: 3, factor: 1.6, minTimeout: 1_200 });
-
-  // explicitly wait for the client feed JSON to arrive (best effort)
-  await page.waitForResponse(async (resp) => {
-    try {
-      if (!resp.url().includes('/api/graphql')) return false;
-      const ct = (resp.headers()['content-type'] || '').toLowerCase();
-      if (!ct.includes('application/json')) return false;
-      const body = await resp.json().catch(() => null);
-      if (!body) return false;
-      return JSON.stringify(body).includes('"looseTiles"');
-    } catch { return false; }
-  }, { timeout: 20_000 }).catch(() => {});
-
-  
-
-  // ---------- Scroll to load ----------
-  const intendedScrolls = FAST_MODE ? Math.min(SCROLLS, 2) : SCROLLS;
-  // If directFeed already captured enough, skip scrolls
-  if (!(directFeedUsed && apiFeedJson)) {
-    for (let i=0;i<intendedScrolls;i++){
-      await page.mouse.wheel(0, 3500);
-      await sleep(FAST_MODE ? 250 + jitter(40,120) : 700 + jitter());
-      await page.waitForSelector('[data-testid="feed-item-card"], a[href*="/item/detail/"]', { timeout: 15000 }).catch(() => {});
-    }
-  }
-
-  // ---------- Prefer client feed over SSR if available ----------
-  let feed: FeedItem[] = [];
-  if (apiFeedJson) {
-    const clientFeed = parseLooseTiles(apiFeedJson);
-    if (clientFeed.length) feed = clientFeed;
-  }
-  if (!feed.length) {
-    feed = await readNextData(page);
-  }
-
-  // ---------- Fallback to aria-label scraping ----------
-  if (!feed.length) {
-    const fallback = await readFromAria(page);
-    feed = fallback;
-  }
-
-  // Diagnostics if still nothing
-  if (!feed.length) {
-    await page.screenshot({ path: 'offerup_feed.png', fullPage: true });
-    await fs.writeFile('offerup_feed.html', await page.content());
-    console.log('No feed items. Wrote offerup_feed.png and offerup_feed.html for debugging.');
-  }
-  // Optional: log a few cities to confirm we’re local before filtering
-  const sampleCities = Array.from(new Set(feed.map(f => f.city).filter(Boolean))).slice(0, 10);
-  console.log('Sample feed cities:', sampleCities);
-
-  // ---------- Filter by radius / cities (safety net) ----------
   const t0 = Date.now();
-  let candidates = feed.filter(c => (c.distanceMi == null ? true : c.distanceMi <= RADIUS));
-  if (allowedCities.length) {
-    candidates = candidates.filter(c => (c.city ? allowedCities.includes(c.city.toLowerCase()) : true));
+  const browser = await chromium.launch({ headless: HEADLESS });
+  const context = await browser.newContext({ userAgent: DESKTOP_UA });
+  const page = await context.newPage();
+
+  // ---------- Build feed via ACTIVE GraphQL feed ----------
+  let feed: FeedItem[] = [];
+  const qParts: string[] = [];
+  if (F_MAKES.length) qParts.push(...F_MAKES);
+  if (F_MODELS.length) qParts.push(...F_MODELS);
+  const SEARCH_Q = (process.env.OU_SEARCH_QUERY || '').trim();
+  const q = (SEARCH_Q || qParts.join(' ').trim());
+
+  if (q.length) {
+    console.log('[ACTIVE-FEED] query=', q);
+    feed = await collectActiveFeedGraphQL(q);
+  } else {
+    console.log('[ACTIVE-FEED] No q derived from filters; skipping active feed.');
   }
 
-  // Dedupe and cap
+  if (!feed.length) {
+    console.warn('[ACTIVE-FEED] No tiles from GraphQL; feedCount=0');
+  }
+
+  // ---------------- HARD FILTER: MAKE/MODEL (STRICT via parsed fields) ----------------
+  // Force parsing before hard filtering
+  for (const tile of feed) {
+    tile.parsed = parseListingTitle(tile.title || "");
+  }
+
+  const strictFeed: FeedItem[] = [];
+  for (const tile of feed) {
+    const parsed = parseListingTitle(tile.title || "");
+    const make = parsed.make?.toLowerCase() || null;
+    const model = parsed.model?.toLowerCase() || null;
+
+    const wantsMake = F_MAKES.length ? F_MAKES.map(x => x.toLowerCase()) : null;
+    const wantsModel = F_MODELS.length ? F_MODELS.map(x => x.toLowerCase()) : null;
+
+    let keep = true;
+
+    if (wantsMake && !wantsMake.includes(make as any)) keep = false;
+    if (wantsModel && !wantsModel.includes(model as any)) keep = false;
+
+    // Price range filters
+    const price = tile.price ?? null;
+    if (keep && F_MIN_PRICE != null && price != null && price < F_MIN_PRICE) keep = false;
+    if (keep && F_MAX_PRICE != null && price != null && price > F_MAX_PRICE) keep = false;
+
+    // Year filters (based on parsed year only)
+    const year = parsed.year ?? null;
+    if (keep && F_MIN_YEAR != null && (year == null || year < F_MIN_YEAR)) keep = false;
+    if (keep && F_MAX_YEAR != null && (year == null || year > F_MAX_YEAR)) keep = false;
+
+    // Mileage filters
+    const mileage = tile.mileage ?? null;
+    if (keep && F_MIN_MILEAGE != null && mileage != null && mileage < F_MIN_MILEAGE) keep = false;
+    if (keep && F_MAX_MILEAGE != null && mileage != null && mileage > F_MAX_MILEAGE) keep = false;
+
+    if (keep) strictFeed.push({ ...tile, parsed });
+  }
+  try { console.log('[HARD FILTER] kept feed=', strictFeed.length); } catch {}
+  // ---------------- END HARD FILTER ------------------------
   const seen = new Set<string>();
-  let links = candidates.filter(c => {
-    const id = c.id || c.url.match(/\/item\/detail\/([^/?#]+)/)?.[1];
-    if (!id || seen.has(id)) return false;
-    seen.add(id);
+  feed = feed.filter(it => {
+    if (!it.id || seen.has(it.id)) return false;
+    seen.add(it.id);
     return true;
-  }).map(c => c.url);
+  }).slice(0, MAX_ITEMS);
 
-  if (links.length > MAX) links = links.slice(0, MAX);
+  // Final feed selection for detail-phase
+  const finalFeed: FeedItem[] = strictFeed;
 
-  console.log(`Feed items: ${feed.length}; after filter: ${links.length}`);
+  const summaryBase = { feedCount: finalFeed.length } as any;
+  const accepted: any[] = [];
+  let errors = 0;
 
-  // ---------- Batch-exists check (avoid per-item queries) ----------
-  const remoteIds = links
-    .map(u => u.match(/\/item\/detail\/([^/?#]+)/)?.[1] || null)
-    .filter((x): x is string => Boolean(x));
+  const queue = [...finalFeed];
+  const workers: Promise<void>[] = [];
+  const runOne = async () => {
+    while (queue.length) {
+      const item = queue.shift()!;
+      const detail = await context.newPage();
+      await detail.waitForTimeout(75 + Math.random() * 75);
+      const url = item.url;
+      const remote_id = item.id;
+      try {
+        await detail.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
+        const [jsonLd, nextData] = await Promise.all([
+          getJsonLd(detail),
+          getNextData(detail),
+        ]);
+        const nd = nextData;
 
-  let existingIds = new Set<string>();
-  if (remoteIds.length) {
-    const { data: rows, error } = await supaSvc
-      .from('listings')
-      .select('remote_id')
-      .eq('source', 'offerup')
-      .in('remote_id', remoteIds);
-    if (error) {
-      console.warn('batch exists error:', error.message);
-    } else {
-      existingIds = new Set((rows || []).map(r => (r as any).remote_id));
-    }
-  }
-  const newIds = new Set(remoteIds.filter(id => !existingIds.has(id)));
+        const title = (await getTextFast(detail, 'h1')) || (typeof nd?.props?.pageProps?.title === 'string' ? nd.props.pageProps.title : null) || item.title || null;
+        const price = extractPriceFromStructures(jsonLd) ?? extractPriceFromNextData(nd) ?? sanitizeInteger(item.price ?? null, { min: 0 });
+        const mileage = extractMileageFromStructures(jsonLd) ?? extractMileageFromNextData(nd) ?? sanitizeInteger(item.mileage ?? null, { min: 0 });
 
-  const REQUIRE_DETAIL_FOR_TIME = F_POSTED_WITHIN_HOURS != null;
+        // Unified timestamp extraction
+        const unified = await extractPostedAt(detail, jsonLd, nd);
+        let posted_at: string | null = unified.timestamp ? new Date(unified.timestamp).toISOString() : null;
+        if (unified.source === 'jsonld') RUN_STATS.postedSrc.jsonld++;
+        else if (unified.source === 'nextdata') RUN_STATS.postedSrc.nextdata++;
+        else if (unified.source === 'relative') RUN_STATS.postedSrc.relative++;
 
-  // ---------- Feed-first upsert for new items ----------
-  const feedToInsert = feed
-    .filter(f => f.id && newIds.has(f.id))
-    .map(f => {
-      const inferred = inferFromTitle(f.title || null);
-      return { f, inferred };
-    })
-    // Apply strict filters that are reliable from feed (price/year/model).
-    // Skip postedWithinHours here because feed often lacks timestamps; enforce it in detail phase.
-    .filter(({ f, inferred }) => {
-      return matchesFilters({
-        price: f.price ?? null,
-        year: inferred.year,
-        mileage: f.mileage ?? null,
-        model: (inferred.model || '').toLowerCase() || null,
-        posted_at: REQUIRE_DETAIL_FOR_TIME ? new Date().toISOString() : (f.postedAt ?? null),
-      });
-    })
-    .map(({ f, inferred }) => ({ f, inferred }));
-  let inserted = 0, skipped = remoteIds.length - feedToInsert.length, errors = 0;
-  // If hours filter is set, avoid inserting from feed (timestamps unreliable). Defer to detail phase.
-  if (feedToInsert.length && !REQUIRE_DETAIL_FOR_TIME) {
-    for (const group of chunked(feedToInsert, 100)) {
-      const payload = group.map(({ f, inferred }) => ({
-        source: 'offerup',
-        remote_id: f.id!,
-        url: f.url,
-        title: f.title ?? null,
-        price: f.price ?? null,
-        city: f.city ?? null,
-        mileage: f.mileage ?? null,
-        posted_at: f.postedAt ?? null,
-        year: inferred.year,
-        make: inferred.make,
-        model: inferred.model,
-      }));
-      const up = await supaSvc.from('listings').upsert(payload, { onConflict: 'source,remote_id' });
-      if (up.error) {
-        console.warn('feed upsert error', up.error.message);
-        errors++;
-      } else {
-        inserted += payload.length;
-      }
-    }
-  }
-  const feedPhaseMs = Date.now() - t0;
-  console.log(`Feed-phase: ${REQUIRE_DETAIL_FOR_TIME ? 'skipped upsert due to hours filter' : `upserted ${feedToInsert.length} new`} in ${feedPhaseMs} ms (skipped existing: ${skipped})`);
-
-  if (FEED_ONLY && !REQUIRE_DETAIL_FOR_TIME) {
-    console.log(JSON.stringify({ ok: true, inserted, skipped, errors, mode: 'FEED_ONLY' }, null, 2));
-    await browser.close();
-    return;
-  }
-
-  // Only enrich details for new items
-  const linksForNew = links.filter(u => {
-    const id = u.match(/\/item\/detail\/([^/?#]+)/)?.[1] || null;
-    return id && newIds.has(id);
-  });
-  // ---------- Detail enrichment & batch upsert ----------
-  const enrichT0 = Date.now();
-
-  // Tiny helper for detail parsing (title/price/city/VIN and mild heuristics)
-  const VIN_RE = /\b[A-HJ-NPR-Z0-9]{17}\b/i;
-  function parseMileageFromText(text?: string|null): number|null {
-    if (!text) return null;
-    // capture patterns like "120,000 miles" or "85k miles"
-    const milesWord = text.match(/(\d{1,3}(?:,\d{3})+|\d{2,3})\s*miles\b/i);
-    if (milesWord) {
-      const num = milesWord[1].replace(/,/g, '');
-      const n = parseInt(num, 10);
-      if (Number.isFinite(n) && n >= 500) return n; // avoid catching distances
-    }
-    const kWord = text.match(/(\d{2,3})\s*k\s*miles\b/i);
-    if (kWord) {
-      const n = parseInt(kWord[1], 10) * 1000;
-      if (Number.isFinite(n) && n >= 500) return n;
-    }
-    return null;
-  }
-  async function parseDetail(detail: Page) {
-    const title = (await detail.locator('h1').first().textContent().catch(()=>null))?.trim() || null;
-    let priceText = await detail.locator('[data-testid="listing-price"]').first().textContent().catch(()=>null);
-    if (!priceText) priceText = await detail.locator('text=Price').locator('..').textContent().catch(()=>null);
-    const price = sanitizeInteger(priceText ? priceText.replace(/[^\d]/g, '') : null, { min: 0, max: 500000 });
-
-    let city =
-      (await detail.locator('[data-testid="buyer-location"]').first().textContent().catch(()=>null))?.trim()
-      || (await detail.locator('div:has-text("mi")').first().textContent().catch(()=>null))?.trim()
-      || null;
-    if (city) city = city.replace(/\s+ca?$/i, '').split(',')[0].trim();
-
-    let desc = await detail.locator('[data-testid="post-description"]').first().textContent().catch(()=>null);
-    if (!desc) desc = await detail.locator('section:has-text("Description")').first().textContent().catch(()=>null);
-    const vin = (desc?.match(VIN_RE)?.[0]?.toUpperCase()) || null;
-    const mileage = parseMileageFromText(desc || undefined);
-
-    // posted_at from time element, ld+json, or detail __NEXT_DATA__
-    let posted_at: string | null = null;
-    const timeAttr = await detail.locator('time[datetime]').first().getAttribute('datetime').catch(() => null);
-    if (timeAttr) {
-      posted_at = new Date(timeAttr).toISOString();
-    } else {
-      const ldJson = await detail.locator('script[type="application/ld+json"]').first().textContent().catch(() => null);
-      if (ldJson) {
-        try {
-          const j = JSON.parse(ldJson);
-          const d = j?.datePosted || j?.datePublished || j?.dateCreated;
-          if (typeof d === 'string') posted_at = new Date(d).toISOString();
-        } catch {}
-      }
-      if (!posted_at) {
-        const nd = await detail.locator('#__NEXT_DATA__').first().textContent().catch(() => null);
-        if (nd) {
-          try {
-            const j = JSON.parse(nd);
-            // shallow scan for plausible timestamp fields
-            const stack: any[] = [j];
-            while (stack.length && !posted_at) {
-              const cur = stack.pop();
-              if (cur && typeof cur === 'object') {
-                for (const [k, v] of Object.entries(cur)) {
-                  if (typeof v === 'object' && v) stack.push(v);
-                  if (typeof v === 'string' && /(created|posted|publish).*(at|time|date|timestamp)/i.test(k)) {
-                    const t = new Date(v);
-                    if (!isNaN(t.getTime())) { posted_at = t.toISOString(); break; }
-                  }
-                  if (typeof v === 'number' && /(created|posted|publish).*(ms|time|timestamp)/i.test(k)) {
-                    const t = new Date(v);
-                    if (!isNaN(t.getTime())) { posted_at = t.toISOString(); break; }
-                  }
-                }
-              }
+        // Timestamp fallback behavior
+        let needsTimestampResolution = false;
+        if (posted_at) {
+          if (F_POSTED_WITHIN_HOURS != null) {
+            const cutoff = Date.now() - F_POSTED_WITHIN_HOURS * 3600_000;
+            const ts = new Date(posted_at).getTime();
+            if (!Number.isFinite(ts) || ts < cutoff) {
+              RUN_STATS.postedRejected++;
+              try { console.log('[TS] too old', { url, posted_at }); } catch {}
+              continue;
+            } else {
+              RUN_STATS.postedKept++;
+              try { console.log('[TS] OK recent', { url, posted_at }); } catch {}
             }
-          } catch {}
+          } else {
+            // No hours window set; accept
+            RUN_STATS.postedKept++;
+            try { console.log('[TS] OK recent', { url, posted_at }); } catch {}
+          }
+        } else {
+          RUN_STATS.missingTimestamp++;
+          needsTimestampResolution = true;
+          try { console.log('[TS] missing timestamp → rejecting', { url, id: remote_id }); } catch {}
+          continue;
         }
+
+        // New parsing system only
+        const parsed = parseCarTitleOrNull(title || item.title || null);
+        const model = parsed.model ?? null;
+        const make = parsed.make ?? null;
+        const year = parsed.year ?? null;
+
+        // City extraction
+        let city: string | null = item.city || null;
+        if (!city) {
+          const mainText = (await getTextFast(detail, 'main')) || (await getTextFast(detail, 'body')) || '';
+          city = extractCity(nd?.props?.pageProps?.listing || nd) || extractCity(mainText) || null;
+        }
+
+        const candidate = {
+          source: 'offerup',
+          remote_id,
+          url,
+          title,
+          price: price ?? null,
+          mileage: mileage ?? null,
+          city,
+          year,
+          make,
+          model,
+          posted_at,
+          needsTimestampResolution,
+        };
+
+        // Make/Model filtering strictly via parsed values (no substring)
+        const wantsMake = F_MAKES.length ? F_MAKES.map(m => m.toLowerCase()) : null;
+        const wantsModel = F_MODELS.length ? F_MODELS.map(m => m.toLowerCase()) : null;
+        const parsedMake = parsed.make ? parsed.make.toLowerCase() : null;
+        const parsedModel = parsed.model ? parsed.model.toLowerCase() : null;
+
+        if (wantsMake && !wantsMake.includes(parsedMake as any)) {
+          continue;
+        }
+        if (wantsModel && !wantsModel.includes(parsedModel as any)) {
+          continue;
+        }
+
+        accepted.push(candidate);
+      } catch (e: any) {
+        console.warn('detail error', e?.message, url);
+        errors++;
+      } finally {
+        try { await detail.close(); } catch {}
       }
     }
+  };
 
-    const blob = `${title ?? ''}\n${desc ?? ''}`.toLowerCase();
-    let title_status: 'clean'|'salvage'|null = null;
-    if (/\b(clean\s*title|clean-title|clean\s*ttl)\b/.test(blob)) title_status = 'clean';
-    if (/\b(salvage|rebuilt|branded)\b/.test(blob)) title_status = 'salvage';
+  const workerCount = Math.max(1, Math.min(DETAIL_CONCURRENCY, 3));
+  for (let i = 0; i < workerCount; i++) workers.push(runOne());
+  await Promise.all(workers);
 
-    // Year/Make/Model from title
-    let year: number|null = null, make: string|null = null, model: string|null = null;
-    if (title) {
-      const y = title.match(/\b(19|20)\d{2}\b/);
-      if (y) year = sanitizeYear(parseInt(y[0], 10));
-      const t = title.replace(/\b(19|20)\d{2}\b/, '').trim();
-      const parts = t.split(/\s+/);
-      make = parts[0] || null;
-      model = parts.length > 1 ? parts.slice(1).join(' ') : null;
-    }
-
-    return { title, price, city, vin, title_status, year, make, model, mileage, posted_at };
-  }
-
-  // Build quick lookup from feed by slug/id for fallbacks
-  const feedById = new Map<string, FeedItem>();
-  for (const f of feed) {
-    if (f.id) feedById.set(f.id, f);
-  }
-
-  const detailCandidates = await withPagePool<any>(ctx, linksForNew, DETAIL_CONCURRENCY, async (detail, url) => {
-    const remote_id = url.match(/\/item\/detail\/([^/?#]+)/)?.[1] || null;
-    if (!remote_id) return null;
-    try {
-      await pRetry(async () => {
-        await detail.goto(url, { waitUntil: 'domcontentloaded', timeout: FAST_MODE ? 15_000 : 45_000 });
-        await Promise.race([
-          detail.waitForSelector('[data-testid="listing-price"]', { timeout: 6000 }),
-          detail.waitForSelector('h1', { timeout: 6000 }),
-        ]).catch(() => {});
-      }, { retries: 2, minTimeout: FAST_MODE ? 600 : 1200, factor: 1.5 });
-
-      if (!FAST_MODE) await sleep(500 + jitter(80, 160));
-      const data = await parseDetail(detail);
-      const feedItem = feedById.get(remote_id);
-      const price = data.price ?? feedItem?.price ?? null;
-      const city = data.city ?? feedItem?.city ?? null;
-      const mileage = data.mileage ?? feedItem?.mileage ?? null;
-      const posted_at = data.posted_at ?? feedItem?.postedAt ?? null;
-      let title_status = data.title_status;
-      if (!title_status && (feedItem?.title || '').toLowerCase()) {
-        const t = (feedItem?.title || '').toLowerCase();
-        if (/salvage/.test(t)) title_status = 'salvage';
-        else if (/clean\s*title|clean-title|clean\s*ttl/.test(t)) title_status = 'clean';
+  if (accepted.length) {
+    // Require minimal fields: remote_id, source, url, model
+    const sinceMs = F_POSTED_WITHIN_HOURS != null ? (Date.now() - (F_POSTED_WITHIN_HOURS * 3600_000)) : null;
+    const finalRows = accepted
+      .filter(r => typeof r.model === 'string' && r.model.length > 0)
+      .filter(r => {
+        if (sinceMs == null) return r.posted_at != null;
+        if (!r.posted_at) return false;
+        const ts = new Date(r.posted_at).getTime();
+        if (!Number.isFinite(ts)) return false;
+        return ts >= sinceMs;
+      })
+      .map(c => ({
+        source: c.source,
+        remote_slug: c.remote_id,
+        remote_id: c.remote_id,
+        url: c.url,
+        title: c.title,
+        price: c.price,
+        mileage: c.mileage,
+        city: c.city,
+        year: c.year,
+        make: c.make,
+        model: c.model,
+        posted_at: c.posted_at,
+      }));
+    console.log('[UPSERT] inserting', finalRows.length, 'rows');
+    for (const group of chunked(finalRows, 75)) {
+      // FINAL RECENCY FILTER – NOTHING OLDER THAN X HOURS IS EVER UPSERTED
+      let rows = group;
+      if (F_POSTED_WITHIN_HOURS !== null) {
+        const cutoff = Date.now() - F_POSTED_WITHIN_HOURS * 3600_000; // Date.now() is UTC-based; compare using UTC timestamps
+        rows = rows.filter(r => {
+          if (!r.posted_at) return false; // must have timestamp
+          const ts = new Date(r.posted_at).getTime();
+          if (Number.isNaN(ts)) return false;
+          return ts >= cutoff;
+        });
       }
-      const candidate: any = {
-        source: 'offerup',
-        remote_id,
-        url,
-        title: data.title,
-        price: sanitizeInteger(price, { min: 0, max: 500000 }),
-        city,
-        mileage: sanitizeInteger(mileage, { min: 500, max: 1500000 }),
-        title_status,
-        vin: data.vin,
-        year: sanitizeYear(data.year),
-        make: data.make,
-        model: data.model,
-      };
-      if (posted_at) candidate.posted_at = posted_at;
-      if (!matchesFilters({
-        price: candidate.price ?? null,
-        year: candidate.year ?? null,
-        mileage: candidate.mileage ?? null,
-        model: candidate.model ?? null,
-        posted_at: candidate.posted_at ?? null,
-      })) {
-        return null;
-      }
-      return candidate;
-    } catch (e: any) {
-      console.warn('detail error', e?.message, url);
-      errors++;
-      return null;
-    }
-  });
-
-  // Batch upsert detail-enriched rows
-  if (detailCandidates.length) {
-    for (const group of chunked(detailCandidates, 75)) {
-      const up = await supaSvc.from('listings').upsert(group, { onConflict: 'source,remote_id' });
+      if (!rows.length) continue;
+      const up = await supaSvc.from('listings').upsert(rows, { onConflict: 'source,remote_id' });
       if (up.error) {
         console.warn('detail upsert error', up.error.message);
         errors++;
       }
     }
   }
-  const enrichMs = Date.now() - enrichT0;
-  console.log(`Detail-phase: enriched ${detailCandidates.length} in ${enrichMs} ms with concurrency=${DETAIL_CONCURRENCY}`);
-
-  console.log(JSON.stringify({ ok: true, inserted, skipped, errors }, null, 2));
+  const enrichMs = Date.now() - t0;
+  const filtersUsed = {
+    minPrice: F_MIN_PRICE,
+    maxPrice: F_MAX_PRICE,
+    minYear: F_MIN_YEAR,
+    maxYear: F_MAX_YEAR,
+    minMileage: F_MIN_MILEAGE,
+    maxMileage: F_MAX_MILEAGE,
+    makes: F_MAKES,
+    models: F_MODELS,
+    postedWithinHours: F_POSTED_WITHIN_HOURS,
+    radiusMiles: RADIUS,
+    lat: LAT,
+    lng: LNG,
+    // model filtering is handled via parsed title only
+  };
+  const results = accepted.slice(0, 75);
+  console.log(JSON.stringify({
+    ...summaryBase,
+    detailEnrichedCount: accepted.length,
+    mode: 'DETAIL',
+    hints: {
+      priceKeys: FILTER_HINTS.price,
+      yearKeys: FILTER_HINTS.year,
+      mileageBands: FILTER_HINTS.mileageBands,
+      makeOptionsCount: FILTER_HINTS.makeOptions.length,
+    },
+    filtersUsed,
+    results,
+  }, null, 2));
+  console.log('Summary:', RUN_STATS);
   await browser.close();
+}
+
+// Placeholder for future timestamp resolution worker
+async function resolveTimestampFallback(url: string): Promise<string | null> {
+  // Future worker will use this.
+  return null;
 }
 
 run().catch(async (err) => {
@@ -833,3 +1474,11 @@ run().catch(async (err) => {
   } catch {}
   process.exit(1);
 });
+
+/**
+ * NOTE:
+ * Server-side posted_after filter removed.
+ * Recency filtering is now detail-phase only.
+ * To re-enable server-side recency filtering, reintroduce a
+ * PAGE_CURSOR + POSTED_AFTER injection in the GraphQL body.
+ */

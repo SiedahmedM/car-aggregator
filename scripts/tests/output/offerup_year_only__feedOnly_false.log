@@ -1,0 +1,8459 @@
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2015,
+  make: 'honda',
+  model: 'civic',
+  title: '2015 HONDA CIVIC SE'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2003,
+  make: 'honda',
+  model: 'civic',
+  title: '2003 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[MODEL-PARSE] parsed {
+  year: 2015,
+  make: 'honda',
+  model: 'civic',
+  title: '2015 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'civic',
+  title: '2018 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'civic',
+  title: '2018 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2007,
+  make: 'honda',
+  model: 'civic',
+  title: '2007 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[MODEL-PARSE] parsed {
+  year: 1999,
+  make: 'honda',
+  model: 'civic',
+  title: '1999 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'civic',
+  title: '2018 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[ACTIVE FEED] pages= 6 tiles= 276 feedCount= 276
+[FEED MODE] Using ACTIVE FEED – ignoring fallback
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2015,
+  make: 'honda',
+  model: 'civic',
+  title: '2015 HONDA CIVIC SE'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2003,
+  make: 'honda',
+  model: 'civic',
+  title: '2003 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[MODEL-PARSE] parsed {
+  year: 2015,
+  make: 'honda',
+  model: 'civic',
+  title: '2015 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'civic',
+  title: '2018 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'civic',
+  title: '2018 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2007,
+  make: 'honda',
+  model: 'civic',
+  title: '2007 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[MODEL-PARSE] parsed {
+  year: 1999,
+  make: 'honda',
+  model: 'civic',
+  title: '1999 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'civic',
+  title: '2018 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2015,
+  make: 'honda',
+  model: 'civic',
+  title: '2015 HONDA CIVIC SE'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2003,
+  make: 'honda',
+  model: 'civic',
+  title: '2003 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[MODEL-PARSE] parsed {
+  year: 2015,
+  make: 'honda',
+  model: 'civic',
+  title: '2015 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'civic',
+  title: '2018 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'civic',
+  title: '2018 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2007,
+  make: 'honda',
+  model: 'civic',
+  title: '2007 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[MODEL-PARSE] parsed {
+  year: 1999,
+  make: 'honda',
+  model: 'civic',
+  title: '1999 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'civic',
+  title: '2018 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/a40ebfe0-676d-3c77-a3ed-15ffe5bb684f',
+  posted_at: '2025-11-15T11:51:36.366Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/b3990d51-5b0b-3d8c-b98d-51e21a6e2191',
+  posted_at: '2025-11-15T11:51:37.441Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/2344c690-c9fa-3ccb-921f-357698c3a203',
+  posted_at: '2025-11-15T12:12:40.056Z'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/db469cfa-9074-3429-9a1a-124ab1aed7a3',
+  posted_at: '2025-09-16T12:51:40.119Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/eaab4f08-0f41-3cdd-aff8-313b360be813',
+  posted_at: '2025-11-06T12:51:41.412Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/86d11e98-5e5b-38c9-a0d8-cae2670b4804',
+  posted_at: '2025-11-15T08:51:42.303Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/013ee784-aead-3961-9c89-fa62ea7e5dd5',
+  posted_at: '2025-11-03T12:51:42.680Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/9ece1c60-9926-3131-9427-8d937035fa67',
+  posted_at: '2025-11-15T08:51:43.612Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/b18ed2e4-46e3-35dd-aeda-9c35e45092c7',
+  posted_at: '2025-11-15T07:51:44.672Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/0025979c-dcd8-3e1a-8775-5997a9b65eea',
+  posted_at: '2025-11-15T09:51:45.528Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/7b182baf-fb33-3de8-94a7-0ffa6f924507',
+  posted_at: '2025-11-12T12:51:45.687Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/d7d1ba8a-8ad4-38c7-9771-10144ce2e87b',
+  posted_at: '2025-11-15T07:51:46.733Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/34d656bd-82af-3d62-8cfd-8f63672ec099',
+  posted_at: '2025-11-15T07:51:47.316Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/8234ec96-a54f-334d-801a-912b62602064',
+  posted_at: '2025-11-15T07:51:50.595Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/fcafac16-c7f3-3d54-8ce2-1f6120a43cca',
+  posted_at: '2025-10-30T12:51:51.623Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2015,
+  make: 'honda',
+  model: 'civic',
+  title: '2015 HONDA CIVIC SE'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/fb703873-7671-3392-96d6-0b92666a1910',
+  posted_at: '2025-11-15T07:51:51.656Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/153e2762-05a0-36ca-b3dd-02e92e12bd29',
+  posted_at: '2025-11-15T07:51:52.307Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/b6f0e840-f97d-31fa-a112-63df4defbfa8',
+  posted_at: '2025-09-16T12:51:52.648Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/4968c9c8-de7c-36f7-9c37-f068748a85a3',
+  posted_at: '2025-11-15T05:51:53.197Z'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/1174de15-00a5-3c26-bc72-3ceb388ff34c',
+  posted_at: '2025-08-17T12:51:54.373Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e2eae78a-a08b-3f98-b407-85e0be91739a',
+  posted_at: '2025-11-15T05:51:55.390Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/48fa1d56-c748-3413-9eb5-7176b29dd891',
+  posted_at: '2025-11-15T05:51:56.256Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/8ab76e82-a3f1-3d90-a357-7fe571a64800',
+  posted_at: '2025-11-15T10:51:56.736Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/af62736b-6e9f-3393-9c13-4e50a44b92f8',
+  posted_at: '2025-11-03T12:51:57.370Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/0ac94298-563b-3b08-905a-fb5a05cae6df',
+  posted_at: '2025-11-15T06:51:57.478Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/f5c5e39b-55ff-3b52-aaa7-410fd57e5e1c',
+  posted_at: '2025-11-15T05:51:57.741Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/c6f1413b-0a1f-3bee-a650-9bbc1802613e',
+  posted_at: '2025-11-15T04:51:58.234Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/6ca7bb6e-593a-3eda-b1e6-a84f7a114036',
+  posted_at: '2025-11-12T12:51:58.711Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/74165e7c-caec-3f0b-8749-b01edbfa21fe',
+  posted_at: '2025-11-15T07:52:02.683Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/249579ee-b94f-31ca-9a12-a04e51025a0a',
+  posted_at: '2025-11-15T04:52:03.328Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e736ba23-39ee-3e8f-a5db-dc85c0787bf1',
+  posted_at: '2025-11-15T04:52:03.677Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/c2fc1523-3de6-3885-9a5e-9ec9564b558a',
+  posted_at: '2025-10-17T12:52:03.716Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/c812ba3d-8aeb-38a5-8e7a-922a76ec0884',
+  posted_at: '2025-11-15T04:52:05.043Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/3c08776a-a1b0-3cbb-b993-baea0a21c33b',
+  posted_at: '2025-10-22T12:52:06.044Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e1d338b4-a4e2-369a-b656-548b89bb5395',
+  posted_at: '2025-09-16T12:52:07.126Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/208a8247-ba67-3f7e-8f51-bfa21e9554a8',
+  posted_at: '2025-11-15T03:52:08.221Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/59ff9994-e489-3c90-9bd0-c340759ea4c7',
+  posted_at: '2025-11-15T04:52:08.352Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/23a5aeee-b112-3a01-8f19-7cb0e4a2aefa',
+  posted_at: '2025-11-15T00:52:08.608Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/1e68788c-36b7-36a6-ae6f-009b191fdd2f',
+  posted_at: '2025-11-15T03:52:09.457Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/df4fb9f1-541f-32c6-a025-12df3de4b541',
+  posted_at: '2025-11-10T12:52:09.506Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/058390f0-70c6-3473-9362-d29ce36775f8',
+  posted_at: '2025-10-19T12:52:09.815Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/ba31e5d7-675e-3367-8813-179421cf66e4',
+  posted_at: '2025-09-16T12:52:10.672Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e546be2a-be04-39e7-afbe-a3ac7cb36459',
+  posted_at: '2025-11-15T03:52:10.753Z'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/84f154c6-e613-34b1-ac51-829226ad22b4',
+  posted_at: '2025-11-15T03:52:12.026Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/a40ebfe0-676d-3c77-a3ed-15ffe5bb684f',
+  posted_at: '2025-11-15T11:52:13.027Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/2a09f0cc-ae83-306b-b904-d4a1487bc369',
+  posted_at: '2025-09-16T12:52:13.958Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/13b1015f-da42-3404-accd-e6e335944bbe',
+  posted_at: '2025-11-15T04:52:14.787Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/b3990d51-5b0b-3d8c-b98d-51e21a6e2191',
+  posted_at: '2025-11-15T11:52:15.704Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/3640a9a4-b4d1-3c48-bb6a-e5976645c010',
+  posted_at: '2025-11-15T04:52:15.889Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/2344c690-c9fa-3ccb-921f-357698c3a203',
+  posted_at: '2025-11-15T12:13:18.842Z'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/eaab4f08-0f41-3cdd-aff8-313b360be813',
+  posted_at: '2025-11-06T12:52:19.824Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/86d11e98-5e5b-38c9-a0d8-cae2670b4804',
+  posted_at: '2025-11-15T08:52:20.484Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/5e898761-9b32-3eb8-a1c8-53f8a94a59e1',
+  posted_at: '2025-10-24T12:52:20.795Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/0025979c-dcd8-3e1a-8775-5997a9b65eea',
+  posted_at: '2025-11-15T09:52:20.923Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/9ece1c60-9926-3131-9427-8d937035fa67',
+  posted_at: '2025-11-15T07:52:21.882Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/b18ed2e4-46e3-35dd-aeda-9c35e45092c7',
+  posted_at: '2025-11-15T07:52:21.962Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/2f69dcb3-3f54-38a4-8dee-9fb83ed31e25',
+  posted_at: '2025-10-27T12:52:22.964Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/d7d1ba8a-8ad4-38c7-9771-10144ce2e87b',
+  posted_at: '2025-11-15T07:52:23.145Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/34d656bd-82af-3d62-8cfd-8f63672ec099',
+  posted_at: '2025-11-15T07:52:25.372Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/8234ec96-a54f-334d-801a-912b62602064',
+  posted_at: '2025-11-15T07:52:27.979Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/fb703873-7671-3392-96d6-0b92666a1910',
+  posted_at: '2025-11-15T07:52:28.300Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/b6f0e840-f97d-31fa-a112-63df4defbfa8',
+  posted_at: '2025-09-16T12:52:29.425Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/153e2762-05a0-36ca-b3dd-02e92e12bd29',
+  posted_at: '2025-11-15T07:52:30.452Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/4968c9c8-de7c-36f7-9c37-f068748a85a3',
+  posted_at: '2025-11-15T05:52:31.353Z'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/1f797588-0c18-33c0-984d-8fdb51349d46',
+  posted_at: '2025-11-13T12:52:33.092Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2003,
+  make: 'honda',
+  model: 'civic',
+  title: '2003 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e599dd09-f999-39e7-a21e-de3eb95d31e6',
+  posted_at: '2025-11-14T12:52:34.073Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/8ab76e82-a3f1-3d90-a357-7fe571a64800',
+  posted_at: '2025-11-15T10:52:34.235Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e2eae78a-a08b-3f98-b407-85e0be91739a',
+  posted_at: '2025-11-15T05:52:35.014Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/48fa1d56-c748-3413-9eb5-7176b29dd891',
+  posted_at: '2025-11-15T05:52:35.204Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/af62736b-6e9f-3393-9c13-4e50a44b92f8',
+  posted_at: '2025-11-03T12:52:36.044Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/f5c5e39b-55ff-3b52-aaa7-410fd57e5e1c',
+  posted_at: '2025-11-15T05:52:36.131Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/0ac94298-563b-3b08-905a-fb5a05cae6df',
+  posted_at: '2025-11-15T06:52:36.356Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/c6f1413b-0a1f-3bee-a650-9bbc1802613e',
+  posted_at: '2025-11-15T04:52:37.293Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/6ca7bb6e-593a-3eda-b1e6-a84f7a114036',
+  posted_at: '2025-11-12T12:52:37.636Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/74165e7c-caec-3f0b-8749-b01edbfa21fe',
+  posted_at: '2025-11-15T07:52:41.029Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/c2fc1523-3de6-3885-9a5e-9ec9564b558a',
+  posted_at: '2025-10-17T12:52:42.094Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/249579ee-b94f-31ca-9a12-a04e51025a0a',
+  posted_at: '2025-11-15T04:52:42.152Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e736ba23-39ee-3e8f-a5db-dc85c0787bf1',
+  posted_at: '2025-11-15T04:52:42.672Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/c812ba3d-8aeb-38a5-8e7a-922a76ec0884',
+  posted_at: '2025-11-15T04:52:43.579Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/3c08776a-a1b0-3cbb-b993-baea0a21c33b',
+  posted_at: '2025-10-22T12:52:44.639Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e1d338b4-a4e2-369a-b656-548b89bb5395',
+  posted_at: '2025-09-16T12:52:45.678Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/208a8247-ba67-3f7e-8f51-bfa21e9554a8',
+  posted_at: '2025-11-15T03:52:46.745Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/59ff9994-e489-3c90-9bd0-c340759ea4c7',
+  posted_at: '2025-11-15T04:52:46.965Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/23a5aeee-b112-3a01-8f19-7cb0e4a2aefa',
+  posted_at: '2025-11-14T23:52:47.211Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/1e68788c-36b7-36a6-ae6f-009b191fdd2f',
+  posted_at: '2025-11-15T03:52:47.612Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/df4fb9f1-541f-32c6-a025-12df3de4b541',
+  posted_at: '2025-11-10T12:52:47.963Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/058390f0-70c6-3473-9362-d29ce36775f8',
+  posted_at: '2025-10-19T12:52:48.117Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/ba31e5d7-675e-3367-8813-179421cf66e4',
+  posted_at: '2025-09-16T12:52:48.556Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e546be2a-be04-39e7-afbe-a3ac7cb36459',
+  posted_at: '2025-11-15T03:52:49.148Z'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/84f154c6-e613-34b1-ac51-829226ad22b4',
+  posted_at: '2025-11-15T03:52:50.107Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/a40ebfe0-676d-3c77-a3ed-15ffe5bb684f',
+  posted_at: '2025-11-15T11:52:51.118Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/13b1015f-da42-3404-accd-e6e335944bbe',
+  posted_at: '2025-11-15T04:52:53.166Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/3640a9a4-b4d1-3c48-bb6a-e5976645c010',
+  posted_at: '2025-11-15T04:52:53.776Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/b3990d51-5b0b-3d8c-b98d-51e21a6e2191',
+  posted_at: '2025-11-15T11:52:54.850Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/685325ff-a553-367c-afaa-936c1da916d7',
+  posted_at: '2025-09-16T12:52:55.929Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/2344c690-c9fa-3ccb-921f-357698c3a203',
+  posted_at: '2025-11-15T12:12:57.959Z'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/eaab4f08-0f41-3cdd-aff8-313b360be813',
+  posted_at: '2025-11-06T12:52:58.926Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/86d11e98-5e5b-38c9-a0d8-cae2670b4804',
+  posted_at: '2025-11-15T08:52:59.685Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/0025979c-dcd8-3e1a-8775-5997a9b65eea',
+  posted_at: '2025-11-15T09:53:00.758Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/9ece1c60-9926-3131-9427-8d937035fa67',
+  posted_at: '2025-11-15T07:53:01.679Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/b18ed2e4-46e3-35dd-aeda-9c35e45092c7',
+  posted_at: '2025-11-15T07:53:02.663Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/5a089705-dfc7-3625-9acc-7d3fe4803a66',
+  posted_at: '2025-11-01T12:53:03.738Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'civic',
+  title: '2018 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/27a0d031-4aa6-3747-b28c-6965fc68f964',
+  posted_at: '2025-11-12T12:53:03.926Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2015,
+  make: 'honda',
+  model: 'civic',
+  title: '2015 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/34d656bd-82af-3d62-8cfd-8f63672ec099',
+  posted_at: '2025-11-15T07:53:04.542Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/d7d1ba8a-8ad4-38c7-9771-10144ce2e87b',
+  posted_at: '2025-11-15T07:53:04.980Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/8234ec96-a54f-334d-801a-912b62602064',
+  posted_at: '2025-11-15T07:53:08.962Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/fb703873-7671-3392-96d6-0b92666a1910',
+  posted_at: '2025-11-15T07:53:09.449Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/153e2762-05a0-36ca-b3dd-02e92e12bd29',
+  posted_at: '2025-11-15T07:53:10.134Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/1c2002c2-a3d9-3e26-8880-e2e3fd6f5a5e',
+  posted_at: '2025-10-30T12:53:10.161Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'civic',
+  title: '2018 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/b6f0e840-f97d-31fa-a112-63df4defbfa8',
+  posted_at: '2025-09-16T12:53:10.739Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/4968c9c8-de7c-36f7-9c37-f068748a85a3',
+  posted_at: '2025-11-15T05:53:11.034Z'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/d3ec322e-9565-3c00-9a7d-934dcf2914d1',
+  posted_at: '2025-08-17T12:53:12.873Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e2eae78a-a08b-3f98-b407-85e0be91739a',
+  posted_at: '2025-11-15T05:53:13.859Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/48fa1d56-c748-3413-9eb5-7176b29dd891',
+  posted_at: '2025-11-15T05:53:15.014Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/8ab76e82-a3f1-3d90-a357-7fe571a64800',
+  posted_at: '2025-11-15T10:53:15.358Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/0ac94298-563b-3b08-905a-fb5a05cae6df',
+  posted_at: '2025-11-15T06:53:15.952Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/af62736b-6e9f-3393-9c13-4e50a44b92f8',
+  posted_at: '2025-11-03T12:53:15.992Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/f5c5e39b-55ff-3b52-aaa7-410fd57e5e1c',
+  posted_at: '2025-11-15T05:53:16.634Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/c6f1413b-0a1f-3bee-a650-9bbc1802613e',
+  posted_at: '2025-11-15T04:53:17.213Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/6ca7bb6e-593a-3eda-b1e6-a84f7a114036',
+  posted_at: '2025-11-12T12:53:17.672Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/74165e7c-caec-3f0b-8749-b01edbfa21fe',
+  posted_at: '2025-11-15T07:53:21.251Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/249579ee-b94f-31ca-9a12-a04e51025a0a',
+  posted_at: '2025-11-15T04:53:22.138Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/c2fc1523-3de6-3885-9a5e-9ec9564b558a',
+  posted_at: '2025-10-17T12:53:22.271Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e736ba23-39ee-3e8f-a5db-dc85c0787bf1',
+  posted_at: '2025-11-15T04:53:22.600Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/c812ba3d-8aeb-38a5-8e7a-922a76ec0884',
+  posted_at: '2025-11-15T04:53:23.649Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/3c08776a-a1b0-3cbb-b993-baea0a21c33b',
+  posted_at: '2025-10-22T12:53:24.575Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e1d338b4-a4e2-369a-b656-548b89bb5395',
+  posted_at: '2025-09-16T12:53:25.829Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/208a8247-ba67-3f7e-8f51-bfa21e9554a8',
+  posted_at: '2025-11-15T03:53:26.797Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/23a5aeee-b112-3a01-8f19-7cb0e4a2aefa',
+  posted_at: '2025-11-14T23:53:27.276Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/59ff9994-e489-3c90-9bd0-c340759ea4c7',
+  posted_at: '2025-11-15T04:53:27.368Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/1e68788c-36b7-36a6-ae6f-009b191fdd2f',
+  posted_at: '2025-11-15T03:53:27.678Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/df4fb9f1-541f-32c6-a025-12df3de4b541',
+  posted_at: '2025-11-10T12:53:28.165Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/058390f0-70c6-3473-9362-d29ce36775f8',
+  posted_at: '2025-10-19T12:53:28.409Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/ba31e5d7-675e-3367-8813-179421cf66e4',
+  posted_at: '2025-09-16T12:53:29.137Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e546be2a-be04-39e7-afbe-a3ac7cb36459',
+  posted_at: '2025-11-15T03:53:29.153Z'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/84f154c6-e613-34b1-ac51-829226ad22b4',
+  posted_at: '2025-11-15T03:53:29.968Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/a40ebfe0-676d-3c77-a3ed-15ffe5bb684f',
+  posted_at: '2025-11-15T11:53:31.237Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/72cee1ea-e70e-3429-baed-9e5e8de40793',
+  posted_at: '2025-11-07T12:53:32.250Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/13b1015f-da42-3404-accd-e6e335944bbe',
+  posted_at: '2025-11-15T04:53:33.699Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/3640a9a4-b4d1-3c48-bb6a-e5976645c010',
+  posted_at: '2025-11-15T04:53:34.327Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/b3990d51-5b0b-3d8c-b98d-51e21a6e2191',
+  posted_at: '2025-11-15T11:53:34.674Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/2344c690-c9fa-3ccb-921f-357698c3a203',
+  posted_at: '2025-11-15T12:12:37.166Z'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/eaab4f08-0f41-3cdd-aff8-313b360be813',
+  posted_at: '2025-11-06T12:53:38.173Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/86d11e98-5e5b-38c9-a0d8-cae2670b4804',
+  posted_at: '2025-11-15T08:53:39.298Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/0025979c-dcd8-3e1a-8775-5997a9b65eea',
+  posted_at: '2025-11-15T09:53:39.620Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/9ece1c60-9926-3131-9427-8d937035fa67',
+  posted_at: '2025-11-15T07:53:40.546Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/b18ed2e4-46e3-35dd-aeda-9c35e45092c7',
+  posted_at: '2025-11-15T07:53:41.474Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/a253b309-5746-3f40-99a3-124cd9c01349',
+  posted_at: '2025-10-19T12:53:43.047Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/d7d1ba8a-8ad4-38c7-9771-10144ce2e87b',
+  posted_at: '2025-11-15T07:53:44.044Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/34d656bd-82af-3d62-8cfd-8f63672ec099',
+  posted_at: '2025-11-15T07:53:44.182Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/61b6b303-5268-3056-b87a-c441264c20f2',
+  posted_at: '2025-11-12T12:53:46.511Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/8234ec96-a54f-334d-801a-912b62602064',
+  posted_at: '2025-11-15T07:53:49.151Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/fb703873-7671-3392-96d6-0b92666a1910',
+  posted_at: '2025-11-15T07:53:49.195Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/b6f0e840-f97d-31fa-a112-63df4defbfa8',
+  posted_at: '2025-09-16T12:53:50.433Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/153e2762-05a0-36ca-b3dd-02e92e12bd29',
+  posted_at: '2025-11-15T07:53:51.528Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/4968c9c8-de7c-36f7-9c37-f068748a85a3',
+  posted_at: '2025-11-15T05:53:52.959Z'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[TS] missing timestamp → rejecting {
+  url: 'https://offerup.com/item/detail/018bfe3d-ef3c-33ee-8392-fab1e99f2103',
+  id: '018bfe3d-ef3c-33ee-8392-fab1e99f2103'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/8ab76e82-a3f1-3d90-a357-7fe571a64800',
+  posted_at: '2025-11-15T10:53:55.471Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e2eae78a-a08b-3f98-b407-85e0be91739a',
+  posted_at: '2025-11-15T05:53:56.487Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/48fa1d56-c748-3413-9eb5-7176b29dd891',
+  posted_at: '2025-11-15T05:53:57.419Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/0ac94298-563b-3b08-905a-fb5a05cae6df',
+  posted_at: '2025-11-15T06:53:57.918Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/af62736b-6e9f-3393-9c13-4e50a44b92f8',
+  posted_at: '2025-11-03T12:53:58.486Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/f6d87042-d246-3b6a-87d0-3db9cde443c0',
+  posted_at: '2025-11-13T12:53:59.007Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/f5c5e39b-55ff-3b52-aaa7-410fd57e5e1c',
+  posted_at: '2025-11-15T04:53:59.235Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/c6f1413b-0a1f-3bee-a650-9bbc1802613e',
+  posted_at: '2025-11-15T04:53:59.496Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/6ca7bb6e-593a-3eda-b1e6-a84f7a114036',
+  posted_at: '2025-11-12T12:54:00.521Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/74165e7c-caec-3f0b-8749-b01edbfa21fe',
+  posted_at: '2025-11-15T07:54:03.892Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/249579ee-b94f-31ca-9a12-a04e51025a0a',
+  posted_at: '2025-11-15T04:54:04.364Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/c2fc1523-3de6-3885-9a5e-9ec9564b558a',
+  posted_at: '2025-10-17T12:54:04.891Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e736ba23-39ee-3e8f-a5db-dc85c0787bf1',
+  posted_at: '2025-11-15T04:54:05.548Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/c812ba3d-8aeb-38a5-8e7a-922a76ec0884',
+  posted_at: '2025-11-15T04:54:06.469Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/3c08776a-a1b0-3cbb-b993-baea0a21c33b',
+  posted_at: '2025-10-22T12:54:07.375Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e1d338b4-a4e2-369a-b656-548b89bb5395',
+  posted_at: '2025-09-16T12:54:08.628Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/59ff9994-e489-3c90-9bd0-c340759ea4c7',
+  posted_at: '2025-11-15T04:54:09.398Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/208a8247-ba67-3f7e-8f51-bfa21e9554a8',
+  posted_at: '2025-11-15T03:54:09.588Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/23a5aeee-b112-3a01-8f19-7cb0e4a2aefa',
+  posted_at: '2025-11-14T23:54:09.809Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/1e68788c-36b7-36a6-ae6f-009b191fdd2f',
+  posted_at: '2025-11-15T03:54:10.311Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/df4fb9f1-541f-32c6-a025-12df3de4b541',
+  posted_at: '2025-11-10T12:54:10.472Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/058390f0-70c6-3473-9362-d29ce36775f8',
+  posted_at: '2025-10-19T12:54:10.935Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/ba31e5d7-675e-3367-8813-179421cf66e4',
+  posted_at: '2025-09-16T12:54:11.337Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e546be2a-be04-39e7-afbe-a3ac7cb36459',
+  posted_at: '2025-11-15T03:54:11.421Z'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/84f154c6-e613-34b1-ac51-829226ad22b4',
+  posted_at: '2025-11-15T03:54:12.643Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/a40ebfe0-676d-3c77-a3ed-15ffe5bb684f',
+  posted_at: '2025-11-15T11:54:13.526Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/4bba33e9-34d5-3184-8cd3-7387b1ca29f3',
+  posted_at: '2025-11-11T12:54:14.591Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/13b1015f-da42-3404-accd-e6e335944bbe',
+  posted_at: '2025-11-15T04:54:15.716Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/3640a9a4-b4d1-3c48-bb6a-e5976645c010',
+  posted_at: '2025-11-15T04:54:16.292Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/b3990d51-5b0b-3d8c-b98d-51e21a6e2191',
+  posted_at: '2025-11-15T11:54:16.723Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/2344c690-c9fa-3ccb-921f-357698c3a203',
+  posted_at: '2025-11-15T12:13:19.376Z'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/eaab4f08-0f41-3cdd-aff8-313b360be813',
+  posted_at: '2025-11-06T12:54:20.386Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/86d11e98-5e5b-38c9-a0d8-cae2670b4804',
+  posted_at: '2025-11-15T08:54:21.152Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/0025979c-dcd8-3e1a-8775-5997a9b65eea',
+  posted_at: '2025-11-15T09:54:21.565Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/9ece1c60-9926-3131-9427-8d937035fa67',
+  posted_at: '2025-11-15T07:54:22.493Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/b18ed2e4-46e3-35dd-aeda-9c35e45092c7',
+  posted_at: '2025-11-15T07:54:23.520Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/87118ba1-8747-33e9-92ac-21c681a2b51b',
+  posted_at: '2025-11-01T12:54:24.539Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/1deab2f7-4dda-346b-8762-a62bc43276e2',
+  posted_at: '2025-11-15T03:54:25.244Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1999,
+  make: 'honda',
+  model: 'civic',
+  title: '1999 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/d7d1ba8a-8ad4-38c7-9771-10144ce2e87b',
+  posted_at: '2025-11-15T07:54:25.562Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/34d656bd-82af-3d62-8cfd-8f63672ec099',
+  posted_at: '2025-11-15T07:54:25.985Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/8234ec96-a54f-334d-801a-912b62602064',
+  posted_at: '2025-11-15T07:54:30.429Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/fb703873-7671-3392-96d6-0b92666a1910',
+  posted_at: '2025-11-15T07:54:30.661Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/153e2762-05a0-36ca-b3dd-02e92e12bd29',
+  posted_at: '2025-11-15T07:54:30.850Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/b6f0e840-f97d-31fa-a112-63df4defbfa8',
+  posted_at: '2025-09-16T12:54:31.958Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/4968c9c8-de7c-36f7-9c37-f068748a85a3',
+  posted_at: '2025-11-15T05:54:32.848Z'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/d4563a17-6754-35fd-8af4-2a2b7a0e32aa',
+  posted_at: '2025-10-16T12:54:35.348Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/8ab76e82-a3f1-3d90-a357-7fe571a64800',
+  posted_at: '2025-11-15T10:54:35.759Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/0f18b349-0106-3661-b330-1af929441fa2',
+  posted_at: '2025-10-16T12:54:36.389Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'civic',
+  title: '2018 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e2eae78a-a08b-3f98-b407-85e0be91739a',
+  posted_at: '2025-11-15T05:54:36.779Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/48fa1d56-c748-3413-9eb5-7176b29dd891',
+  posted_at: '2025-11-15T05:54:37.325Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/af62736b-6e9f-3393-9c13-4e50a44b92f8',
+  posted_at: '2025-11-03T12:54:37.663Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/0ac94298-563b-3b08-905a-fb5a05cae6df',
+  posted_at: '2025-11-15T06:54:37.686Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/f5c5e39b-55ff-3b52-aaa7-410fd57e5e1c',
+  posted_at: '2025-11-15T04:54:38.405Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/c6f1413b-0a1f-3bee-a650-9bbc1802613e',
+  posted_at: '2025-11-15T04:54:38.853Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/6ca7bb6e-593a-3eda-b1e6-a84f7a114036',
+  posted_at: '2025-11-12T12:54:39.488Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/74165e7c-caec-3f0b-8749-b01edbfa21fe',
+  posted_at: '2025-11-15T07:54:42.569Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/249579ee-b94f-31ca-9a12-a04e51025a0a',
+  posted_at: '2025-11-15T04:54:43.760Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/c2fc1523-3de6-3885-9a5e-9ec9564b558a',
+  posted_at: '2025-10-17T12:54:43.995Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e736ba23-39ee-3e8f-a5db-dc85c0787bf1',
+  posted_at: '2025-11-15T04:54:44.434Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/c812ba3d-8aeb-38a5-8e7a-922a76ec0884',
+  posted_at: '2025-11-15T04:54:45.430Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/3c08776a-a1b0-3cbb-b993-baea0a21c33b',
+  posted_at: '2025-10-22T12:54:46.448Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e1d338b4-a4e2-369a-b656-548b89bb5395',
+  posted_at: '2025-09-16T12:54:47.555Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/59ff9994-e489-3c90-9bd0-c340759ea4c7',
+  posted_at: '2025-11-15T04:54:48.631Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/208a8247-ba67-3f7e-8f51-bfa21e9554a8',
+  posted_at: '2025-11-15T03:54:48.767Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/23a5aeee-b112-3a01-8f19-7cb0e4a2aefa',
+  posted_at: '2025-11-14T23:54:49.008Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/1e68788c-36b7-36a6-ae6f-009b191fdd2f',
+  posted_at: '2025-11-15T03:54:49.618Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/df4fb9f1-541f-32c6-a025-12df3de4b541',
+  posted_at: '2025-11-10T12:54:49.752Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/058390f0-70c6-3473-9362-d29ce36775f8',
+  posted_at: '2025-10-19T12:54:50.221Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e546be2a-be04-39e7-afbe-a3ac7cb36459',
+  posted_at: '2025-11-15T03:54:50.526Z'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/ba31e5d7-675e-3367-8813-179421cf66e4',
+  posted_at: '2025-09-16T12:54:50.885Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/84f154c6-e613-34b1-ac51-829226ad22b4',
+  posted_at: '2025-11-15T03:54:52.021Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/a40ebfe0-676d-3c77-a3ed-15ffe5bb684f',
+  posted_at: '2025-11-15T11:54:53.111Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e599dd09-f999-39e7-a21e-de3eb95d31e6',
+  posted_at: '2025-11-14T12:54:54.201Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/13b1015f-da42-3404-accd-e6e335944bbe',
+  posted_at: '2025-11-15T04:54:55.372Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/3640a9a4-b4d1-3c48-bb6a-e5976645c010',
+  posted_at: '2025-11-15T04:54:55.738Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/b3990d51-5b0b-3d8c-b98d-51e21a6e2191',
+  posted_at: '2025-11-15T11:54:56.501Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2011,
+  make: 'honda',
+  model: 'civic',
+  title: '2011 Honda Civic Coupe'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/2344c690-c9fa-3ccb-921f-357698c3a203',
+  posted_at: '2025-11-15T12:12:59.192Z'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic ' }
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/eaab4f08-0f41-3cdd-aff8-313b360be813',
+  posted_at: '2025-11-06T12:55:00.226Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Hatchback'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/86d11e98-5e5b-38c9-a0d8-cae2670b4804',
+  posted_at: '2025-11-15T08:55:00.622Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'honda',
+  model: 'civic',
+  title: '2009 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/7511f303-d0dc-399a-88c1-60de60648e8e',
+  posted_at: '2025-11-14T12:55:01.077Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/0025979c-dcd8-3e1a-8775-5997a9b65eea',
+  posted_at: '2025-11-15T09:55:01.437Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/9ece1c60-9926-3131-9427-8d937035fa67',
+  posted_at: '2025-11-15T07:55:02.268Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2004,
+  make: 'honda',
+  model: 'civic',
+  title: '2004 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/b18ed2e4-46e3-35dd-aeda-9c35e45092c7',
+  posted_at: '2025-11-15T07:55:02.464Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic EX'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/f83524b6-3e99-36d4-b472-a2188106b1d6',
+  posted_at: '2025-10-16T12:55:03.251Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/d7d1ba8a-8ad4-38c7-9771-10144ce2e87b',
+  posted_at: '2025-11-15T07:55:04.984Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic LX'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/34d656bd-82af-3d62-8cfd-8f63672ec099',
+  posted_at: '2025-11-15T07:55:05.761Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1969,
+  make: 'volkswagen',
+  model: 'beetle',
+  title: '1969 volkswagen beetle (read full post before contact please)  '
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/8234ec96-a54f-334d-801a-912b62602064',
+  posted_at: '2025-11-15T07:55:08.307Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/fed24a9d-d4f1-3565-be30-b596b69f6dd1',
+  posted_at: '2025-10-17T12:55:09.282Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/fb703873-7671-3392-96d6-0b92666a1910',
+  posted_at: '2025-11-15T07:55:09.908Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/b6f0e840-f97d-31fa-a112-63df4defbfa8',
+  posted_at: '2025-09-16T12:55:10.311Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2020,
+  make: 'honda',
+  model: 'civic',
+  title: '2020 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/153e2762-05a0-36ca-b3dd-02e92e12bd29',
+  posted_at: '2025-11-15T07:55:10.720Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'honda',
+  model: 'civic',
+  title: '2012 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/4968c9c8-de7c-36f7-9c37-f068748a85a3',
+  posted_at: '2025-11-15T05:55:11.308Z'
+}
+[MODEL-PARSE] parsed { year: null, make: null, model: null, title: 'Salvage ' }
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/478b16f3-0aa8-3330-83e3-de0065f5801d',
+  posted_at: '2025-08-17T12:55:12.349Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e2eae78a-a08b-3f98-b407-85e0be91739a',
+  posted_at: '2025-11-15T05:55:13.374Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/48fa1d56-c748-3413-9eb5-7176b29dd891',
+  posted_at: '2025-11-15T05:55:14.486Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2005,
+  make: 'honda',
+  model: 'civic',
+  title: '2005 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/8ab76e82-a3f1-3d90-a357-7fe571a64800',
+  posted_at: '2025-11-15T10:55:14.908Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2014,
+  make: 'honda',
+  model: 'civic',
+  title: '2014 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/0ac94298-563b-3b08-905a-fb5a05cae6df',
+  posted_at: '2025-11-15T06:55:15.594Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2008,
+  make: 'honda',
+  model: 'civic',
+  title: '2008 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/af62736b-6e9f-3393-9c13-4e50a44b92f8',
+  posted_at: '2025-11-03T12:55:15.894Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2025,
+  make: 'honda',
+  model: 'civic',
+  title: '2025 Honda Civic Hybrid'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/f5c5e39b-55ff-3b52-aaa7-410fd57e5e1c',
+  posted_at: '2025-11-15T04:55:16.070Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/c6f1413b-0a1f-3bee-a650-9bbc1802613e',
+  posted_at: '2025-11-15T04:55:16.697Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/6ca7bb6e-593a-3eda-b1e6-a84f7a114036',
+  posted_at: '2025-11-12T12:55:17.342Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/74165e7c-caec-3f0b-8749-b01edbfa21fe',
+  posted_at: '2025-11-15T07:55:20.790Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/249579ee-b94f-31ca-9a12-a04e51025a0a',
+  posted_at: '2025-11-15T04:55:21.651Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2012,
+  make: 'toyota',
+  model: 'camry',
+  title: '2012 Toyota Camry'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/c2fc1523-3de6-3885-9a5e-9ec9564b558a',
+  posted_at: '2025-10-17T12:55:21.766Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e736ba23-39ee-3e8f-a5db-dc85c0787bf1',
+  posted_at: '2025-11-15T04:55:22.475Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2022,
+  make: 'honda',
+  model: 'civic',
+  title: '2022 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/c812ba3d-8aeb-38a5-8e7a-922a76ec0884',
+  posted_at: '2025-11-15T04:55:23.526Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1993,
+  make: 'honda',
+  model: 'civic',
+  title: '1993 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/3c08776a-a1b0-3cbb-b993-baea0a21c33b',
+  posted_at: '2025-10-22T12:55:24.482Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2017,
+  make: 'honda',
+  model: 'civic',
+  title: '2017 Honda Civic Sedan'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e1d338b4-a4e2-369a-b656-548b89bb5395',
+  posted_at: '2025-09-16T12:55:25.821Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/59ff9994-e489-3c90-9bd0-c340759ea4c7',
+  posted_at: '2025-11-15T04:55:26.584Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'nissan',
+  model: 'sentra',
+  title: '2016 Nissan Sentra'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/23a5aeee-b112-3a01-8f19-7cb0e4a2aefa',
+  posted_at: '2025-11-14T23:55:26.698Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2026,
+  make: 'honda',
+  model: 'civic',
+  title: '2026 Honda Civic Sports Hybrid '
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/208a8247-ba67-3f7e-8f51-bfa21e9554a8',
+  posted_at: '2025-11-15T03:55:26.791Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2013,
+  make: 'honda',
+  model: 'civic',
+  title: '2013 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/1e68788c-36b7-36a6-ae6f-009b191fdd2f',
+  posted_at: '2025-11-15T03:55:27.762Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2019,
+  make: 'honda',
+  model: 'civic',
+  title: '2019 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/df4fb9f1-541f-32c6-a025-12df3de4b541',
+  posted_at: '2025-11-10T12:55:27.816Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2009,
+  make: 'mercedes',
+  model: null,
+  title: '2009 MERCEDES-BENZ S-CLASS'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/058390f0-70c6-3473-9362-d29ce36775f8',
+  posted_at: '2025-10-19T12:55:27.907Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2010,
+  make: 'honda',
+  model: 'civic',
+  title: '2010 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/e546be2a-be04-39e7-afbe-a3ac7cb36459',
+  posted_at: '2025-11-15T03:55:28.865Z'
+}
+[MODEL-PARSE] parsed { year: null, make: 'honda', model: 'civic', title: 'Honda Civic' }
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/ba31e5d7-675e-3367-8813-179421cf66e4',
+  posted_at: '2025-09-16T12:55:29.043Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'chevrolet',
+  model: null,
+  title: '2018 Chevrolet Suburban'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/84f154c6-e613-34b1-ac51-829226ad22b4',
+  posted_at: '2025-11-15T03:55:30.092Z'
+}
+[MODEL-PARSE] parsed {
+  year: 1998,
+  make: 'honda',
+  model: 'civic',
+  title: '1998 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/13b1015f-da42-3404-accd-e6e335944bbe',
+  posted_at: '2025-11-15T04:55:33.070Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2016,
+  make: 'honda',
+  model: 'civic',
+  title: '2016 Honda Civic'
+}
+[TS] OK recent {
+  url: 'https://offerup.com/item/detail/3640a9a4-b4d1-3c48-bb6a-e5976645c010',
+  posted_at: '2025-11-15T03:55:34.133Z'
+}
+[MODEL-PARSE] parsed {
+  year: 2018,
+  make: 'honda',
+  model: 'accord',
+  title: '2018 Honda Accord'
+}
+[UPSERT] inserting 257 rows
+detail upsert error TypeError: fetch failed
+detail upsert error TypeError: fetch failed
+detail upsert error TypeError: fetch failed
+detail upsert error TypeError: fetch failed
+{
+  "feedCount": 276,
+  "detailEnrichedCount": 275,
+  "mode": "DETAIL",
+  "hints": {
+    "priceKeys": null,
+    "yearKeys": null,
+    "mileageBands": [],
+    "makeOptionsCount": 0
+  },
+  "filtersUsed": {
+    "minPrice": null,
+    "maxPrice": null,
+    "minYear": 2015,
+    "maxYear": 2021,
+    "minMileage": null,
+    "maxMileage": null,
+    "makes": [],
+    "models": [],
+    "postedWithinHours": null,
+    "radiusMiles": 35,
+    "lat": 33.8166,
+    "lng": -118.0373
+  },
+  "results": [
+    {
+      "source": "offerup",
+      "remote_id": "a40ebfe0-676d-3c77-a3ed-15ffe5bb684f",
+      "url": "https://offerup.com/item/detail/a40ebfe0-676d-3c77-a3ed-15ffe5bb684f",
+      "title": "2017 Honda Civic Sedan",
+      "price": 11995,
+      "mileage": 138166,
+      "city": "Rialto, CA",
+      "year": 2017,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T11:51:36.366Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "b3990d51-5b0b-3d8c-b98d-51e21a6e2191",
+      "url": "https://offerup.com/item/detail/b3990d51-5b0b-3d8c-b98d-51e21a6e2191",
+      "title": "2011 Honda Civic Coupe",
+      "price": 8450,
+      "mileage": 73742,
+      "city": "Fontana, CA",
+      "year": 2011,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T11:51:37.441Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "2344c690-c9fa-3ccb-921f-357698c3a203",
+      "url": "https://offerup.com/item/detail/2344c690-c9fa-3ccb-921f-357698c3a203",
+      "title": "Honda Civic ",
+      "price": 3000,
+      "mileage": 160000,
+      "city": "Riverside, CA",
+      "year": null,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T12:12:40.056Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "db469cfa-9074-3429-9a1a-124ab1aed7a3",
+      "url": "https://offerup.com/item/detail/db469cfa-9074-3429-9a1a-124ab1aed7a3",
+      "title": "2017 Honda Civic",
+      "price": 13500,
+      "mileage": 70000,
+      "city": "Rialto, CA",
+      "year": 2017,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-09-16T12:51:40.119Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "eaab4f08-0f41-3cdd-aff8-313b360be813",
+      "url": "https://offerup.com/item/detail/eaab4f08-0f41-3cdd-aff8-313b360be813",
+      "title": "2017 Honda Civic Hatchback",
+      "price": 17999,
+      "mileage": 77094,
+      "city": "Norco, CA",
+      "year": 2017,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-06T12:51:41.412Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "86d11e98-5e5b-38c9-a0d8-cae2670b4804",
+      "url": "https://offerup.com/item/detail/86d11e98-5e5b-38c9-a0d8-cae2670b4804",
+      "title": "2009 Honda Civic",
+      "price": 1500,
+      "mileage": 0,
+      "city": "Palmdale, CA",
+      "year": 2009,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T08:51:42.303Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "013ee784-aead-3961-9c89-fa62ea7e5dd5",
+      "url": "https://offerup.com/item/detail/013ee784-aead-3961-9c89-fa62ea7e5dd5",
+      "title": "2014 Honda Civic",
+      "price": 8425,
+      "mileage": 172073,
+      "city": "Riverside, CA",
+      "year": 2014,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-03T12:51:42.680Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "9ece1c60-9926-3131-9427-8d937035fa67",
+      "url": "https://offerup.com/item/detail/9ece1c60-9926-3131-9427-8d937035fa67",
+      "title": "2004 Honda Civic",
+      "price": 6200,
+      "mileage": 150726,
+      "city": "Los Angeles, CA",
+      "year": 2004,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T08:51:43.612Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "b18ed2e4-46e3-35dd-aeda-9c35e45092c7",
+      "url": "https://offerup.com/item/detail/b18ed2e4-46e3-35dd-aeda-9c35e45092c7",
+      "title": "2014 Honda Civic EX",
+      "price": 8595,
+      "mileage": 183265,
+      "city": "Bellflower, CA",
+      "year": 2014,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T07:51:44.672Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "0025979c-dcd8-3e1a-8775-5997a9b65eea",
+      "url": "https://offerup.com/item/detail/0025979c-dcd8-3e1a-8775-5997a9b65eea",
+      "title": "2016 Honda Civic",
+      "price": 1000,
+      "mileage": 139000,
+      "city": "Bell Gardens, CA",
+      "year": 2016,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T09:51:45.528Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "7b182baf-fb33-3de8-94a7-0ffa6f924507",
+      "url": "https://offerup.com/item/detail/7b182baf-fb33-3de8-94a7-0ffa6f924507",
+      "title": "2012 Honda Civic",
+      "price": 10998,
+      "mileage": 154080,
+      "city": "Fountain Valley, CA",
+      "year": 2012,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-12T12:51:45.687Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "d7d1ba8a-8ad4-38c7-9771-10144ce2e87b",
+      "url": "https://offerup.com/item/detail/d7d1ba8a-8ad4-38c7-9771-10144ce2e87b",
+      "title": "2014 Honda Civic LX",
+      "price": 10995,
+      "mileage": 110346,
+      "city": "Bellflower, CA",
+      "year": 2014,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T07:51:46.733Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "34d656bd-82af-3d62-8cfd-8f63672ec099",
+      "url": "https://offerup.com/item/detail/34d656bd-82af-3d62-8cfd-8f63672ec099",
+      "title": "1969 volkswagen beetle (read full post before contact please)  ",
+      "price": 12000,
+      "mileage": 2000,
+      "city": "Riverside, CA",
+      "year": 1969,
+      "make": "volkswagen",
+      "model": "beetle",
+      "posted_at": "2025-11-15T07:51:47.316Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "8234ec96-a54f-334d-801a-912b62602064",
+      "url": "https://offerup.com/item/detail/8234ec96-a54f-334d-801a-912b62602064",
+      "title": "2016 Honda Civic",
+      "price": 1000,
+      "mileage": 137000,
+      "city": "Los Angeles, CA",
+      "year": 2016,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T07:51:50.595Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "fcafac16-c7f3-3d54-8ce2-1f6120a43cca",
+      "url": "https://offerup.com/item/detail/fcafac16-c7f3-3d54-8ce2-1f6120a43cca",
+      "title": "2015 HONDA CIVIC SE",
+      "price": 11999,
+      "mileage": 81072,
+      "city": "Long Beach, CA",
+      "year": 2015,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-10-30T12:51:51.623Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "fb703873-7671-3392-96d6-0b92666a1910",
+      "url": "https://offerup.com/item/detail/fb703873-7671-3392-96d6-0b92666a1910",
+      "title": "2012 Honda Civic",
+      "price": 1000,
+      "mileage": 174000,
+      "city": "Long Beach, CA",
+      "year": 2012,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T07:51:51.656Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "153e2762-05a0-36ca-b3dd-02e92e12bd29",
+      "url": "https://offerup.com/item/detail/153e2762-05a0-36ca-b3dd-02e92e12bd29",
+      "title": "2012 Honda Civic",
+      "price": 1000,
+      "mileage": 171000,
+      "city": "Bell Gardens, CA",
+      "year": 2012,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T07:51:52.307Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "b6f0e840-f97d-31fa-a112-63df4defbfa8",
+      "url": "https://offerup.com/item/detail/b6f0e840-f97d-31fa-a112-63df4defbfa8",
+      "title": "2020 Honda Civic Sedan",
+      "price": 19988,
+      "mileage": 66471,
+      "city": "Bloomington, CA",
+      "year": 2020,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-09-16T12:51:52.648Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "4968c9c8-de7c-36f7-9c37-f068748a85a3",
+      "url": "https://offerup.com/item/detail/4968c9c8-de7c-36f7-9c37-f068748a85a3",
+      "title": "Salvage ",
+      "price": 3100,
+      "mileage": 0,
+      "city": "Bell Gardens, CA",
+      "year": null,
+      "make": null,
+      "model": null,
+      "posted_at": "2025-11-15T05:51:53.197Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "1174de15-00a5-3c26-bc72-3ceb388ff34c",
+      "url": "https://offerup.com/item/detail/1174de15-00a5-3c26-bc72-3ceb388ff34c",
+      "title": "2020 Honda Civic Sedan",
+      "price": 17999,
+      "mileage": 30817,
+      "city": "Norco, CA",
+      "year": 2020,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-08-17T12:51:54.373Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "e2eae78a-a08b-3f98-b407-85e0be91739a",
+      "url": "https://offerup.com/item/detail/e2eae78a-a08b-3f98-b407-85e0be91739a",
+      "title": "2014 Honda Civic",
+      "price": 8975,
+      "mileage": 157754,
+      "city": "Rialto, CA",
+      "year": 2014,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T05:51:55.390Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "48fa1d56-c748-3413-9eb5-7176b29dd891",
+      "url": "https://offerup.com/item/detail/48fa1d56-c748-3413-9eb5-7176b29dd891",
+      "title": "2005 Honda Civic",
+      "price": 2800,
+      "mileage": 155000,
+      "city": "San Bernardino, CA",
+      "year": 2005,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T05:51:56.256Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "8ab76e82-a3f1-3d90-a357-7fe571a64800",
+      "url": "https://offerup.com/item/detail/8ab76e82-a3f1-3d90-a357-7fe571a64800",
+      "title": "2014 Honda Civic",
+      "price": 4500,
+      "mileage": 0,
+      "city": "Los Angeles, CA",
+      "year": 2014,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T10:51:56.736Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "af62736b-6e9f-3393-9c13-4e50a44b92f8",
+      "url": "https://offerup.com/item/detail/af62736b-6e9f-3393-9c13-4e50a44b92f8",
+      "title": "2025 Honda Civic Hybrid",
+      "price": 28499,
+      "mileage": 8898,
+      "city": "Fontana, CA",
+      "year": 2025,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-03T12:51:57.370Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "0ac94298-563b-3b08-905a-fb5a05cae6df",
+      "url": "https://offerup.com/item/detail/0ac94298-563b-3b08-905a-fb5a05cae6df",
+      "title": "2008 Honda Civic",
+      "price": 5000,
+      "mileage": 135000,
+      "city": "Norwalk, CA",
+      "year": 2008,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T06:51:57.478Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "f5c5e39b-55ff-3b52-aaa7-410fd57e5e1c",
+      "url": "https://offerup.com/item/detail/f5c5e39b-55ff-3b52-aaa7-410fd57e5e1c",
+      "title": "2013 Honda Civic",
+      "price": 7500,
+      "mileage": 178000,
+      "city": "Bloomington, CA",
+      "year": 2013,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T05:51:57.741Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "c6f1413b-0a1f-3bee-a650-9bbc1802613e",
+      "url": "https://offerup.com/item/detail/c6f1413b-0a1f-3bee-a650-9bbc1802613e",
+      "title": "2017 Honda Civic",
+      "price": 15995,
+      "mileage": 110235,
+      "city": "Los Angeles, CA",
+      "year": 2017,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T04:51:58.234Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "6ca7bb6e-593a-3eda-b1e6-a84f7a114036",
+      "url": "https://offerup.com/item/detail/6ca7bb6e-593a-3eda-b1e6-a84f7a114036",
+      "title": "2019 Honda Civic",
+      "price": 2000,
+      "mileage": 77000,
+      "city": "Santa Ana, CA",
+      "year": 2019,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-12T12:51:58.711Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "74165e7c-caec-3f0b-8749-b01edbfa21fe",
+      "url": "https://offerup.com/item/detail/74165e7c-caec-3f0b-8749-b01edbfa21fe",
+      "title": "2010 Honda Civic",
+      "price": 5500,
+      "mileage": 0,
+      "city": "Gardena, CA",
+      "year": 2010,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T07:52:02.683Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "249579ee-b94f-31ca-9a12-a04e51025a0a",
+      "url": "https://offerup.com/item/detail/249579ee-b94f-31ca-9a12-a04e51025a0a",
+      "title": "2012 Toyota Camry",
+      "price": 4999,
+      "mileage": 216000,
+      "city": "Long Beach, CA",
+      "year": 2012,
+      "make": "toyota",
+      "model": "camry",
+      "posted_at": "2025-11-15T04:52:03.328Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "e736ba23-39ee-3e8f-a5db-dc85c0787bf1",
+      "url": "https://offerup.com/item/detail/e736ba23-39ee-3e8f-a5db-dc85c0787bf1",
+      "title": "2022 Honda Civic",
+      "price": 23000,
+      "mileage": 63000,
+      "city": "Corona, CA",
+      "year": 2022,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T04:52:03.677Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "c2fc1523-3de6-3885-9a5e-9ec9564b558a",
+      "url": "https://offerup.com/item/detail/c2fc1523-3de6-3885-9a5e-9ec9564b558a",
+      "title": "2013 Honda Civic",
+      "price": 7580,
+      "mileage": 153444,
+      "city": "Rosemead, CA",
+      "year": 2013,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-10-17T12:52:03.716Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "c812ba3d-8aeb-38a5-8e7a-922a76ec0884",
+      "url": "https://offerup.com/item/detail/c812ba3d-8aeb-38a5-8e7a-922a76ec0884",
+      "title": "1993 Honda Civic",
+      "price": 3500,
+      "mileage": 200000,
+      "city": "San Bernardino, CA",
+      "year": 1993,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T04:52:05.043Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "3c08776a-a1b0-3cbb-b993-baea0a21c33b",
+      "url": "https://offerup.com/item/detail/3c08776a-a1b0-3cbb-b993-baea0a21c33b",
+      "title": "2017 Honda Civic Sedan",
+      "price": 13995,
+      "mileage": 131543,
+      "city": "Fontana, CA",
+      "year": 2017,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-10-22T12:52:06.044Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "e1d338b4-a4e2-369a-b656-548b89bb5395",
+      "url": "https://offerup.com/item/detail/e1d338b4-a4e2-369a-b656-548b89bb5395",
+      "title": "2013 Honda Civic",
+      "price": 8800,
+      "mileage": 108883,
+      "city": "Fontana, CA",
+      "year": 2013,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-09-16T12:52:07.126Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "208a8247-ba67-3f7e-8f51-bfa21e9554a8",
+      "url": "https://offerup.com/item/detail/208a8247-ba67-3f7e-8f51-bfa21e9554a8",
+      "title": "2013 Honda Civic",
+      "price": 1500,
+      "mileage": 0,
+      "city": "Los Angeles, CA",
+      "year": 2013,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T03:52:08.221Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "59ff9994-e489-3c90-9bd0-c340759ea4c7",
+      "url": "https://offerup.com/item/detail/59ff9994-e489-3c90-9bd0-c340759ea4c7",
+      "title": "2016 Nissan Sentra",
+      "price": 4999,
+      "mileage": 135000,
+      "city": "Long Beach, CA",
+      "year": 2016,
+      "make": "nissan",
+      "model": "sentra",
+      "posted_at": "2025-11-15T04:52:08.352Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "23a5aeee-b112-3a01-8f19-7cb0e4a2aefa",
+      "url": "https://offerup.com/item/detail/23a5aeee-b112-3a01-8f19-7cb0e4a2aefa",
+      "title": "2026 Honda Civic Sports Hybrid ",
+      "price": 22000,
+      "mileage": 2000,
+      "city": "Riverside, CA",
+      "year": 2026,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T00:52:08.608Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "1e68788c-36b7-36a6-ae6f-009b191fdd2f",
+      "url": "https://offerup.com/item/detail/1e68788c-36b7-36a6-ae6f-009b191fdd2f",
+      "title": "2019 Honda Civic",
+      "price": 340,
+      "mileage": 87000,
+      "city": "Palmdale, CA",
+      "year": 2019,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T03:52:09.457Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "df4fb9f1-541f-32c6-a025-12df3de4b541",
+      "url": "https://offerup.com/item/detail/df4fb9f1-541f-32c6-a025-12df3de4b541",
+      "title": "2009 MERCEDES-BENZ S-CLASS",
+      "price": 12999,
+      "mileage": 75700,
+      "city": "Huntington Beach, CA",
+      "year": 2009,
+      "make": "mercedes",
+      "model": null,
+      "posted_at": "2025-11-10T12:52:09.506Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "058390f0-70c6-3473-9362-d29ce36775f8",
+      "url": "https://offerup.com/item/detail/058390f0-70c6-3473-9362-d29ce36775f8",
+      "title": "2010 Honda Civic",
+      "price": 5495,
+      "mileage": 184000,
+      "city": "Orange, CA",
+      "year": 2010,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-10-19T12:52:09.815Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "ba31e5d7-675e-3367-8813-179421cf66e4",
+      "url": "https://offerup.com/item/detail/ba31e5d7-675e-3367-8813-179421cf66e4",
+      "title": "2018 Chevrolet Suburban",
+      "price": 15995,
+      "mileage": 143243,
+      "city": "Bloomington, CA",
+      "year": 2018,
+      "make": "chevrolet",
+      "model": null,
+      "posted_at": "2025-09-16T12:52:10.672Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "e546be2a-be04-39e7-afbe-a3ac7cb36459",
+      "url": "https://offerup.com/item/detail/e546be2a-be04-39e7-afbe-a3ac7cb36459",
+      "title": "Honda Civic",
+      "price": 1,
+      "mileage": 0,
+      "city": "Los Angeles, CA",
+      "year": null,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T03:52:10.753Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "84f154c6-e613-34b1-ac51-829226ad22b4",
+      "url": "https://offerup.com/item/detail/84f154c6-e613-34b1-ac51-829226ad22b4",
+      "title": "1998 Honda Civic",
+      "price": 3500,
+      "mileage": 0,
+      "city": "Riverside County, CA",
+      "year": 1998,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T03:52:12.026Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "a40ebfe0-676d-3c77-a3ed-15ffe5bb684f",
+      "url": "https://offerup.com/item/detail/a40ebfe0-676d-3c77-a3ed-15ffe5bb684f",
+      "title": "2017 Honda Civic Sedan",
+      "price": 11995,
+      "mileage": 138166,
+      "city": "Rialto, CA",
+      "year": 2017,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T11:52:13.027Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "2a09f0cc-ae83-306b-b904-d4a1487bc369",
+      "url": "https://offerup.com/item/detail/2a09f0cc-ae83-306b-b904-d4a1487bc369",
+      "title": "2005 Honda Civic",
+      "price": 3800,
+      "mileage": 185000,
+      "city": "Tustin, CA",
+      "year": 2005,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-09-16T12:52:13.958Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "13b1015f-da42-3404-accd-e6e335944bbe",
+      "url": "https://offerup.com/item/detail/13b1015f-da42-3404-accd-e6e335944bbe",
+      "title": "2016 Honda Civic",
+      "price": 1000,
+      "mileage": 181000,
+      "city": "Los Angeles, CA",
+      "year": 2016,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T04:52:14.787Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "b3990d51-5b0b-3d8c-b98d-51e21a6e2191",
+      "url": "https://offerup.com/item/detail/b3990d51-5b0b-3d8c-b98d-51e21a6e2191",
+      "title": "2011 Honda Civic Coupe",
+      "price": 8450,
+      "mileage": 73742,
+      "city": "Fontana, CA",
+      "year": 2011,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T11:52:15.704Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "3640a9a4-b4d1-3c48-bb6a-e5976645c010",
+      "url": "https://offerup.com/item/detail/3640a9a4-b4d1-3c48-bb6a-e5976645c010",
+      "title": "2018 Honda Accord",
+      "price": 1000,
+      "mileage": 132000,
+      "city": "Whittier, CA",
+      "year": 2018,
+      "make": "honda",
+      "model": "accord",
+      "posted_at": "2025-11-15T04:52:15.889Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "2344c690-c9fa-3ccb-921f-357698c3a203",
+      "url": "https://offerup.com/item/detail/2344c690-c9fa-3ccb-921f-357698c3a203",
+      "title": "Honda Civic ",
+      "price": 3000,
+      "mileage": 160000,
+      "city": "Riverside, CA",
+      "year": null,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T12:13:18.842Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "eaab4f08-0f41-3cdd-aff8-313b360be813",
+      "url": "https://offerup.com/item/detail/eaab4f08-0f41-3cdd-aff8-313b360be813",
+      "title": "2017 Honda Civic Hatchback",
+      "price": 17999,
+      "mileage": 77094,
+      "city": "Norco, CA",
+      "year": 2017,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-06T12:52:19.824Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "86d11e98-5e5b-38c9-a0d8-cae2670b4804",
+      "url": "https://offerup.com/item/detail/86d11e98-5e5b-38c9-a0d8-cae2670b4804",
+      "title": "2009 Honda Civic",
+      "price": 1500,
+      "mileage": 0,
+      "city": "Palmdale, CA",
+      "year": 2009,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T08:52:20.484Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "5e898761-9b32-3eb8-a1c8-53f8a94a59e1",
+      "url": "https://offerup.com/item/detail/5e898761-9b32-3eb8-a1c8-53f8a94a59e1",
+      "title": "2013 Honda Civic",
+      "price": 7500,
+      "mileage": 161000,
+      "city": "Perris, CA",
+      "year": 2013,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-10-24T12:52:20.795Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "0025979c-dcd8-3e1a-8775-5997a9b65eea",
+      "url": "https://offerup.com/item/detail/0025979c-dcd8-3e1a-8775-5997a9b65eea",
+      "title": "2016 Honda Civic",
+      "price": 1000,
+      "mileage": 139000,
+      "city": "Bell Gardens, CA",
+      "year": 2016,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T09:52:20.923Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "9ece1c60-9926-3131-9427-8d937035fa67",
+      "url": "https://offerup.com/item/detail/9ece1c60-9926-3131-9427-8d937035fa67",
+      "title": "2004 Honda Civic",
+      "price": 6200,
+      "mileage": 150726,
+      "city": "Los Angeles, CA",
+      "year": 2004,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T07:52:21.882Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "b18ed2e4-46e3-35dd-aeda-9c35e45092c7",
+      "url": "https://offerup.com/item/detail/b18ed2e4-46e3-35dd-aeda-9c35e45092c7",
+      "title": "2014 Honda Civic EX",
+      "price": 8595,
+      "mileage": 183265,
+      "city": "Bellflower, CA",
+      "year": 2014,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T07:52:21.962Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "2f69dcb3-3f54-38a4-8dee-9fb83ed31e25",
+      "url": "https://offerup.com/item/detail/2f69dcb3-3f54-38a4-8dee-9fb83ed31e25",
+      "title": "2017 Honda Civic",
+      "price": 20995,
+      "mileage": 70233,
+      "city": "Riverside, CA",
+      "year": 2017,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-10-27T12:52:22.964Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "d7d1ba8a-8ad4-38c7-9771-10144ce2e87b",
+      "url": "https://offerup.com/item/detail/d7d1ba8a-8ad4-38c7-9771-10144ce2e87b",
+      "title": "2014 Honda Civic LX",
+      "price": 10995,
+      "mileage": 110346,
+      "city": "Bellflower, CA",
+      "year": 2014,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T07:52:23.145Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "34d656bd-82af-3d62-8cfd-8f63672ec099",
+      "url": "https://offerup.com/item/detail/34d656bd-82af-3d62-8cfd-8f63672ec099",
+      "title": "1969 volkswagen beetle (read full post before contact please)  ",
+      "price": 12000,
+      "mileage": 2000,
+      "city": "Riverside, CA",
+      "year": 1969,
+      "make": "volkswagen",
+      "model": "beetle",
+      "posted_at": "2025-11-15T07:52:25.372Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "8234ec96-a54f-334d-801a-912b62602064",
+      "url": "https://offerup.com/item/detail/8234ec96-a54f-334d-801a-912b62602064",
+      "title": "2016 Honda Civic",
+      "price": 1000,
+      "mileage": 137000,
+      "city": "Los Angeles, CA",
+      "year": 2016,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T07:52:27.979Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "fb703873-7671-3392-96d6-0b92666a1910",
+      "url": "https://offerup.com/item/detail/fb703873-7671-3392-96d6-0b92666a1910",
+      "title": "2012 Honda Civic",
+      "price": 1000,
+      "mileage": 174000,
+      "city": "Long Beach, CA",
+      "year": 2012,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T07:52:28.300Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "b6f0e840-f97d-31fa-a112-63df4defbfa8",
+      "url": "https://offerup.com/item/detail/b6f0e840-f97d-31fa-a112-63df4defbfa8",
+      "title": "2020 Honda Civic Sedan",
+      "price": 19988,
+      "mileage": 66471,
+      "city": "Bloomington, CA",
+      "year": 2020,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-09-16T12:52:29.425Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "153e2762-05a0-36ca-b3dd-02e92e12bd29",
+      "url": "https://offerup.com/item/detail/153e2762-05a0-36ca-b3dd-02e92e12bd29",
+      "title": "2012 Honda Civic",
+      "price": 1000,
+      "mileage": 171000,
+      "city": "Bell Gardens, CA",
+      "year": 2012,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T07:52:30.452Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "4968c9c8-de7c-36f7-9c37-f068748a85a3",
+      "url": "https://offerup.com/item/detail/4968c9c8-de7c-36f7-9c37-f068748a85a3",
+      "title": "Salvage ",
+      "price": 3100,
+      "mileage": 0,
+      "city": "Bell Gardens, CA",
+      "year": null,
+      "make": null,
+      "model": null,
+      "posted_at": "2025-11-15T05:52:31.353Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "1f797588-0c18-33c0-984d-8fdb51349d46",
+      "url": "https://offerup.com/item/detail/1f797588-0c18-33c0-984d-8fdb51349d46",
+      "title": "2003 Honda Civic",
+      "price": 2600,
+      "mileage": 165000,
+      "city": "Los Angeles, CA",
+      "year": 2003,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-13T12:52:33.092Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "e599dd09-f999-39e7-a21e-de3eb95d31e6",
+      "url": "https://offerup.com/item/detail/e599dd09-f999-39e7-a21e-de3eb95d31e6",
+      "title": "2012 Honda Civic",
+      "price": 8991,
+      "mileage": 172123,
+      "city": "Artesia, CA",
+      "year": 2012,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-14T12:52:34.073Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "8ab76e82-a3f1-3d90-a357-7fe571a64800",
+      "url": "https://offerup.com/item/detail/8ab76e82-a3f1-3d90-a357-7fe571a64800",
+      "title": "2014 Honda Civic",
+      "price": 4500,
+      "mileage": 0,
+      "city": "Los Angeles, CA",
+      "year": 2014,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T10:52:34.235Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "e2eae78a-a08b-3f98-b407-85e0be91739a",
+      "url": "https://offerup.com/item/detail/e2eae78a-a08b-3f98-b407-85e0be91739a",
+      "title": "2014 Honda Civic",
+      "price": 8975,
+      "mileage": 157754,
+      "city": "Rialto, CA",
+      "year": 2014,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T05:52:35.014Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "48fa1d56-c748-3413-9eb5-7176b29dd891",
+      "url": "https://offerup.com/item/detail/48fa1d56-c748-3413-9eb5-7176b29dd891",
+      "title": "2005 Honda Civic",
+      "price": 2800,
+      "mileage": 155000,
+      "city": "San Bernardino, CA",
+      "year": 2005,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T05:52:35.204Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "af62736b-6e9f-3393-9c13-4e50a44b92f8",
+      "url": "https://offerup.com/item/detail/af62736b-6e9f-3393-9c13-4e50a44b92f8",
+      "title": "2025 Honda Civic Hybrid",
+      "price": 28499,
+      "mileage": 8898,
+      "city": "Fontana, CA",
+      "year": 2025,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-03T12:52:36.044Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "f5c5e39b-55ff-3b52-aaa7-410fd57e5e1c",
+      "url": "https://offerup.com/item/detail/f5c5e39b-55ff-3b52-aaa7-410fd57e5e1c",
+      "title": "2013 Honda Civic",
+      "price": 7500,
+      "mileage": 178000,
+      "city": "Bloomington, CA",
+      "year": 2013,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T05:52:36.131Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "0ac94298-563b-3b08-905a-fb5a05cae6df",
+      "url": "https://offerup.com/item/detail/0ac94298-563b-3b08-905a-fb5a05cae6df",
+      "title": "2008 Honda Civic",
+      "price": 5000,
+      "mileage": 135000,
+      "city": "Norwalk, CA",
+      "year": 2008,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T06:52:36.356Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "c6f1413b-0a1f-3bee-a650-9bbc1802613e",
+      "url": "https://offerup.com/item/detail/c6f1413b-0a1f-3bee-a650-9bbc1802613e",
+      "title": "2017 Honda Civic",
+      "price": 15995,
+      "mileage": 110235,
+      "city": "Los Angeles, CA",
+      "year": 2017,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T04:52:37.293Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "6ca7bb6e-593a-3eda-b1e6-a84f7a114036",
+      "url": "https://offerup.com/item/detail/6ca7bb6e-593a-3eda-b1e6-a84f7a114036",
+      "title": "2019 Honda Civic",
+      "price": 2000,
+      "mileage": 77000,
+      "city": "Santa Ana, CA",
+      "year": 2019,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-12T12:52:37.636Z",
+      "needsTimestampResolution": false
+    },
+    {
+      "source": "offerup",
+      "remote_id": "74165e7c-caec-3f0b-8749-b01edbfa21fe",
+      "url": "https://offerup.com/item/detail/74165e7c-caec-3f0b-8749-b01edbfa21fe",
+      "title": "2010 Honda Civic",
+      "price": 5500,
+      "mileage": 0,
+      "city": "Gardena, CA",
+      "year": 2010,
+      "make": "honda",
+      "model": "civic",
+      "posted_at": "2025-11-15T07:52:41.029Z",
+      "needsTimestampResolution": false
+    }
+  ]
+}
+Summary: {
+  feedIntercepted: 0,
+  feedInjected: 0,
+  wrongFeedSkipped: 0,
+  similarSkipped: 0,
+  uiInteractions: 0,
+  modelSrc: { title: 0, details: 0, jsonld: 0, nextdata: 0 },
+  postedSrc: { timeTag: 0, jsonld: 0, nextdata: 0, relative: 275, missing: 0 },
+  filterHintsReady: 0,
+  postedRejected: 0,
+  postedKept: 275,
+  missingTimestamp: 1
+}

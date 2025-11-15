@@ -1,0 +1,58 @@
+[SEARCH-PAGE] url: https://offerup.com/search/?q=honda%20civic&latitude=33.8166&longitude=-118.0373&radius=35&page=1
+[SEARCH-EXTRACT] extracted 0 tiles
+[SEARCH-PAGE] url: https://offerup.com/search/?q=honda%20civic&latitude=33.8166&longitude=-118.0373&radius=35&page=2
+[SEARCH-EXTRACT] extracted 0 tiles
+[SEARCH-PAGE] url: https://offerup.com/search/?q=honda%20civic&latitude=33.8166&longitude=-118.0373&radius=35&page=3
+[SEARCH-EXTRACT] extracted 0 tiles
+[SEARCH-PAGE] url: https://offerup.com/search/?q=honda%20civic&latitude=33.8166&longitude=-118.0373&radius=35&page=4
+[SEARCH-EXTRACT] extracted 0 tiles
+[SEARCH-PAGE] url: https://offerup.com/search/?q=honda%20civic&latitude=33.8166&longitude=-118.0373&radius=35&page=5
+[SEARCH-EXTRACT] extracted 0 tiles
+[SEARCH-PAGE] url: https://offerup.com/search/?q=honda%20civic&latitude=33.8166&longitude=-118.0373&radius=35&page=6
+[SEARCH-EXTRACT] extracted 0 tiles
+[ACTIVE-SEARCH] query= honda civic pagesFetched= 6 totalTiles= 0
+[ACTIVE-SEARCH] final feedCount= 0
+[HARD FILTER] kept feed= 0
+{
+  "feedCount": 0,
+  "detailEnrichedCount": 0,
+  "mode": "DETAIL",
+  "hints": {
+    "priceKeys": null,
+    "yearKeys": null,
+    "mileageBands": [],
+    "makeOptionsCount": 0
+  },
+  "filtersUsed": {
+    "minPrice": 4000,
+    "maxPrice": 25000,
+    "minYear": 2012,
+    "maxYear": 2022,
+    "minMileage": null,
+    "maxMileage": 150000,
+    "makes": [
+      "honda"
+    ],
+    "models": [
+      "civic"
+    ],
+    "postedWithinHours": null,
+    "radiusMiles": 35,
+    "lat": 33.8166,
+    "lng": -118.0373
+  },
+  "results": []
+}
+Summary: {
+  feedIntercepted: 0,
+  feedInjected: 0,
+  wrongFeedSkipped: 0,
+  similarSkipped: 0,
+  uiInteractions: 0,
+  modelSrc: { title: 0, details: 0, jsonld: 0, nextdata: 0 },
+  postedSrc: { timeTag: 0, jsonld: 0, nextdata: 0, relative: 0, missing: 0 },
+  filterHintsReady: 0,
+  postedRejected: 0,
+  postedKept: 0,
+  missingTimestamp: 0
+}

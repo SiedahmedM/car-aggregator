@@ -9,6 +9,7 @@ type OfferupParams = {
   maxYear?: number
   minMileage?: number
   maxMileage?: number
+  makes?: string[]
   models?: string[]
   minPrice?: number
   maxPrice?: number
@@ -60,6 +61,7 @@ function runOfferupDirect(params: OfferupParams, name?: string): Promise<{ ok: b
       if (params.minPrice) env.OU_FILTER_MIN_PRICE = String(params.minPrice)
       if (params.maxPrice) env.OU_FILTER_MAX_PRICE = String(params.maxPrice)
       if (Array.isArray(params.models) && params.models.length) env.OU_FILTER_MODELS = params.models.join(',')
+      if (Array.isArray(params.makes) && params.makes.length) env.OU_FILTER_MAKES = params.makes.join(',')
       if (params.postedWithinHours) env.OU_FILTER_POSTED_WITHIN_HOURS = String(params.postedWithinHours)
       if (params.lat) env.OU_LAT = String(params.lat)
       if (params.lng) env.OU_LNG = String(params.lng)
@@ -74,6 +76,7 @@ function runOfferupDirect(params: OfferupParams, name?: string): Promise<{ ok: b
     if (!env.OU_FEED_ONLY) env.OU_FEED_ONLY = 'true'
     if (!env.OU_FAST_MODE) env.OU_FAST_MODE = 'true'
     if (!env.OU_DIRECT_FEED) env.OU_DIRECT_FEED = 'true'
+    if (!env.OU_STRICT_MODEL) env.OU_STRICT_MODEL = 'false'
 
     const tsxPath = './node_modules/.bin/tsx'
     const child = spawn(tsxPath, ['scripts/offerup.ts'], { env, stdio: ['ignore', 'pipe', 'pipe'] })
@@ -127,5 +130,4 @@ export async function POST(req: Request) {
   if (!res.ok) return NextResponse.json({ ok: false, log: res.log }, { status: 500 })
   return NextResponse.json(res)
 }
-
 

@@ -52,15 +52,13 @@ function runOfferupWithEnv(jobId: string, params: any): Promise<{ ok: boolean; i
     if (params.minPrice) env.OU_FILTER_MIN_PRICE = String(params.minPrice);
     if (params.maxPrice) env.OU_FILTER_MAX_PRICE = String(params.maxPrice);
     if (Array.isArray(params.models) && params.models.length) env.OU_FILTER_MODELS = params.models.join(',');
-    // If no explicit models, treat the saved-search name as a model hint
-    if ((!params.models || params.models.length === 0) && params.name) {
-      env.OU_FILTER_MODELS = String(params.name);
-    }
+    if (Array.isArray(params.makes) && params.makes.length) env.OU_FILTER_MAKES = params.makes.join(',');
     if (params.postedWithinHours) env.OU_FILTER_POSTED_WITHIN_HOURS = String(params.postedWithinHours);
     if (params.lat) env.OU_LAT = String(params.lat);
     if (params.lng) env.OU_LNG = String(params.lng);
     if (params.radius) env.OU_RADIUS_MILES = String(params.radius);
     if (params.maxItems) env.OU_MAX_ITEMS = String(params.maxItems);
+    if (typeof params.strictModel !== 'undefined') env.OU_STRICT_MODEL = String(params.strictModel);
 
     const tsxPath = './node_modules/.bin/tsx';
     const child = spawn(tsxPath, ['scripts/offerup.ts'], { env, stdio: ['ignore', 'pipe', 'pipe'] });

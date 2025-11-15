@@ -4,7 +4,10 @@ import { useEffect, useMemo, useState } from 'react'
 type Params = {
   minYear?: number
   maxYear?: number
+  makes?: string[]
   models?: string[]
+  minMileage?: number
+  maxMileage?: number
   minPrice?: number
   maxPrice?: number
   postedWithinHours?: number
@@ -15,7 +18,38 @@ type Search = { id: string; name: string; params: Params; created_at: string; da
 type JobResult = { inserted?: number; skipped?: number; errors?: unknown; log?: string }
 type Job = { id: string; search_id: string; status: string; created_at: string; started_at?: string; finished_at?: string; result?: JobResult; error?: string }
 
-// Small UI primitives ------------------------------------------------------
+// Preset configurations for common searches
+const PRESETS = [
+  {
+    name: "2018+ Tacomas $30k-$80k",
+    makes: ["toyota"],
+    models: ["tacoma"],
+    minYear: 2018,
+    maxYear: 2025,
+    minPrice: 30000,
+    maxPrice: 80000,
+    maxMileage: 90000
+  },
+  {
+    name: "Budget Reliable 2012-2017",
+    makes: ["toyota", "honda"],
+    models: ["camry", "accord", "corolla", "civic"],
+    minYear: 2012,
+    maxYear: 2017,
+    maxPrice: 15000,
+    maxMileage: 150000
+  },
+  {
+    name: "New Tacomas Premium",
+    makes: ["toyota"],
+    models: ["tacoma"],
+    minYear: 2020,
+    minPrice: 35000,
+    maxMileage: 50000
+  },
+]
+
+// UI primitives
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return <div className={`rounded-2xl bg-neutral-900/60 ring-1 ring-white/10 ${className}`}>{children}</div>
 }
@@ -71,10 +105,17 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
   const [busy, setBusy] = useState(false)
   const [tab, setTab] = useState<'searches' | 'jobs'>('searches')
   const [expandedLogs, setExpandedLogs] = useState<Record<string, boolean>>({})
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
   const runningJobs = useMemo(() => jobs.filter((j) => j.status === 'running' || j.status === 'pending'), [jobs])
 
-  // Data refreshers --------------------------------------------------------
+  // Show toast notification
+  function showToast(message: string, type: 'success' | 'error' = 'success') {
+    setToast({ message, type })
+    setTimeout(() => setToast(null), 5000)
+  }
+
+  // Data refreshers
   async function refreshSearches() {
     try {
       const res = await fetch('/api/offerup/searches', { cache: 'no-store' })
@@ -98,25 +139,65 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
     return () => clearInterval(id)
   }, [])
 
-  // Form handlers (keep business logic) -----------------------------------
-  // onSave: create a saved search with OfferUp params
+  // Load preset into form
+  function loadPreset(preset: typeof PRESETS[0]) {
+    const form = document.querySelector('form') as HTMLFormElement
+    if (!form) return;
+    (form.querySelector('[name="name"]') as HTMLInputElement).value = preset.name;
+    (form.querySelector('[name="makes"]') as HTMLInputElement).value = preset.makes?.join(', ') || '';
+    (form.querySelector('[name="models"]') as HTMLInputElement).value = preset.models?.join(', ') || '';
+    (form.querySelector('[name="minYear"]') as HTMLInputElement).value = String(preset.minYear || '');
+    (form.querySelector('[name="maxYear"]') as HTMLInputElement).value = String(preset.maxYear || '');
+    (form.querySelector('[name="minPrice"]') as HTMLInputElement).value = String(preset.minPrice || '');
+    (form.querySelector('[name="maxPrice"]') as HTMLInputElement).value = String(preset.maxPrice || '');
+    (form.querySelector('[name="maxMileage"]') as HTMLInputElement).value = String(preset.maxMileage || '');
+    showToast(`Loaded preset: ${preset.name}`)
+  }
+
+  // Form handlers
   async function onSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const form = e.currentTarget
+    const fd = new FormData(form)
+    
+    // Validation
+    const minYear = parseInt(String(fd.get('minYear') || ''))
+    const maxYear = parseInt(String(fd.get('maxYear') || ''))
+    const minPrice = parseInt(String(fd.get('minPrice') || ''))
+    const maxPrice = parseInt(String(fd.get('maxPrice') || ''))
+    const minMileage = parseInt(String(fd.get('minMileage') || ''))
+    const maxMileage = parseInt(String(fd.get('maxMileage') || ''))
+    
+    if (minYear && maxYear && minYear > maxYear) {
+      showToast('Min year cannot be greater than max year', 'error')
+      return
+    }
+    if (minPrice && maxPrice && minPrice > maxPrice) {
+      showToast('Min price cannot be greater than max price', 'error')
+      return
+    }
+    if (minMileage && maxMileage && minMileage > maxMileage) {
+      showToast('Min mileage cannot be greater than max mileage', 'error')
+      return
+    }
+
     setBusy(true)
     try {
-      const fd = new FormData(form)
       const body = {
         name: String(fd.get('name') || 'Search'),
         params: {
           minYear: parseInt(String(fd.get('minYear') || '')) || undefined,
           maxYear: parseInt(String(fd.get('maxYear') || '')) || undefined,
-          minMileage: parseInt(String(fd.get('minMileage') || '')) || undefined,
-          maxMileage: parseInt(String(fd.get('maxMileage') || '')) || undefined,
+          makes: String(fd.get('makes') || '')
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean),
           models: String(fd.get('models') || '')
             .split(',')
             .map((s) => s.trim())
             .filter(Boolean),
+          minMileage: parseInt(String(fd.get('minMileage') || '')) || undefined,
+          maxMileage: parseInt(String(fd.get('maxMileage') || '')) || undefined,
           minPrice: parseInt(String(fd.get('minPrice') || '')) || undefined,
           maxPrice: parseInt(String(fd.get('maxPrice') || '')) || undefined,
           postedWithinHours: parseInt(String(fd.get('postedWithinHours') || '')) || undefined,
@@ -131,47 +212,53 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
       if (res.ok) {
         await refreshSearches()
         form.reset()
+        showToast('Search saved successfully!')
+      } else {
+        const err = await res.json().catch(() => ({ error: 'Unknown error' }))
+        showToast(err.error || 'Failed to save search', 'error')
       }
     } finally {
       setBusy(false)
     }
   }
 
-  // runAll: queue all searches for execution
   async function runAll() {
     setBusy(true)
     try {
       await fetch('/api/offerup/run', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({}) })
       await refreshJobs()
+      showToast('All searches queued successfully!')
+    } catch {
+      showToast('Failed to queue searches', 'error')
     } finally {
       setBusy(false)
     }
   }
 
-  // runOne: queue a single search
   async function runOne(id: string) {
     setBusy(true)
     try {
       await fetch('/api/offerup/run', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ searchIds: [id] }) })
       await refreshJobs()
+      showToast('Search queued successfully!')
     } finally {
       setBusy(false)
     }
   }
+
   async function runOneDirect(id: string) {
     setBusy(true)
     try {
       const res = await fetch('/api/offerup/run/direct', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ searchIds: [id] }) })
       if (res.ok) {
         const json = await res.json().catch(() => null)
-        // show a simple alert and refresh jobs (in case script inserted records)
         if (json && json.ok) {
-          alert(`Direct run completed: inserted=${json.inserted || 0}, skipped=${json.skipped || 0}, errors=${json.errors || 0}`)
+          showToast(`Direct run completed: ${json.inserted || 0} inserted, ${json.skipped || 0} skipped`)
         } else {
-          alert('Direct run failed. See console.')
+          showToast('Direct run completed with errors', 'error')
         }
       } else {
-        alert('Direct run failed to start.')
+        showToast('Direct run failed to start', 'error')
       }
       await refreshJobs()
     } finally {
@@ -179,12 +266,12 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
     }
   }
 
-  // cancelJob: request cancellation of a running/pending job
   async function cancelJob(id: string) {
     setBusy(true)
     try {
       await fetch('/api/offerup/jobs/cancel', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jobIds: [id] }) })
       await refreshJobs()
+      showToast('Job cancelled')
     } finally {
       setBusy(false)
     }
@@ -197,12 +284,18 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
     return '-'
   }
 
-  // Render -----------------------------------------------------------------
   const totalInserted = jobs.reduce((acc, j) => acc + (j.result?.inserted || 0), 0)
   const activeToday = searches.filter((s) => s.active).length
 
   return (
     <div className="text-neutral-200">
+      {/* Toast notification */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 rounded-lg px-4 py-3 shadow-lg ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'} text-white animate-in slide-in-from-top`}>
+          {toast.message}
+        </div>
+      )}
+
       {/* Summary widgets */}
       <div className="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card className="p-4">
@@ -232,19 +325,13 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
           <div className="inline-flex rounded-lg bg-white/5 p-1">
             <button
               className={`px-3 py-1.5 text-sm rounded-md transition ${tab === 'searches' ? 'bg-neutral-900 text-white' : 'text-neutral-300 hover:text-white'}`}
-              onClick={(e) => {
-                e.preventDefault()
-                setTab('searches')
-              }}
+              onClick={() => setTab('searches')}
             >
               Saved Searches
             </button>
             <button
               className={`px-3 py-1.5 text-sm rounded-md transition ${tab === 'jobs' ? 'bg-neutral-900 text-white' : 'text-neutral-300 hover:text-white'}`}
-              onClick={(e) => {
-                e.preventDefault()
-                setTab('jobs')
-              }}
+              onClick={() => setTab('jobs')}
             >
               Jobs
             </button>
@@ -254,8 +341,23 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
         {/* Saved Searches tab */}
         {tab === 'searches' && (
           <div className="p-4">
-            <SectionTitle title="Create a saved search" subtitle="Guide OfferUp runs with friendly presets." />
-            {/* onSave wiring below keeps existing backend contract */}
+            <SectionTitle title="Create a saved search" subtitle="Configure filters for automated OfferUp scraping" />
+            
+            {/* Preset buttons */}
+            <div className="mb-4 flex flex-wrap gap-2">
+              <span className="text-xs text-neutral-400 self-center">Quick presets:</span>
+              {PRESETS.map((preset, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => loadPreset(preset)}
+                  className="rounded-lg bg-neutral-800 px-3 py-1.5 text-xs text-neutral-300 transition hover:bg-neutral-700"
+                >
+                  📋 {preset.name}
+                </button>
+              ))}
+            </div>
+
             <form onSubmit={onSave} className="grid grid-cols-1 md:grid-cols-12 gap-3">
               <div className="md:col-span-4">
                 <label className="mb-1 block text-xs text-neutral-400">Name</label>
@@ -270,7 +372,11 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
                 <input name="maxYear" type="number" placeholder="2017" className="w-full rounded-lg bg-neutral-950 border border-white/10 px-3 py-2 text-sm" />
               </div>
               <div className="md:col-span-4">
-                <label className="mb-1 block text-xs text-neutral-400">Models</label>
+                <label className="mb-1 block text-xs text-neutral-400">Makes (comma-separated)</label>
+                <input name="makes" placeholder="Toyota, Honda" className="w-full rounded-lg bg-neutral-950 border border-white/10 px-3 py-2 text-sm" />
+              </div>
+              <div className="md:col-span-4">
+                <label className="mb-1 block text-xs text-neutral-400">Models (comma-separated)</label>
                 <input name="models" placeholder="Camry, Accord" className="w-full rounded-lg bg-neutral-950 border border-white/10 px-3 py-2 text-sm" />
               </div>
               <div className="md:col-span-2">
@@ -290,58 +396,74 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
                 <input name="maxPrice" type="number" placeholder="14000" className="w-full rounded-lg bg-neutral-950 border border-white/10 px-3 py-2 text-sm" />
               </div>
               <div className="md:col-span-3">
-                <label className="mb-1 block text-xs text-neutral-400">Posted within (hours)</label>
-                <input name="postedWithinHours" type="number" placeholder="24" className="w-full rounded-lg bg-neutral-950 border border-white/10 px-3 py-2 text-sm" />
+                <label className="mb-1 flex items-center gap-1 text-xs text-neutral-400">
+                  Posted within (hours)
+                  <span className="text-[10px] text-neutral-500">• optional</span>
+                </label>
+                <input name="postedWithinHours" type="number" placeholder="Leave empty for all" className="w-full rounded-lg bg-neutral-950 border border-white/10 px-3 py-2 text-sm" />
+                <div className="mt-1 text-[10px] text-neutral-500">
+                  Tip: Empty = fast scraping (30s). Set 168 (1 week) for recent only.
+                </div>
               </div>
               <div className="md:col-span-3">
                 <label className="mb-1 block text-xs text-neutral-400">Radius (miles)</label>
-                <input name="radius" type="number" placeholder="25" className="w-full rounded-lg bg-neutral-950 border border-white/10 px-3 py-2 text-sm" />
+                <input name="radius" type="number" placeholder="150" className="w-full rounded-lg bg-neutral-950 border border-white/10 px-3 py-2 text-sm" />
               </div>
               <div className="md:col-span-12 flex items-center gap-2 pt-1">
-                <button disabled={busy} className="rounded-lg bg-emerald-600 px-3 py-2 text-sm text-white transition hover:bg-emerald-500 active:bg-emerald-600">
+                <button disabled={busy} className="rounded-lg bg-emerald-600 px-3 py-2 text-sm text-white transition hover:bg-emerald-500 active:bg-emerald-600 disabled:opacity-50">
                   {busy ? 'Saving…' : 'Save Search'}
                 </button>
-                <button type="button" onClick={runAll} disabled={busy} className="ml-auto rounded-lg bg-blue-600 px-3 py-2 text-sm text-white transition hover:bg-blue-500 active:bg-blue-600">
-                  {busy ? 'Queuing…' : 'Run All (today or fallback)'}
+                <button type="button" onClick={runAll} disabled={busy} className="ml-auto rounded-lg bg-blue-600 px-3 py-2 text-sm text-white transition hover:bg-blue-500 active:bg-blue-600 disabled:opacity-50">
+                  {busy ? 'Queuing…' : 'Run All Searches'}
                 </button>
               </div>
             </form>
 
             {/* Saved searches list */}
             <div className="mt-6 grid grid-cols-1 gap-3">
-              {searches.map((s) => (
-                <div key={s.id} className="rounded-xl border border-white/10 bg-neutral-900/40 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <div className="font-medium text-neutral-100">{s.name}</div>
-                        {!s.active && <Chip tone="neutral">inactive</Chip>}
+              {searches.map((s) => {
+                const filterCount = Object.values(s.params || {}).filter(v => 
+                  v != null && (Array.isArray(v) ? v.length : true)
+                ).length
+                return (
+                  <div key={s.id} className="rounded-xl border border-white/10 bg-neutral-900/40 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <div className="font-medium text-neutral-100">{s.name}</div>
+                          {!s.active && <Chip tone="neutral">inactive</Chip>}
+                        </div>
+                        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                          {s.params?.minYear ? <Chip>≥ {s.params.minYear}</Chip> : null}
+                          {s.params?.maxYear ? <Chip>≤ {s.params.maxYear}</Chip> : null}
+                          {s.params?.makes && s.params.makes.length ? <Chip tone="info">{s.params.makes.slice(0, 2).join(', ')}{s.params.makes.length > 2 ? '…' : ''}</Chip> : null}
+                          {s.params?.models && s.params.models.length ? <Chip tone="info">{s.params.models.slice(0, 2).join(', ')}{s.params.models.length > 2 ? '…' : ''}</Chip> : null}
+                          {s.params?.minPrice ? <Chip>${s.params.minPrice.toLocaleString()}</Chip> : null}
+                          {s.params?.maxPrice ? <Chip>to ${s.params.maxPrice.toLocaleString()}</Chip> : null}
+                          {s.params?.maxMileage ? <Chip>≤ {s.params.maxMileage.toLocaleString()} mi</Chip> : null}
+                          {s.params?.postedWithinHours ? <Chip tone="info">{s.params.postedWithinHours}h</Chip> : null}
+                          {s.params?.radius ? <Chip>{s.params.radius}mi radius</Chip> : null}
+                          <span className="text-[10px] text-neutral-500">{filterCount} filters</span>
+                        </div>
                       </div>
-                      <div className="mt-1 flex flex-wrap gap-1.5">
-                        {s.params?.minYear ? <Chip>≥ {s.params.minYear}</Chip> : null}
-                        {s.params?.maxYear ? <Chip>≤ {s.params.maxYear}</Chip> : null}
-                        {s.params?.models && s.params.models.length ? <Chip tone="info">{s.params.models.slice(0, 3).join(', ')}{s.params.models.length > 3 ? '…' : ''}</Chip> : null}
-                        {s.params?.minPrice ? <Chip>${s.params.minPrice}</Chip> : null}
-                        {s.params?.maxPrice ? <Chip>to ${s.params.maxPrice}</Chip> : null}
-                        {s.params?.postedWithinHours ? <Chip tone="info">{s.params.postedWithinHours}h</Chip> : null}
-                        {s.params?.radius ? <Chip tone="info">{s.params.radius}mi</Chip> : null}
-                      </div>
-                    </div>
-                    <div className="shrink-0">
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => runOne(s.id)} disabled={busy} className="rounded-lg bg-blue-600 px-3 py-2 text-sm text-white transition hover:bg-blue-500 active:bg-blue-600">
-                          Run now
-                        </button>
-                        <button onClick={() => runOneDirect(s.id)} disabled={busy} className="rounded-lg bg-neutral-800 px-3 py-2 text-sm text-neutral-200 transition hover:bg-neutral-700 active:bg-neutral-800">
-                          Run direct
-                        </button>
+                      <div className="shrink-0">
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => runOne(s.id)} disabled={busy} className="rounded-lg bg-blue-600 px-3 py-2 text-sm text-white transition hover:bg-blue-500 active:bg-blue-600 disabled:opacity-50">
+                            Run now
+                          </button>
+                          <button onClick={() => runOneDirect(s.id)} disabled={busy} className="rounded-lg bg-neutral-800 px-3 py-2 text-sm text-neutral-200 transition hover:bg-neutral-700 active:bg-neutral-800 disabled:opacity-50">
+                            Run direct
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
               {!searches.length && (
-                <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-sm text-neutral-400">No searches for today. Running will fallback to last saved day.</div>
+                <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-sm text-neutral-400">
+                  No searches saved for today. Create one above or run all to use last saved day&#39;s searches.
+                </div>
               )}
             </div>
           </div>
@@ -350,7 +472,7 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
         {/* Jobs tab */}
         {tab === 'jobs' && (
           <div className="p-4">
-            <SectionTitle title="Job status" subtitle="Monitor runs and stop long-running ones." />
+            <SectionTitle title="Job status" subtitle="Monitor runs and stop long-running jobs" />
             <div className="space-y-3">
               {jobs.map((j) => (
                 <div key={j.id} className="rounded-xl border border-white/10 bg-neutral-900/40 p-3">
@@ -366,8 +488,8 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
                           <span className="mx-2">•</span> errors: {formatErrors(j.result?.errors, j.status)}
                         </div>
                         {j.status === 'success' && (j.result?.inserted || 0) === 0 ? (
-                          <div className="mt-1 text-[11px] text-neutral-400">
-                            No matches found. Try loosening your filters (years, price, models, hours).
+                          <div className="mt-1 text-[11px] text-rose-400">
+                            ⚠️ No matches. Try: widening years (2010-2025) • removing posted_within_hours • adding more models • loosening price/mileage
                           </div>
                         ) : null}
                       </div>
@@ -376,12 +498,12 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
                       {j.result?.log ? (
                         <button
                           onClick={() => setExpandedLogs((s) => ({ ...s, [j.id]: !s[j.id] }))}
-                          className="rounded-lg bg-neutral-800 px-2.5 py-1.5 text-xs text-neutral-200 transition hover:bg-neutral-700 active:bg-neutral-800">
+                          className="rounded-lg bg-neutral-800 px-2.5 py-1.5 text-xs text-neutral-200 transition hover:bg-neutral-700">
                           {expandedLogs[j.id] ? 'Hide log' : 'View log'}
                         </button>
                       ) : null}
                       {(j.status === 'running' || j.status === 'pending') && (
-                        <button onClick={() => cancelJob(j.id)} disabled={busy} className="rounded-lg bg-rose-600 px-2.5 py-1.5 text-xs text-white transition hover:bg-rose-500 active:bg-rose-600">
+                        <button onClick={() => cancelJob(j.id)} disabled={busy} className="rounded-lg bg-rose-600 px-2.5 py-1.5 text-xs text-white transition hover:bg-rose-500 disabled:opacity-50">
                           Stop
                         </button>
                       )}
@@ -393,45 +515,15 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
                       <pre className="whitespace-pre-wrap">{j.result.log}</pre>
                     </div>
                   ) : null}
+                  {j.status === 'error' && j.error ? (
+                    <details className="mt-2 rounded-lg bg-rose-500/10 p-2">
+                      <summary className="cursor-pointer text-xs text-rose-300">Show error details</summary>
+                      <pre className="mt-2 text-[10px] text-rose-200 overflow-auto max-h-40">{j.error.slice(0, 500)}</pre>
+                    </details>
+                  ) : null}
                 </div>
               ))}
               {!jobs.length && <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-sm text-neutral-400">No jobs yet.</div>}
-            </div>
-
-            {/* Table view for larger screens */}
-            <div className="mt-6 hidden md:block overflow-auto rounded-xl ring-1 ring-white/10">
-              <table className="min-w-full text-sm">
-                <thead className="sticky top-0 z-10 bg-neutral-950/80 backdrop-blur text-left text-neutral-400">
-                  <tr>
-                    <th className="py-2 pl-3 pr-4">Created</th>
-                    <th className="py-2 pr-4">Status</th>
-                    <th className="py-2 pr-4">Inserted</th>
-                    <th className="py-2 pr-4">Skipped</th>
-                    <th className="py-2 pr-4">Errors</th>
-                    <th className="py-2 pr-3">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {jobs.map((j) => (
-                    <tr key={j.id} className="hover:bg-white/5 transition">
-                      <td className="py-2 pl-3 pr-4">{new Date(j.created_at).toLocaleString()}</td>
-                      <td className="py-2 pr-4">
-                        <Chip tone={j.status === 'success' ? 'success' : j.status === 'error' ? 'danger' : 'info'}>{j.status}</Chip>
-                      </td>
-                      <td className="py-2 pr-4">{j.result?.inserted ?? '-'}</td>
-                      <td className="py-2 pr-4">{j.result?.skipped ?? '-'}</td>
-                      <td className="py-2 pr-4">{formatErrors(j.result?.errors, j.status)}</td>
-                      <td className="py-2 pr-3">
-                        {(j.status === 'running' || j.status === 'pending') && (
-                          <button onClick={() => cancelJob(j.id)} disabled={busy} className="rounded-md bg-rose-600 px-2 py-1 text-xs text-white transition hover:bg-rose-500 active:bg-rose-600">
-                            Stop
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           </div>
         )}

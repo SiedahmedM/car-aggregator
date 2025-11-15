@@ -1,8 +1,3 @@
-locator.waitFor: Timeout 15000ms exceeded.
-Call log:
-[2m  - waiting for getByRole('textbox', { name: /location/i }).first().or(locator('input[placeholder*="City"], input[placeholder*="zip"], input[aria-label*="Location"]').first()) to be visible[22m
-
-    at setOfferUpLocation (/Users/mohamedsiedahmed/car-aggregator/scripts/offerup.ts:148:17)
-    at async retries (/Users/mohamedsiedahmed/car-aggregator/scripts/offerup.ts:222:30)
-    at async pRetry (/Users/mohamedsiedahmed/car-aggregator/node_modules/p-retry/index.js:195:19)
-    at async run (/Users/mohamedsiedahmed/car-aggregator/scripts/offerup.ts:222:3)
+ReferenceError: STRICT_MODEL is not defined
+    at run (/Users/mohamedsiedahmed/car-aggregator/scripts/offerup.ts:1054:18)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
