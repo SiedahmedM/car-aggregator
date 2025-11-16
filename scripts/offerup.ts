@@ -13,6 +13,25 @@ const supaSvc = createClient(SUPA_URL, SUPA_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
+// ---------- Structured logging ----------
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+const LOG_LEVEL = (process.env.OU_LOG_LEVEL ?? 'info').toLowerCase() as LogLevel;
+function log(level: LogLevel, msg: string, meta?: Record<string, unknown>) {
+  const order: LogLevel[] = ['debug', 'info', 'warn', 'error'];
+  const currentIdx = order.indexOf(LOG_LEVEL);
+  const levelIdx = order.indexOf(level);
+  if (levelIdx < currentIdx) return;
+  if (meta && Object.keys(meta).length) {
+    console.log(`[${level.toUpperCase()}] ${msg}`, meta);
+  } else {
+    console.log(`[${level.toUpperCase()}] ${msg}`);
+  }
+}
+const logDebug = (msg: string, meta?: Record<string, unknown>) => log('debug', msg, meta);
+const logInfo = (msg: string, meta?: Record<string, unknown>) => log('info', msg, meta);
+const logWarn = (msg: string, meta?: Record<string, unknown>) => log('warn', msg, meta);
+const logError = (msg: string, meta?: Record<string, unknown>) => log('error', msg, meta);
+
 // ---------- Env knobs ----------
 // Note: legacy OFFERUP_URL is ignored; we now rely solely on GraphQL active feed.
 // Item cap
@@ -67,6 +86,42 @@ const GQL_LOG_NONFEED = (process.env.OU_GQL_LOG_NONFEED ?? 'true').toLowerCase()
 
 function tryParseJSON(s: string): any | null { try { return JSON.parse(s); } catch { return null; } }
 
+// ---------- Hardened fetch helper ----------
+async function safeJsonFetch(url: string, init: RequestInit & { context?: string } = {}) {
+  const ctx = init.context || 'unknown';
+  let resp: Response;
+  try {
+    resp = await fetch(url, init);
+  } catch (e) {
+    logError('[FETCH] network error', { ctx, url, error: (e as Error).message });
+    return { ok: false as const, status: 0, json: null as any };
+  }
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => '');
+    logError('[FETCH] non-OK status', {
+      ctx,
+      url,
+      status: resp.status,
+      preview: text.slice(0, 200),
+    });
+    return { ok: false as const, status: resp.status, json: null as any };
+  }
+  const text = await resp.text().catch(() => '');
+  try {
+    const json = JSON.parse(text);
+    return { ok: true as const, status: resp.status, json };
+  } catch (e) {
+    logError('[FETCH] JSON parse error', {
+      ctx,
+      url,
+      status: resp.status,
+      preview: text.slice(0, 200),
+      error: (e as Error).message,
+    });
+    return { ok: false as const, status: resp.status, json: null as any };
+  }
+}
+
 // Minimal client-trigger scroll removed; no DOM scroll used
 
 // ----- Active Feed (GraphQL) helpers -----
@@ -119,9 +174,9 @@ async function fetchActiveFeedPages(
     if (cursor) params.push({ key: 'cursor', value: cursor });
     payload.variables.searchParams = params;
 
-    const resp = await fetch(baseUrl, { method: 'POST', headers, body: JSON.stringify(payload) });
-    if (!resp.ok) break;
-    const json = await resp.json().catch(() => null);
+    const r = await safeJsonFetch(baseUrl, { method: 'POST', headers, body: JSON.stringify(payload), context: 'active-pages' });
+    if (!r.ok) break;
+    const json = r.json;
     if (!json || !json.data || !json.data.modularFeed) break;
     bodies.push(json);
     pagesFetched++;
@@ -178,14 +233,15 @@ async function fetchActiveFeedPagesFromSaved(maxPages: number): Promise<ModularF
     if (cursor) params.push({ key: 'PAGE_CURSOR', value: cursor });
     body.variables.searchParams = params;
 
-    const resp = await fetch(saved.url, {
+    const r = await safeJsonFetch(saved.url, {
       method: saved.method || 'POST',
       headers: baseHeaders,
       body: JSON.stringify(body),
+      context: 'active-saved-pages',
     });
-    if (!resp.ok) break;
+    if (!r.ok) break;
 
-    const json = (await resp.json().catch(() => null)) as ModularFeedBody | null;
+    const json = r.json as ModularFeedBody | null;
     if (!json) break;
 
     const { tiles, cursor: next } = extractTilesAndCursorFromModularFeed(json);
@@ -282,8 +338,17 @@ function parseModelFromTitle(title?: string | null): { year: number | null; make
       if (best) { make = mk; model = best; break; }
     }
   }
-
-  try { console.log('[MODEL-PARSE] parsed', { year, make, model, title }); } catch {}
+  // Gate [MODEL-PARSE] spam: only log in debug, matches filters, or incomplete
+  const wantedMakes = F_MAKES.map(m => m.toLowerCase());
+  const wantedModels = F_MODELS.map(m => m.toLowerCase());
+  const matchesWanted =
+    (wantedMakes.length === 0 || (make && wantedMakes.includes(make.toLowerCase()))) &&
+    (wantedModels.length === 0 || (model && wantedModels.includes((model as string).toLowerCase())));
+  const shouldLogModelParse =
+    LOG_LEVEL === 'debug' || !make || !model || matchesWanted;
+  if (shouldLogModelParse) {
+    try { logDebug('[MODEL-PARSE]', { year, make, model, title }); } catch {}
+  }
   return { year, make, model };
 }
 
@@ -310,9 +375,9 @@ async function gqlFetchNextPageFromSaved(cursor: string): Promise<any | null> {
     params.push({ key: 'PAGE_CURSOR', value: cursor });
     body.variables = body.variables || {};
     body.variables.searchParams = params;
-    const resp = await fetch(saved.url, { method: saved.method || 'POST', headers, body: JSON.stringify(body) });
-    if (!resp.ok) return null;
-    return await resp.json().catch(() => null);
+    const r = await safeJsonFetch(saved.url, { method: saved.method || 'POST', headers, body: JSON.stringify(body), context: 'active-next' });
+    if (!r.ok) return null;
+    return r.json;
   } catch {
     return null;
   }
@@ -358,9 +423,9 @@ async function gqlFetchInitialPageFromSaved(): Promise<any | null> {
 
     body.variables = body.variables || {};
     body.variables.searchParams = params;
-    const resp = await fetch(saved.url, { method: saved.method || 'POST', headers, body: JSON.stringify(body) });
-    if (!resp.ok) return null;
-    return await resp.json().catch(() => null);
+    const r = await safeJsonFetch(saved.url, { method: saved.method || 'POST', headers, body: JSON.stringify(body), context: 'active-initial' });
+    if (!r.ok) return null;
+    return r.json;
   } catch {
     return null;
   }
@@ -1029,7 +1094,7 @@ async function fetchActiveFeedFirstPage(q: string): Promise<any | null> {
   try {
     const raw = await fs.readFile('offerup_gql_feed_req.json', 'utf8').catch(() => null);
     if (!raw) {
-      console.warn('[ACTIVE-FEED] No offerup_gql_feed_req.json template found.');
+      logWarn('[ACTIVE-FEED] No offerup_gql_feed_req.json template found.');
       return null;
     }
     const saved = JSON.parse(raw) as {
@@ -1059,23 +1124,24 @@ async function fetchActiveFeedFirstPage(q: string): Promise<any | null> {
       },
     };
 
-    const resp = await fetch(saved.url, {
+    const r = await safeJsonFetch(saved.url, {
       method: saved.method || 'POST',
       headers,
       body: JSON.stringify(newBody),
+      context: 'active-first',
     });
-    if (!resp.ok) {
-      console.warn('[ACTIVE-FEED] First-page fetch failed', resp.status);
+    if (!r.ok) {
+      logWarn('[ALERT] Active feed first call failed.', { status: r.status });
       return null;
     }
-    const json = await resp.json().catch(() => null);
+    const json = r.json;
     if (!json) {
-      console.warn('[ACTIVE-FEED] Failed to parse first-page JSON');
+      logWarn('[ACTIVE-FEED] Failed to parse first-page JSON');
       return null;
     }
     return json;
   } catch (e) {
-    console.warn('[ACTIVE-FEED] Error in fetchActiveFeedFirstPage:', (e as any)?.message || e);
+    logWarn('[ACTIVE-FEED] Error in fetchActiveFeedFirstPage', { error: (e as any)?.message || String(e) });
     return null;
   }
 }
@@ -1147,7 +1213,7 @@ async function collectActiveFeedGraphQL(q: string): Promise<FeedItem[]> {
   const bodies: any[] = [];
   const first = await fetchActiveFeedFirstPage(q);
   if (!first) {
-    console.warn('[ACTIVE-FEED] First page returned null; no active feed.');
+    logWarn('[ACTIVE-FEED] First page returned null; no active feed.');
     return [];
   }
 
@@ -1185,11 +1251,11 @@ async function collectActiveFeedGraphQL(q: string): Promise<FeedItem[]> {
     bodies.push(next);
     cur = next;
     pagesFetched++;
-    console.log('[ACTIVE-FEED][PAGINATE]', { pagesFetched, tiles: tiles.length });
+    logDebug('[ACTIVE-FEED][PAGINATE]', { pagesFetched, tiles: tiles.length });
   }
 
   const items = feedItemsFromBodies(bodies);
-  console.log('[ACTIVE-FEED] pages=', bodies.length, 'tiles=', items.length);
+  logInfo('[ACTIVE-FEED] pages/tiles', { pages: bodies.length, tiles: items.length });
   return items;
 }
 
@@ -1208,14 +1274,14 @@ async function run() {
   const q = (SEARCH_Q || qParts.join(' ').trim());
 
   if (q.length) {
-    console.log('[ACTIVE-FEED] query=', q);
+    logInfo('[ACTIVE-FEED] query', { q });
     feed = await collectActiveFeedGraphQL(q);
   } else {
-    console.log('[ACTIVE-FEED] No q derived from filters; skipping active feed.');
+    logInfo('[ACTIVE-FEED] No q derived from filters; skipping active feed.');
   }
 
   if (!feed.length) {
-    console.warn('[ACTIVE-FEED] No tiles from GraphQL; feedCount=0');
+    logWarn('[ACTIVE-FEED] No tiles from GraphQL; feedCount=0');
   }
 
   // ---------------- HARD FILTER: MAKE/MODEL (STRICT via parsed fields) ----------------
@@ -1255,7 +1321,7 @@ async function run() {
 
     if (keep) strictFeed.push({ ...tile, parsed });
   }
-  try { console.log('[HARD FILTER] kept feed=', strictFeed.length); } catch {}
+  try { logInfo('[HARD FILTER] kept feed', { kept: strictFeed.length }); } catch {}
   // ---------------- END HARD FILTER ------------------------
   const seen = new Set<string>();
   feed = feed.filter(it => {
@@ -1307,21 +1373,21 @@ async function run() {
             const ts = new Date(posted_at).getTime();
             if (!Number.isFinite(ts) || ts < cutoff) {
               RUN_STATS.postedRejected++;
-              try { console.log('[TS] too old', { url, posted_at }); } catch {}
+              try { logInfo('[TS] too old', { url, posted_at }); } catch {}
               continue;
             } else {
               RUN_STATS.postedKept++;
-              try { console.log('[TS] OK recent', { url, posted_at }); } catch {}
+              try { logInfo('[TS] OK recent', { url, posted_at }); } catch {}
             }
           } else {
             // No hours window set; accept
             RUN_STATS.postedKept++;
-            try { console.log('[TS] OK recent', { url, posted_at }); } catch {}
+            try { logInfo('[TS] OK recent', { url, posted_at }); } catch {}
           }
         } else {
           RUN_STATS.missingTimestamp++;
           needsTimestampResolution = true;
-          try { console.log('[TS] missing timestamp → rejecting', { url, id: remote_id }); } catch {}
+          try { logInfo('[TS] missing timestamp → rejecting', { url, id: remote_id }); } catch {}
           continue;
         }
 
@@ -1368,7 +1434,7 @@ async function run() {
 
         accepted.push(candidate);
       } catch (e: any) {
-        console.warn('detail error', e?.message, url);
+        logWarn('detail error', { message: e?.message, url });
         errors++;
       } finally {
         try { await detail.close(); } catch {}
@@ -1406,7 +1472,7 @@ async function run() {
         model: c.model,
         posted_at: c.posted_at,
       }));
-    console.log('[UPSERT] inserting', finalRows.length, 'rows');
+    logInfo('[UPSERT] inserting', { rows: finalRows.length });
     for (const group of chunked(finalRows, 75)) {
       // FINAL RECENCY FILTER – NOTHING OLDER THAN X HOURS IS EVER UPSERTED
       let rows = group;
@@ -1419,11 +1485,30 @@ async function run() {
           return ts >= cutoff;
         });
       }
-      if (!rows.length) continue;
-      const up = await supaSvc.from('listings').upsert(rows, { onConflict: 'source,remote_id' });
+      // Enforce source/remote_id presence
+      const cleaned = rows.filter(r => r.source && r.remote_id);
+      const skipped = rows.filter(r => !r.source || !r.remote_id);
+      if (skipped.length) {
+        logWarn('[UPsert] skipping rows missing keys', {
+          skippedCount: skipped.length,
+          rows: skipped.map(r => ({ source: r.source, remote_id: r.remote_id })),
+        });
+      }
+      if (!cleaned.length) continue;
+      const up = await supaSvc
+        .from('listings')
+        .upsert(cleaned, { onConflict: 'source,remote_id' });
       if (up.error) {
-        console.warn('detail upsert error', up.error.message);
+        logError('[UPsert] detail upsert error', {
+          message: up.error.message,
+          code: (up.error as any).code,
+          details: (up.error as any).details,
+          hint: (up.error as any).hint,
+          rows: cleaned.map(r => ({ source: r.source, remote_id: r.remote_id })),
+        });
         errors++;
+      } else {
+        logInfo('[UPsert] detail upsert success', { upsertedCount: cleaned.length });
       }
     }
   }
@@ -1457,7 +1542,66 @@ async function run() {
     filtersUsed,
     results,
   }, null, 2));
-  console.log('Summary:', RUN_STATS);
+  // Big-picture alerts
+  try {
+    const feedCount = (summaryBase.feedCount as number) || 0;
+    const detailEnrichedCount = accepted.length;
+    const postedRejected = RUN_STATS.postedRejected;
+    const postedKept = RUN_STATS.postedKept;
+    const missingTimestamp = RUN_STATS.missingTimestamp;
+
+    if (feedCount === 0) {
+      logWarn('[ALERT] No feed items captured for this search.', {
+        makes: F_MAKES,
+        models: F_MODELS,
+        postedWithinHours: F_POSTED_WITHIN_HOURS,
+        lat: LAT,
+        lng: LNG,
+      });
+    }
+
+    if (feedCount > 0 && postedKept === 0) {
+      logWarn('[ALERT] All items were rejected by filters (likely too strict).', {
+        feedCount,
+        postedRejected,
+        filtersUsed,
+      });
+    }
+
+    if (missingTimestamp && missingTimestamp > 0) {
+      logWarn('[ALERT] Some listings were missing timestamps.', { missingTimestamp });
+    }
+
+    if (feedCount > 0 && detailEnrichedCount === 0) {
+      logWarn('[ALERT] Detail phase produced zero candidates; check make/model filters.', {
+        feedCount,
+        makes: F_MAKES,
+        models: F_MODELS,
+      });
+    }
+  } catch {}
+
+  logInfo('Summary:', RUN_STATS as any);
+
+  // Run-level meta log
+  try {
+    const feedCount = (summaryBase.feedCount as number) || 0;
+    const detailEnrichedCount = accepted.length;
+    const postedKept = RUN_STATS.postedKept;
+    const postedRejected = RUN_STATS.postedRejected;
+    const missingTimestamp = RUN_STATS.missingTimestamp;
+    logInfo('[RUN-SUMMARY]', {
+      source: 'offerup',
+      makes: F_MAKES,
+      models: F_MODELS,
+      postedWithinHours: F_POSTED_WITHIN_HOURS,
+      feedCount,
+      detailEnrichedCount,
+      postedKept,
+      postedRejected,
+      missingTimestamp,
+    } as any);
+  } catch {}
   await browser.close();
 }
 
@@ -1468,7 +1612,7 @@ async function resolveTimestampFallback(url: string): Promise<string | null> {
 }
 
 run().catch(async (err) => {
-  console.error('offerup script failed:', err);
+  logError('offerup script failed:', { error: String(err) });
   try {
     await fs.writeFile('offerup_error.txt', String(err?.stack || err));
   } catch {}
