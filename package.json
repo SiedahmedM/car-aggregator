@@ -9,7 +9,9 @@
     "lint": "eslint",
     "offerup": "dotenv -e .env.local -- tsx ./scripts/offerup.ts",
     "offerup:worker": "dotenv -e .env.local -- tsx ./scripts/offerup_worker.ts",
-    "test:offerup:filters": "tsx ./scripts/tests/offerup_filters_test.ts"
+    "test:offerup:filters": "tsx ./scripts/tests/offerup_filters_test.ts",
+    "deal-finder": "dotenv -e .env.local -- tsx ./scripts/deal_finder.ts",
+    "test:deal-finder:sanity": "tsx ./scripts/deal_finder_sanity.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.74.0",
