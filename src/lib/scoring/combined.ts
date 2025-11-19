@@ -7,7 +7,7 @@ const TRADEOFF_WEIGHT = 0.70
 const KNN_WEIGHT = 0.30
 const MIN_GATE = 0.08
 const MAX_GATE = 0.20
-const MIN_COMBINED_CONFIDENCE = 0.08  // fallback gate if LOOCV not available
+// const MIN_COMBINED_CONFIDENCE = 0.08  // fallback gate if LOOCV not available
 
 export function computeLOOCVThreshold(
   wins: FlippedCar[],
@@ -31,7 +31,7 @@ export function computeLOOCVThreshold(
       source: w.source, url: '', title: null, city: null, postedAt: new Date().toISOString()
     }
 
-    const t = scoreListingTradeoff(listing, wins, p)
+    const t = scoreListingTradeoff(listing, others, p)
     const k = scoreListingKNN(listing, others, Math.min(3, others.length))
     const combined = tradeoffWeight * t.tradeoffSimilarity + knnWeight * k.confidence
     confs.push(combined)
@@ -91,146 +91,134 @@ export function autoTuneWeightsAndK(
   return { tradeoffWeight: best.w, knnWeight: best.kw, k: best.k }
 }
 
-export function scoreListing(
-  listing: Listing,
-  referenceCars: FlippedCar[],
-  k = 3
-): ScoredListing {
-  // Compute tradeoff params + LOOCV threshold; callers that batch should hoist this.
-  const params = computeTradeoffParams(referenceCars)
-  const thrRaw = computeLOOCVThreshold(referenceCars, TRADEOFF_WEIGHT, KNN_WEIGHT)
-  const threshold = Math.min(Math.max(thrRaw, MIN_GATE), MAX_GATE)
-
-  // Tradeoff scorer
-  const t = scoreListingTradeoff(listing, referenceCars, params)
-
-  // KNN scorer (confidence only; neighbors for explanation)
-  const knn = scoreListingKNN(listing, referenceCars, k)
-  const knnConfidence = knn.confidence
-
-  // Combined
-  const combinedConfidence = TRADEOFF_WEIGHT * t.tradeoffSimilarity + KNN_WEIGHT * knnConfidence
-  // Apply freshness to both paths in the final score
-  let score = TRADEOFF_WEIGHT * t.tradeoffScore + KNN_WEIGHT * (knnConfidence * t.freshness)
-
-  const isWithinPattern = combinedConfidence >= threshold
-  if (!isWithinPattern) score = 0
-
-  // Debug log (one line per listing)
-  console.log('[COMBINED]', {
-    id: listing.id,
-    tradeoff: { similarity: t.tradeoffSimilarity, freshness: t.freshness, score: t.tradeoffScore, residual: t.residual },
-    knn: { confidence: knnConfidence },
-    combined: { confidence: +combinedConfidence.toFixed(4), score: +score.toFixed(4) },
-  })
-
-  const explanation =
-    `Tradeoff ${(t.tradeoffSimilarity*100).toFixed(0)}% (adj=$${t.adjustedPrice}, Δ=$${t.residual}), ` +
-    `KNN ${(knnConfidence*100).toFixed(0)}% → combined ${(combinedConfidence*100).toFixed(0)}%`
-
-  return {
-    ...listing,
-    score: Math.round(score * 100) / 100,
-    confidence: Math.round(combinedConfidence * 10000) / 10000,
-    isWithinPattern,
-    neighbors: knn.neighbors, // keep KNN neighbors for explainability
-    explanation,
-  }
+export type CombinedContext = {
+  params: TradeoffParams
+  tradeoffWeight: number
+  knnWeight: number
+  k: number
+  threshold: number
+  scoreFloor: number
 }
 
-export function scoreListings(
-  listings: Listing[],
-  referenceCars: FlippedCar[],
-  k = 3
-): ScoredListing[] {
-  const params = computeTradeoffParams(referenceCars) // hoist for efficiency
-  // Auto-tune when enough wins, else keep defaults
-  const tuned = autoTuneWeightsAndK(referenceCars, params)
+export function prepareCombinedContext(wins: FlippedCar[]): CombinedContext {
+  const params = computeTradeoffParams(wins)
+  const tuned = autoTuneWeightsAndK(wins, params)
   const tw = tuned.tradeoffWeight ?? TRADEOFF_WEIGHT
   const kw = tuned.knnWeight ?? KNN_WEIGHT
-  const kEff = Math.min(tuned.k ?? k, referenceCars.length)
+  const kEff = Math.min(tuned.k ?? 3, wins.length)
 
-  const thrRaw = computeLOOCVThreshold(referenceCars, tw, kw, params)
+  const thrRaw = computeLOOCVThreshold(wins, tw, kw, params)
   const threshold = Math.min(Math.max(thrRaw, MIN_GATE), MAX_GATE)
+  const scoreFloor = Math.max(0.12, Math.min(0.25, 0.5 * threshold + 0.05))
+
   console.log('[COMBINED] Gate:', {
     thresholdRaw: +thrRaw.toFixed(3),
     threshold: +threshold.toFixed(3),
     weights: { tradeoff: tw, knn: kw },
     k: kEff,
   })
-  const MIN_SCORE_FLOOR = 0.15
 
+  return { params, tradeoffWeight: tw, knnWeight: kw, k: kEff, threshold, scoreFloor }
+}
+
+export function scoreListing(
+  listing: Listing,
+  wins: FlippedCar[]
+): ScoredListing {
+  const ctx = prepareCombinedContext(wins)
+  return scoreListingWithContext(listing, wins, ctx)
+}
+
+export function scoreListingWithContext(
+  listing: Listing,
+  wins: FlippedCar[],
+  ctx: CombinedContext
+): ScoredListing {
+  const { params, tradeoffWeight: tw, knnWeight: kw, k: kEff, threshold, scoreFloor } = ctx
+
+  // Sanity guards
   function sanityGuards(listing: Listing, baselinePrice: number) {
     const minPrice = Math.max(1500, 0.35 * baselinePrice)
     if (!listing.mileage || listing.mileage <= 0) return { ok: false, reason: 'no_mileage', redFlags: false }
     if (!listing.price || listing.price < minPrice) return { ok: false, reason: 'too_cheap', redFlags: false }
     const txt = (listing.title || '').toLowerCase()
     const redFlags = /(salvage|rebuilt|parts|mechanic|flood|frame)/i.test(txt)
-    return { ok: true, reason: null as any, redFlags }
+    return { ok: true, reason: null as string | null, redFlags }
   }
-  return listings.map(listing => {
-    // Use combined scorer but reuse params
-    const t = scoreListingTradeoff(listing, referenceCars, params)
-    const knn = scoreListingKNN(listing, referenceCars, kEff)
-    const knnConfidence = knn.confidence
 
-    const combinedConfidence = tw * t.tradeoffSimilarity + kw * knnConfidence
-    // Apply freshness to both paths in the final score:
-    let score = tw * t.tradeoffScore + kw * (knnConfidence * t.freshness)
+  // Tradeoff + KNN
+  const t = scoreListingTradeoff(listing, wins, params)
+  const k = scoreListingKNN(listing, wins, kEff)
+  const knnConfidence = k.confidence
 
-    // Sanity checks and light-touch penalties
-    const sg = sanityGuards(listing, params.baselinePrice)
-    let flags: string[] = []
-    if (!sg.ok) {
-      score = 0
-      console.warn('[SANITY] Filtered', { id: listing.id, reason: sg.reason })
-    } else {
-      if (sg.redFlags) {
-        score *= 0.6 // 40% penalty for red-flag words
-        flags.push('red_flags')
-      }
-      if (t.residual < -3 * params.priceIQR) {
-        score *= 0.3 // extreme underpricing clamp
-        flags.push('extreme_underpricing')
-      }
-    }
+  // Combined confidence and score
+  const combinedConfidence = tw * t.tradeoffSimilarity + kw * knnConfidence
+  let score = tw * t.tradeoffScore + kw * (knnConfidence * t.freshness)
 
-    // Dual gate: confidence and score
-    const isWithinPattern = combinedConfidence >= threshold && score >= MIN_SCORE_FLOOR
-    if (!isWithinPattern) score = 0
+  // Sanity + penalties
+  const sg = sanityGuards(listing, params.baselinePrice)
+  const flags: string[] = []
+  if (!sg.ok) {
+    score = 0
+    console.warn('[SANITY] Filtered', { id: listing.id, reason: sg.reason })
+  } else {
+    if (sg.redFlags) { score *= 0.6; flags.push('red_flags') }
+    if (t.residual < -3 * params.priceIQR) { score *= 0.3; flags.push('extreme_underpricing') }
+  }
 
-    console.log('[COMBINED]', {
-      id: listing.id,
-      tradeoff: { similarity: t.tradeoffSimilarity, freshness: t.freshness, score: t.tradeoffScore, residual: t.residual },
-      knn: { confidence: knnConfidence },
-      combined: { confidence: +combinedConfidence.toFixed(4), score: +score.toFixed(4) },
-      guards: flags.length ? flags : undefined,
-    })
-
-    let explanation =
-      `Pattern ${(combinedConfidence*100).toFixed(0)}% (gate ${(threshold*100).toFixed(0)}%). ` +
-      `Adj→baseline: $${t.adjustedPrice} (Δ $${t.residual} vs $${params.baselinePrice}). ` +
-      `KNN ${(knnConfidence*100).toFixed(0)}% (k=${kEff}). Freshness ${t.freshness.toFixed(2)}.`
-    if (!sg.ok) explanation = `[FILTER:${sg.reason}] ` + explanation
-    else if (flags.length) explanation += ` Penalties: ${flags.join(', ')}.`
-
-    return {
-      ...listing,
-      score: Math.round(score * 100) / 100,
-      confidence: Math.round(combinedConfidence * 10000) / 10000,
-      isWithinPattern,
-      neighbors: knn.neighbors,
-      explanation,
-    }
+  // Dual gate (confidence + score)
+  const pass = combinedConfidence >= threshold && score >= scoreFloor
+  console.log('[GATE]', {
+    id: listing.id,
+    conf: +combinedConfidence.toFixed(3),
+    thr: +threshold.toFixed(3),
+    scorePreGate: +score.toFixed(3),
+    floor: +scoreFloor.toFixed(3),
+    pass,
   })
+  const isWithinPattern = pass
+  if (!isWithinPattern) score = 0
+
+  console.log('[COMBINED]', {
+    id: listing.id,
+    tradeoff: { similarity: t.tradeoffSimilarity, freshness: t.freshness, score: t.tradeoffScore, residual: t.residual },
+    knn: { confidence: knnConfidence },
+    combined: { confidence: +combinedConfidence.toFixed(4), score: +score.toFixed(4) },
+    guards: flags.length ? flags : undefined,
+  })
+
+  const explanation =
+    `Pattern ${(combinedConfidence*100).toFixed(0)}% (gate ${(threshold*100).toFixed(0)}%). ` +
+    `Adj→baseline: $${t.adjustedPrice} (Δ $${t.residual} vs $${params.baselinePrice}). ` +
+    `KNN ${(knnConfidence*100).toFixed(0)}% (k=${kEff}). Freshness ${t.freshness.toFixed(2)}.` +
+    (flags.length ? ` Penalties: ${flags.join(', ')}.` : '')
+
+  return {
+    ...listing,
+    score: Math.round(score * 100) / 100,
+    confidence: Math.round(combinedConfidence * 10000) / 10000,
+    isWithinPattern,
+    neighbors: k.neighbors,
+    explanation,
+  }
+}
+
+export function scoreListings(
+  listings: Listing[],
+  wins: FlippedCar[]
+): ScoredListing[] {
+  const ctx = prepareCombinedContext(wins)
+  return listings.map(l => scoreListingWithContext(l, wins, ctx))
 }
 
 export function getTopDeals(
   listings: Listing[],
   referenceCars: FlippedCar[],
-  topN = 10,
-  k = 3
+  topN = 10
 ): ScoredListing[] {
-  const scored = scoreListings(listings, referenceCars, k)
-  return scored.sort((a, b) => b.score - a.score).slice(0, topN)
+  const scored = scoreListings(listings, referenceCars)
+  return scored
+    .filter(d => d.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, topN)
 }

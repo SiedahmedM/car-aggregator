@@ -34,7 +34,7 @@ export interface ScoredListing extends Listing {
   isWithinPattern: boolean // passes your similarity threshold
   neighbors: {
     carId: string
-    distance: number
+    distanceNorm: number
     year: number
     mileage: number
     price: number          // purchasePrice of the neighbor car

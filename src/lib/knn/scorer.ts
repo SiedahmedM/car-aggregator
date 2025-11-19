@@ -14,10 +14,11 @@ export const WEIGHTS: ScoringWeights = {
 }
 const DEFAULT_WEIGHTS = WEIGHTS
 
+// Deterministic normalization bound (max possible weighted Euclidean distance)
+export const MAX_NORM_DIST = Math.hypot(WEIGHTS.year, WEIGHTS.mileage, WEIGHTS.price)
+
 // minimum similarity to treat as "within pattern"
 const MIN_CONFIDENCE = 0.05
-
-type Maybe = number | null
 
 function clamp01(v: number | null): number | null {
   if (v === null) return null
@@ -62,17 +63,7 @@ function euclideanDistanceClamped(
   return { dist, dimsUsed }
 }
 
-function euclideanDistance(
-  a: NormalizedFeatures,
-  b: NormalizedFeatures,
-  weights: ScoringWeights
-): number {
-  const yearDiff = Math.pow((a.yearNorm - b.yearNorm) * weights.year, 2)
-  const mileageDiff = Math.pow((a.mileageNorm - b.mileageNorm) * weights.mileage, 2)
-  const priceDiff = Math.pow((a.priceNorm - b.priceNorm) * weights.price, 2)
-  
-  return Math.sqrt(yearDiff + mileageDiff + priceDiff)
-}
+// Note: standalone euclideanDistance helper removed (unused)
 
 export function scoreListing(
   listing: Listing,
@@ -113,23 +104,28 @@ export function scoreListing(
     .slice(0, kNearest)
 
   const avgDistance = neighbors.reduce((sum, n) => sum + n.distance, 0) / neighbors.length
-  const dimsUsedAvg = neighbors.reduce((sum, n) => sum + (n as any).dimsUsed, 0) / neighbors.length
+  // dimsUsedAvg removed (unused)
 
   // 5. Confidence from bounded normalized distance
-  const MAX_NORM_DIST = Math.hypot(weights.year, weights.mileage, weights.price)
-  const confidence = Math.max(0, 1 - (avgDistance / MAX_NORM_DIST))
+  // Prefer deterministic bound using top-level WEIGHTS
+  const maxNorm = MAX_NORM_DIST
+  const confidenceRaw = Math.max(0, 1 - (avgDistance / maxNorm))
+
+  // 6. (Optional) Confidence floor for very close matches
+  const best = neighbors[0]?.distance ?? Infinity
+  const confidence = best <= 0.2 ? Math.max(confidenceRaw, 0.55) : confidenceRaw
 
   // Log helpful KNN diagnostics
   try {
     console.log('[KNN]', listing.id, {
       avgDist: +avgDistance.toFixed(4),
-      max: +MAX_NORM_DIST.toFixed(4),
+      max: +maxNorm.toFixed(4),
       confidence: +confidence.toFixed(4),
       neighbors: neighbors.map(n => ({ carId: n.car.id, distanceNorm: +n.distance.toFixed(4) })),
     })
   } catch {}
 
-  // 6. Freshness boost
+  // 7. Freshness boost
   let freshnessMultiplier = 1.0
   if (listing.postedAt) {
     const hoursOld =
@@ -139,7 +135,7 @@ export function scoreListing(
     }
   }
 
-  // 7. Final score: similarity × freshness
+  // 8. Final score: similarity × freshness
   let score = confidence * freshnessMultiplier
 
   const isWithinPattern = confidence >= MIN_CONFIDENCE
@@ -148,7 +144,7 @@ export function scoreListing(
     score = 0
   }
 
-  // 8. Build explanation using year/mileage/price of nearest buys
+  // 9. Build explanation using year/mileage/price of nearest buys
   const neighborDescriptions = neighbors
     .map(
       n =>
@@ -167,7 +163,7 @@ export function scoreListing(
     isWithinPattern,
     neighbors: neighbors.map(n => ({
       carId: n.car.id,
-      distance: Math.round(n.distance * 10000) / 10000, // normalized, bounded distance
+      distanceNorm: Math.round(n.distance * 10000) / 10000, // normalized, weighted Euclidean
       year: n.car.year,
       mileage: n.car.mileage,
       price: n.car.purchasePrice,

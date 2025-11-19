@@ -9,10 +9,16 @@ const supaSvc = createClient(SUPA_URL, SUPA_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
 })
 
+interface WinPoint { year: number; mileage: number; purchasePrice: number }
 interface DealFinderParams {
-  referenceCarIds: string[]
+  // Either pass canonical flipped car IDs OR raw win points + make/model
+  referenceCarIds?: string[]
+  wins?: WinPoint[]
+  make?: string
+  model?: string
   sources?: string[]
   userId?: string
+  jobId?: string // optional: tag scores to a queue job
 }
 
 // map DB rows (snake_case) to domain (camelCase) for KNN
@@ -53,31 +59,56 @@ function mapListing(row: any): Listing {
 }
 
 export async function runDealFinder(params: DealFinderParams) {
-  const { referenceCarIds, sources = ['offerup'], userId } = params
+  const { referenceCarIds, wins, make: makeIn, model: modelIn, sources = ['offerup'], userId } = params
+  const jobId = params.jobId || process.env.DEAL_FINDER_JOB_ID || undefined
 
   console.log('[DEAL-FINDER] Starting...', { referenceCarIds, sources })
 
-  // 1. Fetch reference cars
-  const { data: referenceRows, error: refError } = await supaSvc
-    .from('flipped_cars')
-    .select('*')
-    .in('id', referenceCarIds)
+  // 1. Build reference cars either from DB (IDs) or from raw wins
+  let referenceCars: FlippedCar[]
+  let make: string
+  let model: string
 
-  if (refError || !referenceRows?.length) {
-    throw new Error(`Failed to fetch reference cars: ${refError?.message}`)
-  }
-
-  const referenceCars = referenceRows.map(mapFlippedCar)
-
-  if (referenceCars.length < 3) {
-    throw new Error(`Need at least 3 reference cars, got ${referenceCars.length}`)
-  }
-
-  // Verify all same make/model
-  const { make, model } = referenceCars[0]
-  const allSame = referenceCars.every(c => c.make === make && c.model === model)
-  if (!allSame) {
-    throw new Error('All reference cars must be the same make and model')
+  if (wins && wins.length) {
+    if (!makeIn || !modelIn) throw new Error('wins provided but make/model missing')
+    make = makeIn.toLowerCase()
+    model = modelIn.toLowerCase()
+    if (wins.length < 3) throw new Error(`Need at least 3 wins, got ${wins.length}`)
+    referenceCars = wins.map((w, i) => ({
+      id: `win-${i + 1}`,
+      year: w.year,
+      make,
+      model,
+      mileage: w.mileage,
+      price: w.purchasePrice,
+      purchasePrice: w.purchasePrice,
+      salePrice: w.purchasePrice,
+      profit: 0,
+      profitPercentage: 0,
+      daysToFlip: 0,
+      source: 'manual',
+      purchaseDate: new Date().toISOString(),
+      saleDate: new Date().toISOString(),
+      notes: undefined,
+    }))
+  } else if (referenceCarIds && referenceCarIds.length) {
+    const { data: referenceRows, error: refError } = await supaSvc
+      .from('flipped_cars')
+      .select('*')
+      .in('id', referenceCarIds)
+    if (refError || !referenceRows?.length) {
+      throw new Error(`Failed to fetch reference cars: ${refError?.message}`)
+    }
+    referenceCars = referenceRows.map(mapFlippedCar)
+    if (referenceCars.length < 3) {
+      throw new Error(`Need at least 3 reference cars, got ${referenceCars.length}`)
+    }
+    make = referenceCars[0].make
+    model = referenceCars[0].model
+    const allSame = referenceCars.every(c => c.make === make && c.model === model)
+    if (!allSame) throw new Error('All reference cars must be the same make and model')
+  } else {
+    throw new Error('Provide either referenceCarIds or wins + make/model')
   }
 
   console.log(`[DEAL-FINDER] Loaded ${referenceCars.length} reference ${make} ${model}s`)
@@ -125,13 +156,13 @@ export async function runDealFinder(params: DealFinderParams) {
   }
 
   // 3. Score all listings using combined scorer (tradeoff + KNN), hoisted threshold
-  const scoredListings = scoreListings(listings as Listing[], referenceCars as FlippedCar[], 3)
+  const scoredListings = scoreListings(listings as Listing[], referenceCars as FlippedCar[])
 
   // TEMP DEBUG: log confidence and normalized neighbor distances
   scoredListings.forEach(l => {
     console.log('DEBUG', l.id, 'confidence:', +l.confidence.toFixed(4), 'distanceNeighbors:', l.neighbors.map(n => ({
       carId: n.carId,
-      distanceNorm: n.distance, // normalized, bounded
+      distanceNorm: n.distanceNorm, // normalized, bounded
       year: n.year,
       mileage: n.mileage,
       price: n.price,
@@ -145,18 +176,26 @@ export async function runDealFinder(params: DealFinderParams) {
     .sort((a, b) => b.score - a.score)
     .slice(0, 10)
 
-  // 5. Upsert scores to database
+  // 5. Upsert scores to database (optionally tag with job_id)
   const dealScoreRows = scoredListings.map(scored => ({
     listing_id: scored.id,
     user_id: userId || null,
     score: scored.score,
     confidence: scored.confidence,
     knn_neighbors: scored.neighbors,
+    ...(jobId ? { job_id: jobId } : {}),
   }))
 
+  // Optional cleanup: clear any prior rows for this job to ensure a clean slate
+  if (jobId) {
+    await supaSvc.from('deal_scores').delete().eq('job_id', jobId)
+  }
+
+  // Use a conflict target that matches schema
+  const conflictTarget = jobId ? 'job_id,listing_id' : 'listing_id,user_id'
   const { error: upsertError } = await supaSvc
     .from('deal_scores')
-    .upsert(dealScoreRows as any, { onConflict: 'listing_id,user_id' })
+    .upsert(dealScoreRows as any, { onConflict: conflictTarget })
 
   if (upsertError) {
     console.error('[DEAL-FINDER] Error upserting scores:', upsertError)

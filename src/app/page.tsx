@@ -163,7 +163,7 @@ export default async function Page({ searchParams }: { searchParams?: Record<str
           <nav className="hidden md:flex items-center gap-1 text-sm">
             <Link href="/" className="rounded-md px-3 py-1.5 text-neutral-300 hover:text-white hover:bg-white/5">Listings</Link>
             <Link href="/offerup" className="rounded-md px-3 py-1.5 text-neutral-300 hover:text-white hover:bg-white/5">Saved Searches</Link>
-            <a href="#" className="rounded-md px-3 py-1.5 text-neutral-300 hover:text-white hover:bg-white/5">Analytics</a>
+            <Link href="/analytics" className="rounded-md px-3 py-1.5 text-neutral-300 hover:text-white hover:bg-white/5">Analytics</Link>
           </nav>
           <div className="md:hidden text-sm text-neutral-400">Menu</div>
         </div>

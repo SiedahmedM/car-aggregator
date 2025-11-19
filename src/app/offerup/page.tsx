@@ -25,6 +25,8 @@ async function getRecentJobs(limit = 25) {
   return data || [];
 }
 
+// const AnalyticsClient = dynamic(() => import('../(dashboard)/analytics/page'), { ssr: false });
+
 export default async function OfferUpPage() {
   const [searches, jobs] = await Promise.all([getSearchesToday(), getRecentJobs()]);
   return (
