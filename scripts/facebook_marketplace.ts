@@ -1,4 +1,4 @@
-import { chromium, Browser, Page, LaunchOptions, BrowserContext } from 'playwright'
+import { chromium, Browser, Page, LaunchOptions, BrowserContext, Route } from 'playwright'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { createClient } from '@supabase/supabase-js'
@@ -19,7 +19,10 @@ const FB_CATEGORY_URL = process.env.FB_CATEGORY_URL || 'https://www.facebook.com
 const FB_COOKIES_PATH = process.env.FB_COOKIES_PATH || 'secrets/facebook_cookies.json'
 
 type RawGQLEdge = any
-const FB_DEBUG = (process.env.FB_DEBUG ?? 'false').toLowerCase() === 'true'
+const FB_DEBUG = (() => {
+  const v = (process.env.FB_DEBUG ?? '').toLowerCase()
+  return v === 'true' || v === '1' || v === 'yes' || v === 'on'
+})()
 
 // Debug + capture utilities -------------------------------------------------
 const DEBUG_DIR = process.env.FB_DEBUG_DIR || 'debug/facebook'
@@ -27,6 +30,26 @@ const FB_CAPTURE_RAW = (process.env.FB_CAPTURE_RAW ?? '0') === '1'
 const FB_CAPTURE_ON_ZERO = (process.env.FB_CAPTURE_ON_ZERO ?? '1') !== '0'
 const FB_USE_STORAGE_STATE = (process.env.FB_USE_STORAGE_STATE ?? '0') === '1'
 const FB_STORAGE_STATE = process.env.FB_STORAGE_STATE || 'secrets/fb_state.json'
+
+// Target filtering defaults (override via env at runtime)
+const TARGET_MAKE  = (process.env.FB_MAKE  || 'Honda').toLowerCase()
+const TARGET_MODEL = (process.env.FB_MODEL || 'Civic').toLowerCase()
+const TARGET_LIMIT = Number.isFinite(parseInt(process.env.FB_LIMIT || '', 10))
+  ? parseInt(process.env.FB_LIMIT!, 10)
+  : 20
+
+// Vehicles and Honda/Civic taxonomy IDs you observed in GraphQL
+const VEHICLES_CATEGORY_ID = '546583916084032' // "Vehicles" (string form)
+const VEHICLES_CATEGORY_ID_NUM = 546583916084032 // numeric form for queries expecting numbers
+const HONDA_MAKE_ID        = '308436969822020' // "Honda"
+const CIVIC_MODEL_ID       = '337357940220456' // "Civic"
+
+// Target filter & count (doc_id variables alignment)
+const TARGET = {
+  limit: 20,
+  vehicleType: 'car_truck',
+  sortBy: 'creation_time_descend' as const,
+}
 
 function ensureDir(p: string) {
   return fs.mkdir(p, { recursive: true }).catch(() => {})
@@ -92,31 +115,190 @@ const FB_BLOCK_ASSETS = (process.env.FB_BLOCK_ASSETS ?? '1') !== '0'
 
 const gqlRegex = /https:\/\/(www|web|m)\.facebook\.com\/api\/graphql(?:\/|\?|$)/i
 
-async function installGraphQLRoutes(context: BrowserContext) {
-  await context.route(gqlRegex, async (route) => {
-    try {
-      const req = route.request()
-      let post = ''
-      try { post = req.postData() || '' } catch {}
-      let docId = '', friendly = '', varKeys: string[] = []
-      if (post) {
-        const kv = new URLSearchParams(post)
-        docId = kv.get('doc_id') || ''
-        friendly = kv.get('fb_api_req_friendly_name') || ''
-        const varsRaw = kv.get('variables')
-        if (varsRaw) { try { varKeys = Object.keys(JSON.parse(varsRaw) || {}) } catch {} }
+// Single-install GraphQL interceptor ----------------------------------------
+let gqlInterceptorInstalled = false
+let marketplacePatchDisabled = false
+let marketplacePatchTried = false
+
+export async function installMarketplaceGraphQLInterceptor(context: BrowserContext) {
+  if (gqlInterceptorInstalled) return () => Promise.resolve()
+  gqlInterceptorInstalled = true
+
+  const graphqlPattern = '**/api/graphql/**'
+
+  const handler = async (route: Route) => {
+    const req = route.request()
+    if (req.method() !== 'POST') return route.continue()
+
+    const headers = req.headers()
+    const ct = headers['content-type'] || ''
+    if (!ct.includes('application/x-www-form-urlencoded')) return route.continue()
+
+    const body = req.postData() || ''
+    const params = new URLSearchParams(body)
+    // Count and log request metadata for visibility
+    try { metrics.graphqlRequests += 1 } catch {}
+    const docIdMeta = params.get('doc_id') || params.get('docId') || ''
+    const friendlyHeaderMeta = headers['x-fb-friendly-name'] || ''
+    const friendlyParamMeta = params.get('fb_api_req_friendly_name') || ''
+    const friendlyMeta = friendlyHeaderMeta || friendlyParamMeta
+    try { debug('GQL-> req', { friendly: friendlyMeta, docId: docIdMeta, size: body.length }) } catch {}
+    const friendlyHeader = headers['x-fb-friendly-name'] || ''
+    // Some builds set friendly name only in form fields; check both
+    const bodyForFriendly = req.postData() || ''
+    const pForFriendly = new URLSearchParams(bodyForFriendly)
+    const friendlyParam = pForFriendly.get('fb_api_req_friendly_name') || ''
+    const isTarget = friendlyHeader === 'CometMarketplaceCategoryContentPaginationQuery' || friendlyParam === 'CometMarketplaceCategoryContentPaginationQuery'
+    if (!isTarget) {
+      // allow other handlers (catch-all) to process
+      return route.fallback?.() ?? route.continue()
+    }
+    if (marketplacePatchDisabled) {
+      // Skip patching for this session to avoid UI error banner
+      return route.continue()
+    }
+
+    const rawVars = params.get('variables') || '{}'
+    let variables: any
+    try { variables = JSON.parse(rawVars) } catch { return route.fallback?.() ?? route.continue() }
+    const beforeVars = variables && typeof variables === 'object' ? JSON.parse(JSON.stringify(variables)) : null
+    marketplacePatchTried = true
+
+    // Inject filters and sort (try to match existing container/shape)
+    const setSort = () => {
+      const trySet = (obj: any): boolean => {
+        if (!obj || typeof obj !== 'object') return false
+        if ('filterSortingParams' in obj) {
+          const f = obj.filterSortingParams || {}
+          f.sort_by_filter = 'CREATION_TIME'
+          f.sort_order = 'DESCEND'
+          // also set comet-style keys as a backup
+          f.sortBy = 'creation_time_descend'
+          f.sort_by = 'creation_time_descend'
+          obj.filterSortingParams = f
+          return true
+        }
+        if ('sort_by_filter' in obj || 'sort_order' in obj) {
+          obj.sort_by_filter = 'CREATION_TIME'
+          obj.sort_order = 'DESCEND'
+          return true
+        }
+        if ('sortBy' in obj || 'sort_by' in obj) {
+          obj.sortBy = 'creation_time_descend'; obj.sort_by = 'creation_time_descend'
+          return true
+        }
+        for (const k of Object.keys(obj)) { const v = (obj as any)[k]; if (v && typeof v === 'object') { if (trySet(v)) return true } }
+        return false
       }
-      if (typeof debug === 'function') debug('GQL->', { method: req.method(), docId, friendly, varKeys, size: post.length })
-    } catch (e) { if (typeof warn === 'function') warn('GQL route error', (e as Error).message) }
-    finally { await route.continue() }
-  })
+      if (!trySet(variables)) variables.filterSortingParams = { sort_by_filter: 'CREATION_TIME', sort_order: 'DESCEND', sortBy: 'creation_time_descend', sort_by: 'creation_time_descend' }
+    }
+    setSort()
+    variables.topLevelVehicleType = 'car_truck'
+
+    const WANT_MAKE = (process.env.FB_FILTER_MAKE || 'honda').toLowerCase()
+    const WANT_MODEL = (process.env.FB_FILTER_MODEL || 'civic').toLowerCase()
+    const MAP_STRING_TO_ID: Record<string, string> = { honda: '308436969822020', civic: '337357940220456' }
+    const makeId = MAP_STRING_TO_ID[WANT_MAKE] || WANT_MAKE
+    const modelId = MAP_STRING_TO_ID[WANT_MODEL] || WANT_MODEL
+
+    // Prefer Comet's { name, values } input shape; fall back key/value if that's what vars use
+    // Find vertical fields container recursively and upsert values
+    const patchVerticals = (root: any) => {
+      const keys = ['stringVerticalFields','verticalFields','appliedVerticalFields']
+      const visit = (obj: any): boolean => {
+        if (!obj || typeof obj !== 'object') return false
+        for (const k of keys) {
+          if (Array.isArray(obj[k])) {
+            const arr = obj[k]
+            const usesNameValues = arr.length === 0 ? true : (('name' in (arr[0]||{})) || ('values' in (arr[0]||{})))
+            const upsertNV = (name: string, values: string[]) => {
+              let i = arr.findIndex((f: any) => f?.name === name)
+              if (i < 0) arr.push({ name, values })
+              else arr[i] = { name, values }
+            }
+            const upsertKV = (key: string, value: string) => {
+              let i = arr.findIndex((f: any) => f?.key === key)
+              if (i < 0) arr.push({ key, value })
+              else arr[i] = { key, value }
+            }
+            if (usesNameValues) {
+              upsertNV('topLevelVehicleType', ['car_truck'])
+              upsertNV('make', [makeId])
+              upsertNV('model', [modelId])
+            } else {
+              upsertKV('topLevelVehicleType', 'car_truck')
+              upsertKV('make', makeId)
+              upsertKV('model', modelId)
+            }
+            return true
+          }
+        }
+        for (const k of Object.keys(obj)) { const v = obj[k]; if (v && typeof v === 'object') { if (visit(v)) return true } }
+        return false
+      }
+      if (!visit(root)) {
+        // create minimal container if not found at any depth
+        root.stringVerticalFields = [
+          { name: 'topLevelVehicleType', values: ['car_truck'] },
+          { name: 'make', values: [makeId] },
+          { name: 'model', values: [modelId] },
+        ]
+      }
+    }
+    patchVerticals(variables)
+
+    // Scope to Vehicles if the var exists in this query variant
+    const setCategory = (obj: any): boolean => {
+      if (!obj || typeof obj !== 'object') return false
+      if (Array.isArray(obj.categoryIDArray)) { obj.categoryIDArray = [VEHICLES_CATEGORY_ID_NUM]; return true }
+      if (obj.filters && Array.isArray(obj.filters.categoryIDArray)) { obj.filters.categoryIDArray = [VEHICLES_CATEGORY_ID]; return true }
+      for (const k of Object.keys(obj)) { const v = obj[k]; if (v && typeof v === 'object') { if (setCategory(v)) return true } }
+      return false
+    }
+    setCategory(variables)
+
+    const desiredCount = Math.max(30, Number(process.env.FB_LIMIT || 30))
+    variables.count = Math.max(variables.count || 0, desiredCount)
+
+    if (typeof debug === 'function') {
+      debug('[PATCH]', {
+        topLevelVehicleType: 'car_truck',
+        make: makeId,
+        model: modelId,
+        sortBy: variables.filterSortingParams?.sortBy,
+        count: variables.count,
+      })
+      try {
+        await writeDebugFile(`gql_vars_before_${Date.now()}.json`, JSON.stringify(beforeVars ?? {}, null, 2), { redacted: true })
+        await writeDebugFile(`gql_vars_after_${Date.now()}.json`, JSON.stringify(variables ?? {}, null, 2), { redacted: true })
+      } catch {}
+    }
+
+    params.set('variables', JSON.stringify(variables))
+    return await route.continue({ postData: params.toString() })
+  }
+
+  await context.route(graphqlPattern, handler)
+
+  return async () => {
+    await context.unroute(graphqlPattern, handler)
+    gqlInterceptorInstalled = false
+  }
 }
 
 async function installCatchAllRoute(context: BrowserContext) {
   if (!FB_BLOCK_ASSETS) return
   await context.route('**/*', async (route) => {
-    const rt = route.request().resourceType()
-    if (rt === 'image' || rt === 'media' || rt === 'font') return route.abort()
+    const req = route.request()
+    const rt = req.resourceType()
+    if (rt === 'image' || rt === 'media' || rt === 'font' || rt === 'websocket') return route.abort()
+    // Optional host-level guard for chat/gateway sockets that can churn
+    try {
+      const h = new URL(req.url()).hostname
+      if (/(^|\.)edge-chat\.facebook\.com$/i.test(h) || /(^|\.)gateway\.facebook\.com$/i.test(h)) {
+        return route.abort()
+      }
+    } catch {}
     // IMPORTANT: do not swallow other routes (like GraphQL)
     return route.fallback()
   })
@@ -155,10 +337,14 @@ async function smartScroll(page: Page) {
 
 // Login wall detection/dismissal --------------------------------------------
 async function isLoginWallVisible(page: Page): Promise<boolean> {
-  const dialog = page.locator('[role="dialog"]')
-  const loginInput = page.locator('input[name="email"]')
-  const banner = page.getByText('See more on Facebook', { exact: false })
-  return (await dialog.count()) > 0 || (await loginInput.count()) > 0 || (await banner.count()) > 0
+  // Heuristic: actual login UI shows an email+password or a login form action
+  const loginForm = page.locator('form[action*="login" i]')
+  const email = page.locator('input[name="email"]')
+  const pass = page.locator('input[name="pass"], input[type="password"]')
+  const loginBtn = page.getByRole('button', { name: /log in/i })
+  const counts = await Promise.all([loginForm.count(), email.count(), pass.count(), loginBtn.count()])
+  const visible = counts.some(c => c > 0)
+  return visible
 }
 
 async function dismissLoginWall(page: Page): Promise<boolean> {
@@ -202,6 +388,36 @@ type ListingRow = {
   city: string | null
   posted_at: string | null
   first_seen_at: string
+  created_at_ts?: number
+}
+
+function isVehicleRow(r: ListingRow): boolean {
+  if (r.year != null || r.mileage != null) return true
+  if ((r.make || '').length || (r.model || '').length) return true
+  const t = (r.title || '').toLowerCase()
+  if (/(sedan|coupe|hatchback|suv|truck|van|convertible|wagon|motor|engine|awd|fwd|rwd|mileage|mi\b)/i.test(t)) return true
+  return false
+}
+
+function isTargetRow(r: ListingRow): boolean {
+  const makeOk = (r.make || '').toLowerCase() === TARGET_MAKE
+  const modelOk = (r.model || '').toLowerCase() === TARGET_MODEL
+  if (makeOk && modelOk) return true
+  const hay = `${r.title ?? ''} ${r.make ?? ''} ${r.model ?? ''}`.toLowerCase()
+  const hasModel = new RegExp(`\\b${TARGET_MODEL.replace(/[-/\\^$*+?.()|[\]{}]/g, '')}\\b`, 'i').test(hay)
+  const hasMake = new RegExp(`\\b${TARGET_MAKE.replace(/[-/\\^$*+?.()|[\]{}]/g, '')}\\b`, 'i').test(hay)
+  return hasModel && (hasMake || makeOk)
+}
+
+function ts(r: ListingRow): number {
+  if (typeof (r as any).created_at_ts === 'number' && Number.isFinite((r as any).created_at_ts)) return (r as any).created_at_ts as number
+  const t = r.posted_at || r.first_seen_at
+  const n = t ? Date.parse(t) : 0
+  return Number.isFinite(n) ? n : 0
+}
+
+function sortByFreshestDesc(a: ListingRow, b: ListingRow) {
+  return ts(b) - ts(a)
 }
 
 function parseIntSafe(s: any): number | null {
@@ -226,55 +442,67 @@ function parseTitleForYmm(title?: string | null): { year: number | null; make: s
 }
 
 function extractEdgesFromBody(body: any): RawGQLEdge[] {
-  try {
-    const data = body?.data || {}
-
-    // 1) Try known shapes (old + Comet variants)
-    const candidates: any[][] = []
-
-    const pushIfArray = (arr: any) => { if (Array.isArray(arr) && arr.length) candidates.push(arr) }
-
-    // Old shape:
-    pushIfArray(data?.marketplace_search?.feed_units?.edges)
-    // Comet shapes frequently nest under viewer:
-    pushIfArray(data?.viewer?.marketplace_search?.feed_units?.edges)
-    pushIfArray(data?.viewer?.marketplace_feed?.feed_units?.edges)
-    pushIfArray(data?.viewer?.marketplace_category_content?.feed_units?.edges)
-    // Other plausible keys seen in experiments:
-    pushIfArray(data?.marketplace_feed?.feed_units?.edges)
-    pushIfArray(data?.marketplace_category_content?.feed_units?.edges)
-
-    // Modular feed experiments:
-    const mf = data?.modularFeed
-    if (mf) {
-      const loose = Array.isArray(mf?.looseTiles) ? mf.looseTiles : []
-      const items = Array.isArray(mf?.items) ? mf.items : []
-      const all = [...loose, ...items]
-      if (all.length) return all.map((x: any) => ({ node: x }))
-    }
-
-    if (candidates.length) {
-      return candidates.flat().map((e) => (e && e.node ? e : { node: e }))
-    }
-
-    // 2) Generic deep scan: find any object with an "edges" array
-    const found: any[] = []
-    const visit = (x: any) => {
-      if (!x || typeof x !== 'object') return
-      if (Array.isArray(x)) { x.forEach(visit); return }
-      if (Array.isArray((x as any).edges) && (x as any).edges.length) {
-        found.push(...(x as any).edges)
-      }
-      for (const k of Object.keys(x)) visit((x as any)[k])
-    }
-    visit(data)
-
-    if (found.length) {
-      return found.map((e) => (e && e.node ? e : { node: e }))
-    }
-  } catch {
-    // fall through
+  const looksLikeListingEdges = (edges: any[]): boolean => {
+    if (!Array.isArray(edges) || edges.length === 0) return false
+    return edges.some((e) => {
+      const n = e?.node ?? e
+      return !!(
+        n?.listing ||
+        n?.product?.listing ||
+        n?.target?.listing ||
+        n?.marketplace_listing ||
+        n?.story?.marketplace_listing ||
+        n?.__typename?.toLowerCase?.().includes('marketplace')
+      )
+    })
   }
+
+  // 1) Legacy top-level
+  try {
+    const edges = body?.data?.marketplace_search?.feed_units?.edges
+    if (looksLikeListingEdges(edges)) return edges
+  } catch {}
+
+  // 2) Modular feed experiments (top-level)
+  try {
+    const mf = body?.data?.modularFeed
+    const loose = Array.isArray(mf?.looseTiles) ? mf.looseTiles : []
+    const items = Array.isArray(mf?.items) ? mf.items : []
+    const all = [...loose, ...items]
+    if (all.length) return all.map((x: any) => ({ node: x }))
+  } catch {}
+
+  // 3) Recursively walk viewer for feed_units edges/items only (avoid unrelated edges)
+  const walk = (obj: any, out: any[] = []): any[] => {
+    if (!obj || typeof obj !== 'object') return out
+    // Only accept edges under a feed_units container
+    if ((obj as any).feed_units && Array.isArray((obj as any).feed_units?.edges) && looksLikeListingEdges((obj as any).feed_units.edges)) {
+      out.push(...(obj as any).feed_units.edges)
+    }
+
+    // nested modular feed under viewer
+    if (Array.isArray(obj?.items) || Array.isArray(obj?.looseTiles)) {
+      const loose = Array.isArray(obj?.looseTiles) ? obj.looseTiles : []
+      const items = Array.isArray(obj?.items) ? obj.items : []
+      const all = [...loose, ...items]
+      if (all.length) out.push(...all.map((x: any) => ({ node: x })))
+    }
+
+    for (const k of Object.keys(obj)) {
+      const v = obj[k]
+      if (v && typeof v === 'object') walk(v, out)
+    }
+    return out
+  }
+
+  try {
+    const viewer = body?.data?.viewer
+    if (viewer) {
+      const found = walk(viewer)
+      if (found.length) return found
+    }
+  } catch {}
+
   return []
 }
 
@@ -298,22 +526,58 @@ function normalizeEdge(edge: any): ListingRow | null {
     // Try a few common nesting variants
     const listing = node?.listing || node?.product?.listing || node?.target?.listing || node?.marketplace_listing || node?.story?.marketplace_listing || (node?.__typename === 'MarketplaceFeedUnit' ? node?.listing : null) || node
     if (!listing) { if (FB_DEBUG) debug('normalizeEdge: missing listing in node variant'); return null }
-    const remoteId: string | undefined = String(listing.id || listing.listing_id || '')
+    const remoteId: string | undefined = String(
+      listing.id ||
+      listing.listing_id ||
+      node?.marketplace_listing?.id ||
+      node?.id ||
+      (edge as any)?.listing_id ||
+      ''
+    )
     if (!remoteId) { if (FB_DEBUG) debug('normalizeEdge: missing id'); return null }
 
-    const title: string | null = listing.marketplace_listing_title || listing.title || null
-    const priceRaw = listing?.listing_price?.amount ?? listing?.listing_price?.formatted_amount ?? null
-    const mileageRaw = listing?.vehicle_odometer_data?.vehicle_mileage ?? listing?.vehicle_odometer_data?.vehicle_mileage_text ?? null
+    const title: string | null = listing.marketplace_listing_title || listing.title || listing.marketplace_item_title || listing.custom_title || null
+    const priceRaw =
+      listing?.listing_price?.amount ??
+      listing?.listing_price?.formatted_amount ??
+      listing?.price?.amount ??
+      listing?.vehicle_price?.amount ??
+      listing?.numeric_price ??
+      listing?.formatted_price ?? null
+    const mileageRaw =
+      listing?.vehicle_odometer_data?.vehicle_mileage ??
+      listing?.vehicle_odometer_data?.vehicle_mileage_text ??
+      listing?.odometer_value ??
+      listing?.odometer_reading?.value ?? null
     const permalink: string | null = listing?.story_permalink || listing?.marketplace_item_permalink || null
 
     const { year: yearGuess, make: makeGuess, model: modelGuess } = parseTitleForYmm(title)
     const year = parseIntSafe(listing?.year) ?? yearGuess
-    const make: string | null = (listing?.make || makeGuess || null)?.toLowerCase?.() ?? null
-    const model: string | null = (listing?.model || modelGuess || null)?.toLowerCase?.() ?? null
-    const price = parseIntSafe(priceRaw)
+    const makeFromSpec = listing?.vehicle_listing_specs?.make ?? listing?.make_name ?? listing?.make
+    const modelFromSpec = listing?.vehicle_listing_specs?.model ?? listing?.model_name ?? listing?.model
+    const make: string | null = (makeFromSpec || makeGuess || null)?.toLowerCase?.() ?? null
+    const model: string | null = (modelFromSpec || modelGuess || null)?.toLowerCase?.() ?? null
+    let price = parseIntSafe(priceRaw)
+    if (price == null && typeof priceRaw === 'string') {
+      // Prefer thousand-formatted numbers, then plain digits
+      const mThousands = priceRaw.match(/\$?\s*([0-9]{1,3}(?:,[0-9]{3})+(?:\.[0-9]{2})?)/)
+      const mPlain = priceRaw.match(/\$?\s*([0-9]+(?:\.[0-9]{2})?)(?![0-9])/)
+      const token = (mThousands?.[1] || mPlain?.[1] || '').replace(/,/g, '')
+      if (token) {
+        const n = Math.round(parseFloat(token))
+        if (Number.isFinite(n)) price = n
+      }
+    }
     const mileage = parseIntSafe(mileageRaw)
-    const postedAt: string | null = listing?.creation_time ? new Date(listing.creation_time * 1000).toISOString() : null
-    const city: string | null = listing?.location?.reverse_geocode?.city || listing?.location?.city || null
+    const postedAt: string | null = listing?.creation_time ? new Date(listing.creation_time * 1000).toISOString() : (node?.creation_time ? new Date(node.creation_time * 1000).toISOString() : null)
+    const city: string | null =
+      listing?.location?.reverse_geocode?.city ||
+      listing?.location?.city ||
+      listing?.marketplace_listing_location?.reverse_geocode?.city ||
+      null
+
+    const createdSec = listing?.creation_time ?? listing?.listing_time ?? node?.creation_time ?? null
+    const createdTs = createdSec ? Number(createdSec) * 1000 : (postedAt ? Date.parse(postedAt) : null)
 
     const row: ListingRow = {
       source: 'facebook',
@@ -329,6 +593,7 @@ function normalizeEdge(edge: any): ListingRow | null {
       city,
       posted_at: postedAt,
       first_seen_at: new Date().toISOString(),
+      created_at_ts: createdTs ?? undefined,
     }
     return row
   } catch {
@@ -339,22 +604,72 @@ function normalizeEdge(edge: any): ListingRow | null {
 function randInt(min: number, max: number) { return Math.floor(Math.random() * (max - min + 1)) + min }
 
 async function extractDomListings(page: Page): Promise<ListingRow[]> {
-  return await page.$$eval('a[href*="/marketplace/item/"]', (els) => {
+  return await page.$$eval('a[href*="/marketplace/item/"]', (anchors) => {
     const nowISO = new Date().toISOString()
+    const seen = new Set<string>()
     const out: any[] = []
-    for (const el of els as HTMLAnchorElement[]) {
-      const href = el.href || el.getAttribute('href') || ''
-      const m = href.match(/\/marketplace\/item\/(\d+)/)
+
+    for (const a of anchors as HTMLAnchorElement[]) {
+      const hrefAttr = a.getAttribute('href') || ''
+      const m = hrefAttr.match(/\/marketplace\/item\/(\d+)/)
       if (!m) continue
       const id = m[1]
-      const title = (el.getAttribute('aria-label') || el.textContent || '').trim() || null
+      if (seen.has(id)) continue
+      seen.add(id)
+
+      const title = a.getAttribute('aria-label') || a.textContent?.trim() || null
+
+      // Heuristic: try to extract price and city from nearby text
+      let price: number | null = null
+      let city: string | null = null
+      let year: number | null = null
+      let mileage: number | null = null
+      try {
+        const container = (a.closest('[role="article"]') as HTMLElement | null) || (a.parentElement as HTMLElement | null)
+        const text = (container?.textContent || a.textContent || '') as string
+        // Strict price: number with optional thousands, stop before next digit
+        const pm = text.match(/\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?)(?!\d)/)
+        if (pm) {
+          const clean = pm[1].replace(/,/g, '')
+          const n = Math.round(parseFloat(clean))
+          if (Number.isFinite(n)) price = n
+        }
+        const ym = text.match(/\b(19\d{2}|20\d{2})\b/)
+        if (ym) {
+          const y = parseInt(ym[1], 10)
+          if (y >= 1950 && y <= 2100) year = y
+        }
+        const mm = text.match(/\b([0-9][0-9,]{2,})\s*(mi|miles)\b/i)
+        if (mm) {
+          const mv = parseInt(mm[1].replace(/,/g, ''), 10)
+          if (Number.isFinite(mv)) mileage = mv
+        }
+        const cm = text.match(/\bin\s+([A-Za-z .,'-]{2,60})/i)
+        if (cm) {
+          city = (cm[1] || '').trim() || null
+        }
+      } catch {}
+
+      // Derive a cleaner title by removing price/city/mileage tokens
+      let cleanTitle = title
+      try {
+        if (cleanTitle) {
+          cleanTitle = cleanTitle.replace(/\$\s*[0-9,\.]+/, '').replace(/\bin\s+[A-Za-z .,'-]{2,60}/i, '').replace(/\b[0-9][0-9,]{2,}\s*(mi|miles)\b/i, '').replace(/\s{2,}/g, ' ').trim()
+        }
+      } catch {}
+
       out.push({
         source: 'facebook',
         remote_id: id,
         remote_slug: null,
-        url: href.startsWith('http') ? href : `https://www.facebook.com/marketplace/item/${id}`,
-        title,
-        price: null, year: null, make: null, model: null, mileage: null, city: null,
+        url: a.href.startsWith('http') ? a.href : `https://www.facebook.com${hrefAttr}`,
+        title: cleanTitle,
+        price,
+        year,
+        make: null,
+        model: null,
+        mileage,
+        city,
         posted_at: null,
         first_seen_at: nowISO,
       })
@@ -367,6 +682,26 @@ async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[
   let browser: Browser | null = null
   lastLoginWallDetected = false
   const collected: RawGQLEdge[] = []
+  const matched: ListingRow[] = []
+  const matchedIds = new Set<string>()
+  let uninstallGql: null | (() => Promise<void>) = null
+  // Maintain newest top TARGET.limit items while scrolling
+  const top: ListingRow[] = []
+  const topSeen = new Set<string>()
+  function pushRows(rows: ListingRow[]) {
+    for (const r of rows) {
+      const id = (r as any).remote_id || (r as any).id
+      if (!id) continue
+      if (topSeen.has(id)) continue
+      topSeen.add(id)
+      top.push(r)
+    }
+    // Newest first using numeric ts; fallback to string dates
+    top.sort((a, b) => (Number(b.created_at_ts ?? 0) - Number(a.created_at_ts ?? 0))
+      || ((b.posted_at || '').localeCompare(a.posted_at || ''))
+      || ((b.first_seen_at || '').localeCompare(a.first_seen_at || '')))
+    if (top.length > TARGET.limit) top.length = TARGET.limit
+  }
   try {
     // Proxy (sticky session)
     const proxyServer = process.env.FB_PROXY_SERVER // e.g. http://pr.oxylabs.io:7777
@@ -387,8 +722,17 @@ async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[
       permissions: ['geolocation'],
       storageState: FB_USE_STORAGE_STATE ? FB_STORAGE_STATE : undefined,
     })
+    // If using storage state, sanity-check cookies present for runtime
+    try {
+      if (FB_USE_STORAGE_STATE) {
+        const ck = await context.cookies('https://www.facebook.com')
+        const hasCUser = ck.some((k) => k.name === 'c_user' && k.value)
+        const hasXS = ck.some((k) => k.name === 'xs' && k.value && k.value !== 'deleted')
+        debug('Cookie check (storageState):', { hasCUser, hasXS, count: ck.length })
+      }
+    } catch {}
     // Install routes in correct order (GQL first, then catch-all)
-    await installGraphQLRoutes(context)
+    uninstallGql = await installMarketplaceGraphQLInterceptor(context)
     await installCatchAllRoute(context)
     
     // Load cookies if provided (supports Playwright storageState or array export from common extensions)
@@ -480,38 +824,104 @@ async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[
       }
       if (text.startsWith('for (;;);')) text = text.slice('for (;;);'.length)
 
-      let body: any = null
-      try { body = JSON.parse(text) } catch (e) {
-        warn('GQL resp JSON parse error', (e as Error).message)
+      // Robust parse: object, array of payloads, or concatenated JSON objects
+      const parsedPayloads: any[] = []
+      const ttrim = text.trim()
+      const tryPush = (obj: any) => { if (obj && typeof obj === 'object') parsedPayloads.push(obj) }
+      let parseOk = false
+      try {
+        const obj = JSON.parse(ttrim)
+        if (Array.isArray(obj)) obj.forEach(tryPush)
+        else tryPush(obj)
+        parseOk = true
+      } catch {}
+      if (!parseOk) {
+        // Attempt concatenated JSON objects via brace matching
+        try {
+          let idx = ttrim.indexOf('{')
+          while (idx !== -1) {
+            let depth = 0, inStr = false, esc = false, end = -1
+            for (let i = idx; i < ttrim.length; i++) {
+              const ch = ttrim[i]
+              if (inStr) {
+                if (esc) esc = false
+                else if (ch === '\\') esc = true
+                else if (ch === '"') inStr = false
+              } else {
+                if (ch === '"') inStr = true
+                else if (ch === '{') depth++
+                else if (ch === '}') { depth--; if (depth === 0) { end = i + 1; break } }
+              }
+            }
+            if (end !== -1) {
+              const frag = ttrim.slice(idx, end)
+              try { const obj = JSON.parse(frag); tryPush(obj) } catch {}
+              idx = ttrim.indexOf('{', end)
+            } else {
+              break
+            }
+          }
+        } catch {}
+      }
+      if (!parsedPayloads.length) {
+        warn('GQL resp JSON parse error', 'Unable to parse payload')
         await writeDebugFile(`graphql_resp_parsefail_${Date.now()}_${metrics.graphqlResponses}.txt`, text)
         return
       }
 
       if (status >= 200 && status < 300) metrics.graphqlResponsesOk += 1
 
-      if (body?.errors) {
+      // Fold over all parsed payloads
+      let totalEdges = 0
+      let dataKeys: string[] = []
+      let feedType = 'unknown'
+      let anyErrors = false
+      for (const body of parsedPayloads) {
+        if (body?.errors) { anyErrors = true }
+        const dk = body?.data ? Object.keys(body.data) : []
+        if (dk.length) dataKeys = dk
+        if (body?.data?.marketplace_search) feedType = 'marketplace_search'
+        else if (body?.data?.modularFeed) feedType = 'modularFeed'
+        const edges = extractEdgesFromBody(body)
+        totalEdges += Array.isArray(edges) ? edges.length : 0
+        if (edges?.length) {
+          collected.push(...edges)
+        }
+      }
+      if (anyErrors) {
         metrics.graphqlErrors += 1
-        debug('GQL errors:', sanitize(JSON.stringify(body.errors)).slice(0, 800))
+        try {
+          const errMsg = parsedPayloads.map(p => p?.errors?.[0]?.message).filter(Boolean)[0]
+          if (errMsg) {
+            const msg = sanitize(String(errMsg)).slice(0, 300)
+            debug('GQL errors present (batched):', msg)
+            if (/noncoercible_variable_value/i.test(msg)) {
+              // Disable further patching for this session to avoid UI banner spam
+              try { marketplacePatchDisabled = true } catch {}
+              warn('Disabling Marketplace patch for this session due to variable type error')
+            }
+          }
+          else debug('GQL errors present (batched)')
+        } catch {}
       }
 
-      const dataKeys = body?.data ? Object.keys(body.data) : []
-      const feedType = body?.data?.marketplace_search ? 'marketplace_search'
-                   : body?.data?.modularFeed ? 'modularFeed'
-                   : (dataKeys[0] || 'unknown')
+      metrics.graphqlEdges += totalEdges
 
-      const edges = extractEdgesFromBody(body)
-      metrics.graphqlEdges += edges.length
+      const feedUnitsDeep = countFeedUnitsDeep(parsedPayloads[0]?.data)
+      debug('GQL<-', { status, url, dataKeys, feedType, edges: totalEdges, feedUnitsDeep })
 
-      const feedUnitsDeep = countFeedUnitsDeep(body?.data)
-      debug('GQL<-', { status, url, dataKeys, feedType, edges: edges.length, feedUnitsDeep })
-
-      if (edges.length === 0 || FB_CAPTURE_RAW) {
-        await writeDebugFile(`graphql_resp_${Date.now()}_${metrics.graphqlResponses}.json`, JSON.stringify(body, null, 2), { redacted: true })
+      if (totalEdges === 0 || FB_CAPTURE_RAW) {
+        const out = parsedPayloads.length === 1 ? parsedPayloads[0] : parsedPayloads
+        await writeDebugFile(`graphql_resp_${Date.now()}_${metrics.graphqlResponses}.json`, JSON.stringify(out, null, 2), { redacted: true })
       }
-
-      if (edges.length) {
-        collected.push(...edges)
-        if (FB_DEBUG) console.log('[FB] edges+', edges.length, 'total=', collected.length)
+      if (totalEdges) {
+        const sample = (collected as any[])
+          .slice(-Math.min(10, collected.length))
+          .map((e: any) => e?.node?.listing?.id || e?.node?.id || e?.listing_id)
+          .filter(Boolean)
+          .slice(0, 5)
+        console.log('[FB:DEBUG] edges+', totalEdges, 'sample ids=', sample)
+        if (FB_DEBUG) console.log('[FB] edges total=', collected.length)
       }
     })
 
@@ -525,7 +935,13 @@ async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[
     }
     // Small pre-navigation wait to avoid robotic cadence
     await page.waitForTimeout(randInt(250, 1250))
-    await page.goto(FB_CATEGORY_URL, { waitUntil: 'load', timeout: 60_000 })
+    try {
+      await page.goto('https://www.facebook.com/marketplace/category/vehicles?sortBy=creation_time_descend&exact=false', { waitUntil: 'domcontentloaded', timeout: 45_000 })
+    } catch (e) {
+      warn('Nav failed', (e as Error).message)
+      // Return empty to let the controller rotate session/proxy without crashing
+      return []
+    }
     await page.waitForTimeout(randInt(250, 1250))
     info('Page loaded:', await page.url())
     // Check login wall after navigation; try a single dismiss
@@ -571,6 +987,30 @@ async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[
           }
         } catch {}
       }
+      // Early stop if we already have enough target matches; accumulate target rows and keep top newest
+      try {
+        const tmpRows = (() => {
+          const raw = collected.map(normalizeEdge).filter(Boolean) as ListingRow[]
+          const seenTmp = new Set<string>()
+          return raw.filter(r => (seenTmp.has(r.remote_id) ? false : (seenTmp.add(r.remote_id), true)))
+        })()
+        // Accumulate target matches and maintain top newest
+        const targetBatch: ListingRow[] = []
+        for (const r of tmpRows) {
+          if (isTargetRow(r) && !matchedIds.has(r.remote_id)) {
+            matched.push(r)
+            matchedIds.add(r.remote_id)
+            targetBatch.push(r)
+            if (matched.length >= TARGET_LIMIT) break
+          }
+        }
+        if (targetBatch.length) pushRows(targetBatch)
+        debug('Target match count', { matchCount: matched.length, limit: TARGET_LIMIT })
+        if (top.length >= TARGET.limit || matched.length >= TARGET_LIMIT) {
+          info(`[FB] Reached ${TARGET.limit} target rows; stopping early.`)
+          break
+        }
+      } catch {}
       if (collected.length >= MAX_ITEMS) break
     }
 
@@ -724,17 +1164,14 @@ async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[
     }
 
     // --- Normalize & dedupe ---
-    let rows = collected.map((e) => {
-      const r = normalizeEdge(e)
-      return r || null
-    }).filter(Boolean) as ListingRow[]
-    metrics.normalized = rows.length
+    const gRows = collected.map((e) => normalizeEdge(e)).filter(Boolean) as ListingRow[]
+    metrics.normalized = gRows.length
 
-    const seen = new Set<string>()
-    rows = rows.filter((r) =>
-      seen.has(r.remote_id) ? false : (seen.add(r.remote_id), true)
-    )
-    metrics.deduped = rows.length
+    const dedup = (() => {
+      const seen = new Set<string>()
+      return gRows.filter((r) => (seen.has(r.remote_id) ? false : (seen.add(r.remote_id), true)))
+    })()
+    metrics.deduped = dedup.length
 
     info('Summary', {
       gqlReq: metrics.graphqlRequests,
@@ -748,18 +1185,46 @@ async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[
       domCandidates: metrics.domCandidates,
     })
 
-    if (!rows.length) {
+    // Apply a vehicle gate to drop obvious non-vehicle noise
+    let finalRows: ListingRow[] = dedup.filter(isVehicleRow)
+    if (!finalRows.length) {
       warn('No rows from GraphQL/SSR; attempting DOM fallback...')
       const domRows = await extractDomListings(page)
       if (domRows.length) {
         info(`DOM fallback recovered ${domRows.length} items`)
-        rows = domRows
+        finalRows = domRows
       }
     }
 
+    // If we maintained a top list during scroll, prefer that
+    if (top.length) {
+      finalRows = top.slice()
+    } else if (matched.length) {
+      finalRows = matched.slice()
+    } else {
+      try {
+        const filtered = finalRows.filter(isTargetRow)
+        if (filtered.length) finalRows = filtered
+      } catch {}
+      // If still under target, try to top up from DOM anchors
+      if (finalRows.length < TARGET_LIMIT) {
+        try {
+          const domRows = await extractDomListings(page)
+          for (const r of domRows) {
+            if (isTargetRow(r) && !finalRows.find(x => x.remote_id === r.remote_id)) {
+              finalRows.push(r)
+              if (finalRows.length >= TARGET_LIMIT) break
+            }
+          }
+        } catch {}
+      }
+    }
+    finalRows.sort(sortByFreshestDesc)
+
     // rows is now unique list
-    return rows.slice(0, MAX_ITEMS)
+    return finalRows.slice(0, Math.min(MAX_ITEMS, TARGET_LIMIT))
   } finally {
+    try { await uninstallGql?.() } catch {}
     try { await browser?.close() } catch {}
   }
 }

@@ -275,69 +275,91 @@ export default async function Page({ searchParams }: { searchParams?: Record<str
           </details>
         </section>
 
-        {/* Listings */}
+        {/* Listings: split by source, shared filters */}
         <section className="mt-6">
-          {/* Cards on mobile */}
-          <div className="grid grid-cols-1 gap-3 md:hidden">
-            {rows.map((r) => (
-              <ListingCard key={r.id} r={r} />
-            ))}
-            {!rows.length && (
-              <div className="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-neutral-400">No listings match your filters.</div>
-            )}
+          {/* Mobile: stacked cards with headings */}
+          <div className="md:hidden space-y-6">
+            {(() => {
+              const fb = rows.filter(r => (r.source || '').toLowerCase() === 'facebook')
+              const ou = rows.filter(r => (r.source || '').toLowerCase() === 'offerup')
+              return (
+                <>
+                  <div>
+                    <div className="mb-2 text-sm font-medium text-neutral-300">Facebook Marketplace</div>
+                    <div className="grid grid-cols-1 gap-3">
+                      {fb.map(r => <ListingCard key={r.id} r={r} />)}
+                      {!fb.length && <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-sm text-neutral-500">No Facebook listings.</div>}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="mb-2 text-sm font-medium text-neutral-300">OfferUp</div>
+                    <div className="grid grid-cols-1 gap-3">
+                      {ou.map(r => <ListingCard key={r.id} r={r} />)}
+                      {!ou.length && <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-sm text-neutral-500">No OfferUp listings.</div>}
+                    </div>
+                  </div>
+                </>
+              )
+            })()}
           </div>
 
-          {/* Data grid on desktop */}
-          <div className="hidden md:block overflow-auto rounded-xl ring-1 ring-white/10">
-            <table className="min-w-full text-sm">
-              <thead className="sticky top-0 z-10 bg-neutral-950/80 backdrop-blur text-left text-neutral-400">
-                <tr>
-                  <th className="py-3 pl-4 pr-6">Posted</th>
-                  <th className="py-3 pr-6">Title</th>
-                  <th className="py-3 pr-6">Price</th>
-                  <th className="py-3 pr-6">Mileage</th>
-                  <th className="py-3 pr-6">Title</th>
-                  <th className="py-3 pr-6">City</th>
-                  <th className="py-3 pr-4">Link</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {rows.map((r) => (
-                  <tr key={r.id} className="group hover:bg-white/5 transition">
-                    <td className="py-3 pl-4 pr-6 text-neutral-300">{r.posted_at ? new Date(r.posted_at).toLocaleString() : ''}</td>
-                    <td className="py-3 pr-6 font-medium text-neutral-100">
-                      {r.year ? `${r.year} ` : ''}
-                      {r.make ? `${r.make} ` : ''}
-                      {r.model || r.title || ''}
-                    </td>
-                    <td className="py-3 pr-6 text-neutral-100">{r.price ? `$${Number(r.price).toLocaleString()}` : '—'}</td>
-                    <td className="py-3 pr-6 text-neutral-300">{r.mileage ? `${Number(r.mileage).toLocaleString()} mi` : '—'}</td>
-                    <td className="py-3 pr-6">
-                      <Badge tone={r.title_status === 'clean' ? 'success' : r.title_status === 'salvage' ? 'danger' : 'neutral'}>
-                        {r.title_status || 'unknown'}
-                      </Badge>
-                    </td>
-                    <td className="py-3 pr-6 text-neutral-300">{r.city || '—'}</td>
-                    <td className="py-3 pr-4">
-                      {r.url ? (
-                        <a href={r.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-md bg-blue-600/90 px-2.5 py-1.5 text-xs text-white transition hover:bg-blue-500">
-                          Open <IconLink />
-                        </a>
-                      ) : (
-                        <span className="text-neutral-500">—</span>
+          {/* Desktop: two side-by-side tables under same filters */}
+          <div className="hidden md:grid md:grid-cols-2 gap-4">
+            {(['facebook','offerup'] as const).map((src) => {
+              const list = rows.filter(r => (r.source || '').toLowerCase() === src)
+              return (
+                <div key={src} className="overflow-auto rounded-xl ring-1 ring-white/10">
+                  <div className="sticky top-0 z-10 bg-neutral-950/80 backdrop-blur px-4 py-2 text-sm font-medium text-neutral-200 border-b border-white/10">{src === 'facebook' ? 'Facebook Marketplace' : 'OfferUp'}</div>
+                  <table className="min-w-full text-sm">
+                    <thead className="bg-neutral-950/80 backdrop-blur text-left text-neutral-400">
+                      <tr>
+                        <th className="py-3 pl-4 pr-6">Posted</th>
+                        <th className="py-3 pr-6">Title</th>
+                        <th className="py-3 pr-6">Price</th>
+                        <th className="py-3 pr-6">Mileage</th>
+                        <th className="py-3 pr-6">Title</th>
+                        <th className="py-3 pr-6">City</th>
+                        <th className="py-3 pr-4">Link</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {list.map((r) => (
+                        <tr key={r.id} className="group hover:bg-white/5 transition">
+                          <td className="py-3 pl-4 pr-6 text-neutral-300">{r.posted_at ? new Date(r.posted_at).toLocaleString() : ''}</td>
+                          <td className="py-3 pr-6 font-medium text-neutral-100">
+                            {r.year ? `${r.year} ` : ''}
+                            {r.make ? `${r.make} ` : ''}
+                            {r.model || r.title || ''}
+                          </td>
+                          <td className="py-3 pr-6 text-neutral-100">{r.price ? `$${Number(r.price).toLocaleString()}` : '—'}</td>
+                          <td className="py-3 pr-6 text-neutral-300">{r.mileage ? `${Number(r.mileage).toLocaleString()} mi` : '—'}</td>
+                          <td className="py-3 pr-6">
+                            <Badge tone={r.title_status === 'clean' ? 'success' : r.title_status === 'salvage' ? 'danger' : 'neutral'}>
+                              {r.title_status || 'unknown'}
+                            </Badge>
+                          </td>
+                          <td className="py-3 pr-6 text-neutral-300">{r.city || '—'}</td>
+                          <td className="py-3 pr-4">
+                            {r.url ? (
+                              <a href={r.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-md bg-blue-600/90 px-2.5 py-1.5 text-xs text-white transition hover:bg-blue-500">
+                                Open <IconLink />
+                              </a>
+                            ) : (
+                              <span className="text-neutral-500">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                      {!list.length && (
+                        <tr>
+                          <td colSpan={7} className="py-6 text-center text-sm text-neutral-400">No {src === 'facebook' ? 'Facebook' : 'OfferUp'} listings.</td>
+                        </tr>
                       )}
-                    </td>
-                  </tr>
-                ))}
-                {!rows.length && (
-                  <tr>
-                    <td colSpan={7} className="py-6 text-center text-sm text-neutral-400">
-                      No listings match your filters.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                    </tbody>
+                  </table>
+                </div>
+              )
+            })}
           </div>
         </section>
       </div>
