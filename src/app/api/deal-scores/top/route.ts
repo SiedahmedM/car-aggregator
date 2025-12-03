@@ -70,7 +70,7 @@ export async function GET(req: Request) {
       .filter((r) => !!r.listing)
 
     return NextResponse.json(result)
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: 'Unexpected error' }, { status: 500 })
   }
 }

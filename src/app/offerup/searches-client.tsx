@@ -103,9 +103,19 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
   const [searches, setSearches] = useState<Search[]>(initialSearches)
   const [jobs, setJobs] = useState<Job[]>(initialJobs)
   const [busy, setBusy] = useState(false)
-  const [tab, setTab] = useState<'searches' | 'jobs'>('searches')
+  const [mainTab, setMainTab] = useState<'live' | 'smart'>('live')
+  const [subTab, setSubTab] = useState<'searches' | 'jobs'>('searches')
   const [expandedLogs, setExpandedLogs] = useState<Record<string, boolean>>({})
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+
+  // Smart Search (KNN) state
+  const [knnFlips, setKnnFlips] = useState<Array<{ year: number; mileage: number; bought_for: number }>>([
+    { year: 0, mileage: 0, bought_for: 0 },
+    { year: 0, mileage: 0, bought_for: 0 },
+    { year: 0, mileage: 0, bought_for: 0 }
+  ])
+  const [knnMake, setKnnMake] = useState('')
+  const [knnModel, setKnnModel] = useState('')
 
   const runningJobs = useMemo(() => jobs.filter((j) => j.status === 'running' || j.status === 'pending'), [jobs])
 
@@ -277,6 +287,51 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
     }
   }
 
+  async function deleteJob(id: string) {
+    if (!confirm('Delete this job? This action cannot be undone.')) return
+    setBusy(true)
+    try {
+      const res = await fetch('/api/offerup/jobs/delete', {
+        method: 'DELETE',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ jobIds: [id] })
+      })
+      if (res.ok) {
+        setJobs(prev => prev.filter(j => j.id !== id))
+        showToast('Job deleted successfully')
+      } else {
+        showToast('Failed to delete job', 'error')
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function deleteCompletedJobs() {
+    const completedIds = jobs.filter(j => j.status === 'success' || j.status === 'error').map(j => j.id)
+    if (!completedIds.length) {
+      showToast('No completed jobs to delete', 'error')
+      return
+    }
+    if (!confirm(`Delete ${completedIds.length} completed job(s)? This action cannot be undone.`)) return
+    setBusy(true)
+    try {
+      const res = await fetch('/api/offerup/jobs/delete', {
+        method: 'DELETE',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ jobIds: completedIds })
+      })
+      if (res.ok) {
+        setJobs(prev => prev.filter(j => !completedIds.includes(j.id)))
+        showToast(`Deleted ${completedIds.length} completed jobs`)
+      } else {
+        showToast('Failed to delete jobs', 'error')
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
   function formatErrors(value: unknown, status: string): string {
     if (value == null) return status === 'error' ? '1+' : '-'
     if (Array.isArray(value)) return String(value.length)
@@ -284,11 +339,62 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
     return '-'
   }
 
+  // KNN handlers
+  function addKnnRow() {
+    setKnnFlips([...knnFlips, { year: 0, mileage: 0, bought_for: 0 }])
+  }
+
+  function updateKnnFlip(index: number, field: 'year' | 'mileage' | 'bought_for', value: number) {
+    const updated = [...knnFlips]
+    updated[index][field] = value
+    setKnnFlips(updated)
+  }
+
+  async function runKnnSearch() {
+    // Validate
+    if (!knnMake.trim() || !knnModel.trim()) {
+      showToast('Please enter make and model', 'error')
+      return
+    }
+    const validFlips = knnFlips.filter(f => f.year > 0 && f.mileage > 0 && f.bought_for > 0)
+    if (validFlips.length < 3) {
+      showToast('Please enter at least 3 reference cars', 'error')
+      return
+    }
+
+    setBusy(true)
+    try {
+      const res = await fetch('/api/deal-finder/jobs', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          make: knnMake.trim().toLowerCase(),
+          model: knnModel.trim().toLowerCase(),
+          wins: validFlips.map(f => ({
+            year: f.year,
+            mileage: f.mileage,
+            purchasePrice: f.bought_for
+          })),
+          sources: ['offerup'],
+          runNow: true
+        })
+      })
+      if (res.ok) {
+        showToast('Smart search started! Check results in the Analytics page.', 'success')
+      } else {
+        const err = await res.json().catch(() => ({ error: 'Unknown error' }))
+        showToast(err.error || 'Failed to start search', 'error')
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const totalInserted = jobs.reduce((acc, j) => acc + (j.result?.inserted || 0), 0)
   const activeToday = searches.filter((s) => s.active).length
 
   return (
-    <div className="text-neutral-200">
+    <div className="text-neutral-200 space-y-6">
       {/* Toast notification */}
       {toast && (
         <div className={`fixed top-4 right-4 z-50 rounded-lg px-4 py-3 shadow-lg ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'} text-white animate-in slide-in-from-top`}>
@@ -319,29 +425,53 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
         </Card>
       </div>
 
-      {/* Tabs */}
+      {/* Main Tab Switcher */}
       <Card>
-        <div className="border-b border-white/10 px-3 pt-3">
-          <div className="inline-flex rounded-lg bg-white/5 p-1">
-            <button
-              className={`px-3 py-1.5 text-sm rounded-md transition ${tab === 'searches' ? 'bg-neutral-900 text-white' : 'text-neutral-300 hover:text-white'}`}
-              onClick={() => setTab('searches')}
-            >
-              Saved Searches
-            </button>
-            <button
-              className={`px-3 py-1.5 text-sm rounded-md transition ${tab === 'jobs' ? 'bg-neutral-900 text-white' : 'text-neutral-300 hover:text-white'}`}
-              onClick={() => setTab('jobs')}
-            >
-              Jobs
-            </button>
+        <div className="border-b border-white/10 px-4 pt-4 pb-3">
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold text-white">Search Tools</h2>
+            <div className="flex-1" />
+            <div className="inline-flex rounded-lg bg-white/5 p-1 ring-1 ring-white/10">
+              <button
+                className={`px-4 py-2 text-sm font-medium rounded-md transition ${mainTab === 'live' ? 'bg-blue-600 text-white shadow-lg' : 'text-neutral-300 hover:text-white'}`}
+                onClick={() => setMainTab('live')}
+              >
+                Live Market Search
+              </button>
+              <button
+                className={`px-4 py-2 text-sm font-medium rounded-md transition ${mainTab === 'smart' ? 'bg-emerald-600 text-white shadow-lg' : 'text-neutral-300 hover:text-white'}`}
+                onClick={() => setMainTab('smart')}
+              >
+                Smart Search
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Saved Searches tab */}
-        {tab === 'searches' && (
-          <div className="p-4">
-            <SectionTitle title="Create a saved search" subtitle="Configure filters for automated OfferUp scraping" />
+        {/* LIVE MARKET SEARCH TAB */}
+        {mainTab === 'live' && (
+          <>
+            {/* Sub-tabs for Live Market Search */}
+            <div className="border-b border-white/10 px-4">
+              <div className="inline-flex rounded-lg bg-white/5 p-1">
+                <button
+                  className={`px-3 py-1.5 text-sm rounded-md transition ${subTab === 'searches' ? 'bg-neutral-900 text-white' : 'text-neutral-300 hover:text-white'}`}
+                  onClick={() => setSubTab('searches')}
+                >
+                  Saved Searches
+                </button>
+                <button
+                  className={`px-3 py-1.5 text-sm rounded-md transition ${subTab === 'jobs' ? 'bg-neutral-900 text-white' : 'text-neutral-300 hover:text-white'}`}
+                  onClick={() => setSubTab('jobs')}
+                >
+                  Jobs
+                </button>
+              </div>
+            </div>
+
+            {subTab === 'searches' && (
+              <div className="p-4">
+                <SectionTitle title="Create a saved search" subtitle="Configure filters for automated OfferUp scraping" />
             
             {/* Preset buttons */}
             <div className="mb-4 flex flex-wrap gap-2">
@@ -353,7 +483,7 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
                   onClick={() => loadPreset(preset)}
                   className="rounded-lg bg-neutral-800 px-3 py-1.5 text-xs text-neutral-300 transition hover:bg-neutral-700"
                 >
-                  📋 {preset.name}
+                  {preset.name}
                 </button>
               ))}
             </div>
@@ -467,63 +597,259 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
               )}
             </div>
           </div>
-        )}
+            )}
 
-        {/* Jobs tab */}
-        {tab === 'jobs' && (
+            {/* Jobs sub-tab */}
+            {subTab === 'jobs' && (
           <div className="p-4">
-            <SectionTitle title="Job status" subtitle="Monitor runs and stop long-running jobs" />
+            <div className="flex items-center justify-between mb-4">
+              <SectionTitle title="Job History" subtitle="Monitor scrape runs and manage job history" />
+              <button
+                onClick={deleteCompletedJobs}
+                disabled={busy || !jobs.some(j => j.status === 'success' || j.status === 'error')}
+                className="rounded-lg bg-neutral-800 px-3 py-2 text-xs font-medium text-neutral-200 transition hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Clear Completed
+              </button>
+            </div>
             <div className="space-y-3">
-              {jobs.map((j) => (
-                <div key={j.id} className="rounded-xl border border-white/10 bg-neutral-900/40 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <StatusIcon status={j.status} />
-                      <div>
-                        <div className="text-sm text-neutral-100">{new Date(j.created_at).toLocaleString()}</div>
-                        <div className="text-[11px] text-neutral-400">
-                          status: <span className="uppercase">{j.status}</span>
-                          <span className="mx-2">•</span> inserted: {j.result?.inserted ?? '-'}
-                          <span className="mx-2">•</span> skipped: {j.result?.skipped ?? '-'}
-                          <span className="mx-2">•</span> errors: {formatErrors(j.result?.errors, j.status)}
+              {jobs.map((j) => {
+                const duration = j.finished_at && j.started_at
+                  ? `${Math.round((new Date(j.finished_at).getTime() - new Date(j.started_at).getTime()) / 1000)}s`
+                  : '-'
+                const statusTone = j.status === 'success' ? 'success' : j.status === 'error' ? 'danger' : j.status === 'running' ? 'info' : 'neutral'
+
+                return (
+                  <div key={j.id} className="rounded-xl border border-white/10 bg-neutral-900/40 p-4 hover:bg-neutral-900/60 transition">
+                    {/* Header Row */}
+                    <div className="flex items-start justify-between gap-4 mb-3">
+                      <div className="flex items-start gap-3 flex-1">
+                        <div className="pt-0.5">
+                          <StatusIcon status={j.status} />
                         </div>
-                        {j.status === 'success' && (j.result?.inserted || 0) === 0 ? (
-                          <div className="mt-1 text-[11px] text-rose-400">
-                            ⚠️ No matches. Try: widening years (2010-2025) • removing posted_within_hours • adding more models • loosening price/mileage
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className="text-sm font-medium text-neutral-100">
+                              {new Date(j.created_at).toLocaleString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </div>
+                            <Chip tone={statusTone}>{j.status.toUpperCase()}</Chip>
                           </div>
-                        ) : null}
+
+                          {/* Stats Grid */}
+                          <div className="grid grid-cols-4 gap-3 text-xs mt-2">
+                            <div>
+                              <div className="text-neutral-500 text-[10px] uppercase">Inserted</div>
+                              <div className="text-emerald-300 font-semibold font-mono">{j.result?.inserted ?? '-'}</div>
+                            </div>
+                            <div>
+                              <div className="text-neutral-500 text-[10px] uppercase">Skipped</div>
+                              <div className="text-neutral-300 font-semibold font-mono">{j.result?.skipped ?? '-'}</div>
+                            </div>
+                            <div>
+                              <div className="text-neutral-500 text-[10px] uppercase">Errors</div>
+                              <div className="text-rose-300 font-semibold font-mono">{formatErrors(j.result?.errors, j.status)}</div>
+                            </div>
+                            <div>
+                              <div className="text-neutral-500 text-[10px] uppercase">Duration</div>
+                              <div className="text-neutral-300 font-semibold font-mono">{duration}</div>
+                            </div>
+                          </div>
+
+                          {/* Warning for zero results */}
+                          {j.status === 'success' && (j.result?.inserted || 0) === 0 ? (
+                            <div className="mt-2 text-[11px] text-rose-400 bg-rose-500/5 rounded-lg px-2 py-1.5 border border-rose-500/20">
+                              No matches found. Try: widening years • removing time filters • adding more models • loosening price/mileage
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-start gap-2 shrink-0">
+                        {j.result?.log && (
+                          <button
+                            onClick={() => setExpandedLogs((s) => ({ ...s, [j.id]: !s[j.id] }))}
+                            className="rounded-lg bg-neutral-800 px-3 py-1.5 text-xs font-medium text-neutral-200 transition hover:bg-neutral-700">
+                            {expandedLogs[j.id] ? 'Hide Log' : 'View Log'}
+                          </button>
+                        )}
+                        {(j.status === 'running' || j.status === 'pending') && (
+                          <button
+                            onClick={() => cancelJob(j.id)}
+                            disabled={busy}
+                            className="rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-rose-500 disabled:opacity-50">
+                            Stop
+                          </button>
+                        )}
+                        {(j.status === 'success' || j.status === 'error') && (
+                          <button
+                            onClick={() => deleteJob(j.id)}
+                            disabled={busy}
+                            className="rounded-lg bg-neutral-800 px-3 py-1.5 text-xs font-medium text-neutral-400 transition hover:bg-neutral-700 hover:text-rose-300 disabled:opacity-50">
+                            Delete
+                          </button>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {j.result?.log ? (
-                        <button
-                          onClick={() => setExpandedLogs((s) => ({ ...s, [j.id]: !s[j.id] }))}
-                          className="rounded-lg bg-neutral-800 px-2.5 py-1.5 text-xs text-neutral-200 transition hover:bg-neutral-700">
-                          {expandedLogs[j.id] ? 'Hide log' : 'View log'}
-                        </button>
-                      ) : null}
-                      {(j.status === 'running' || j.status === 'pending') && (
-                        <button onClick={() => cancelJob(j.id)} disabled={busy} className="rounded-lg bg-rose-600 px-2.5 py-1.5 text-xs text-white transition hover:bg-rose-500 disabled:opacity-50">
-                          Stop
-                        </button>
-                      )}
-                    </div>
+
+                    {/* Progress Bar for Running Jobs */}
+                    {j.status === 'running' && (
+                      <div className="mb-3">
+                        <ProgressBar active={true} />
+                      </div>
+                    )}
+
+                    {/* Expandable Log */}
+                    {expandedLogs[j.id] && j.result?.log && (
+                      <div className="mt-3 max-h-80 overflow-auto rounded-lg bg-black/60 p-3 text-[11px] leading-relaxed text-neutral-300 ring-1 ring-white/10">
+                        <pre className="whitespace-pre-wrap">{j.result.log}</pre>
+                      </div>
+                    )}
+
+                    {/* Error Details */}
+                    {j.status === 'error' && j.error && (
+                      <details className="mt-3 rounded-lg bg-rose-500/10 p-3 border border-rose-500/20">
+                        <summary className="cursor-pointer text-xs font-medium text-rose-300">Show error details</summary>
+                        <pre className="mt-2 text-[10px] text-rose-200 overflow-auto max-h-40">{j.error.slice(0, 500)}</pre>
+                      </details>
+                    )}
                   </div>
-                  <div className="mt-3"><ProgressBar active={j.status === 'running'} /></div>
-                  {expandedLogs[j.id] && j.result?.log ? (
-                    <div className="mt-3 max-h-80 overflow-auto rounded-lg bg-black/60 p-3 text-[11px] leading-relaxed text-neutral-300 ring-1 ring-white/10">
-                      <pre className="whitespace-pre-wrap">{j.result.log}</pre>
-                    </div>
-                  ) : null}
-                  {j.status === 'error' && j.error ? (
-                    <details className="mt-2 rounded-lg bg-rose-500/10 p-2">
-                      <summary className="cursor-pointer text-xs text-rose-300">Show error details</summary>
-                      <pre className="mt-2 text-[10px] text-rose-200 overflow-auto max-h-40">{j.error.slice(0, 500)}</pre>
-                    </details>
-                  ) : null}
+                )
+              })}
+              {!jobs.length && (
+                <div className="rounded-xl border border-dashed border-white/10 p-8 text-center">
+                  <div className="text-sm text-neutral-400">No jobs yet</div>
+                  <div className="text-xs text-neutral-500 mt-1">Run a search to see job history here</div>
                 </div>
-              ))}
-              {!jobs.length && <div className="rounded-xl border border-dashed border-white/10 p-6 text-center text-sm text-neutral-400">No jobs yet.</div>}
+              )}
+            </div>
+          </div>
+            )}
+          </>
+        )}
+
+        {/* SMART SEARCH (KNN) TAB */}
+        {mainTab === 'smart' && (
+          <div className="p-6">
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-white mb-2">Smart Search (KNN Model)</h3>
+              <p className="text-sm text-neutral-400">Train the AI with your successful flips. The model will find similar deals based on your winning patterns.</p>
+            </div>
+
+            {/* Make & Model Inputs */}
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Make</label>
+                <input
+                  type="text"
+                  value={knnMake}
+                  onChange={(e) => setKnnMake(e.target.value)}
+                  placeholder="Honda"
+                  className="w-full rounded-lg bg-neutral-950 border border-white/10 px-4 py-3 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">Model</label>
+                <input
+                  type="text"
+                  value={knnModel}
+                  onChange={(e) => setKnnModel(e.target.value)}
+                  placeholder="Civic"
+                  className="w-full rounded-lg bg-neutral-950 border border-white/10 px-4 py-3 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition"
+                />
+              </div>
+            </div>
+
+            {/* Reference Cars Table */}
+            <div className="rounded-xl bg-neutral-900/40 border border-white/10 overflow-hidden mb-4">
+              <div className="px-4 py-3 bg-neutral-950/50 border-b border-white/10">
+                <h4 className="text-sm font-medium text-neutral-200">Reference Cars (Your Successful Flips)</h4>
+                <p className="text-xs text-neutral-500 mt-0.5">3-5 points recommended. The more data, the smarter the search.</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-neutral-950/30 text-neutral-400 text-xs uppercase tracking-wider">
+                    <tr>
+                      <th className="py-3 pl-4 pr-2 text-left">Year</th>
+                      <th className="py-3 px-2 text-left">Mileage</th>
+                      <th className="py-3 px-2 text-left">Bought for ($)</th>
+                      <th className="py-3 pr-4 pl-2"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {knnFlips.map((flip, idx) => (
+                      <tr key={idx} className="hover:bg-white/5 transition">
+                        <td className="py-3 pl-4 pr-2">
+                          <input
+                            type="number"
+                            value={flip.year || ''}
+                            onChange={(e) => updateKnnFlip(idx, 'year', parseInt(e.target.value) || 0)}
+                            placeholder="2018"
+                            className="w-20 rounded bg-neutral-950 border border-white/10 px-2 py-1.5 text-sm focus:border-emerald-500"
+                          />
+                        </td>
+                        <td className="py-3 px-2">
+                          <input
+                            type="number"
+                            value={flip.mileage || ''}
+                            onChange={(e) => updateKnnFlip(idx, 'mileage', parseInt(e.target.value) || 0)}
+                            placeholder="30000"
+                            className="w-24 rounded bg-neutral-950 border border-white/10 px-2 py-1.5 text-sm focus:border-emerald-500"
+                          />
+                        </td>
+                        <td className="py-3 px-2">
+                          <input
+                            type="number"
+                            value={flip.bought_for || ''}
+                            onChange={(e) => updateKnnFlip(idx, 'bought_for', parseInt(e.target.value) || 0)}
+                            placeholder="21000"
+                            className="w-28 rounded bg-neutral-950 border border-white/10 px-2 py-1.5 text-sm focus:border-emerald-500"
+                          />
+                        </td>
+                        <td className="py-3 pr-4 pl-2 text-right">
+                          {idx >= 3 && (
+                            <button
+                              onClick={() => setKnnFlips(knnFlips.filter((_, i) => i !== idx))}
+                              className="text-rose-400 hover:text-rose-300 text-xs"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={addKnnRow}
+                className="rounded-lg bg-neutral-800 px-4 py-2.5 text-sm text-neutral-200 transition hover:bg-neutral-700"
+              >
+                + Add row
+              </button>
+              <div className="flex-1" />
+              <button
+                onClick={runKnnSearch}
+                disabled={busy}
+                className="rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-500 disabled:opacity-50"
+              >
+                {busy ? 'Searching...' : 'Search now'}
+              </button>
+            </div>
+
+            {/* Info Box */}
+            <div className="mt-6 rounded-xl bg-blue-500/10 border border-blue-500/30 p-4">
+              <h5 className="text-sm font-medium text-blue-300 mb-1">How it works</h5>
+              <p className="text-xs text-blue-200/70">The KNN model analyzes your successful flips and finds similar deals in the market. Results will appear in the <strong>Deal Scores</strong> section of the Analytics page, ranked by confidence score.</p>
             </div>
           </div>
         )}

@@ -41,6 +41,12 @@ const HEADLESS = (process.env.OU_HEADLESS ?? 'true').toLowerCase() === 'true';
 const LAT = Number(process.env.OU_LAT ?? '33.8166');
 const LNG = Number(process.env.OU_LNG ?? '-118.0373');
 const RADIUS = parseInt(process.env.OU_RADIUS_MILES || '35', 10);
+
+// DEBUG: Log loaded coordinates immediately
+console.log('[DEBUG] Loaded coordinates from environment:');
+console.log('  OU_LAT =', LAT, '(from env:', process.env.OU_LAT, ')');
+console.log('  OU_LNG =', LNG, '(from env:', process.env.OU_LNG, ')');
+console.log('  OU_RADIUS_MILES =', RADIUS);
 const DETAIL_CONCURRENCY = Math.min(3, parseInt(process.env.OU_DETAIL_CONCURRENCY || '3', 10) || 3);
 const PAGINATE_PAGES = parseInt(process.env.OU_PAGINATE_PAGES || '6', 10);
 // UI/scroll/mobile fallbacks removed entirely
@@ -64,6 +70,12 @@ const F_MAKES = (process.env.OU_FILTER_MAKES || '')
 // Hours ago window, e.g. 24 means only posted within last 24h
 // No default; only filter by hours when explicitly provided
 const F_POSTED_WITHIN_HOURS = parseInt(process.env.OU_FILTER_POSTED_WITHIN_HOURS || '', 10) || null;
+
+// DEBUG: Log filter settings
+console.log('[DEBUG] Filter settings:');
+console.log('  F_MAKES =', F_MAKES.length ? F_MAKES : 'NONE (allows all makes)');
+console.log('  F_MODELS =', F_MODELS.length ? F_MODELS : 'NONE (allows all models)');
+console.log('  F_POSTED_WITHIN_HOURS =', F_POSTED_WITHIN_HOURS || 'NONE');
 
 // Desktop Chrome on macOS (force everywhere)
 const DESKTOP_UA =
@@ -501,6 +513,50 @@ async function getNextData(page: Page): Promise<any|null> {
   const raw = await page.locator('#__NEXT_DATA__').first().textContent().catch(() => null);
   if (!raw) return null;
   try { return JSON.parse(raw); } catch { return null; }
+}
+
+// Extract seller information to detect dealers
+function extractSellerInfo(jsonLd: any[], nd: any): {
+  isDealer: boolean;
+  sellerName?: string | null;
+  businessName?: string | null;
+  truYouVerified?: boolean;
+} | null {
+  // Try __NEXT_DATA__ first (most reliable source)
+  if (nd?.props?.pageProps?.listing?.seller) {
+    const seller = nd.props.pageProps.listing.seller;
+    const isDealer = !!(
+      seller.businessName ||
+      seller.isBusiness ||
+      seller.isDealer ||
+      seller.dealerName
+    );
+    return {
+      isDealer,
+      sellerName: seller.name || null,
+      businessName: seller.businessName || seller.dealerName || null,
+      truYouVerified: seller.truYouVerified || false,
+    };
+  }
+
+  // Fallback: Try JSON-LD structured data
+  for (const struct of jsonLd) {
+    const seller = struct?.seller;
+    if (seller) {
+      const isOrg = seller['@type'] === 'Organization' ||
+                    seller['@type'] === 'AutoDealer' ||
+                    seller['@type'] === 'LocalBusiness';
+      const isDealer = isOrg || !!seller.businessName;
+      return {
+        isDealer,
+        sellerName: seller.name || null,
+        businessName: seller.businessName || null,
+        truYouVerified: false,
+      };
+    }
+  }
+
+  return null;
 }
 
 function extractPriceFromStructures(structs: any[]): number|null {
@@ -1115,6 +1171,19 @@ async function fetchActiveFeedFirstPage(q: string): Promise<any | null> {
 
     const searchParams = buildSearchParamsWithFilters(baseParams, q);
 
+    // DEBUG: Log the actual search parameters being sent to OfferUp API
+    const qParam = searchParams.find((p: any) => p.key === 'q');
+    const latParam = searchParams.find((p: any) => p.key === 'lat');
+    const lonParam = searchParams.find((p: any) => p.key === 'lon');
+    const radiusParam = searchParams.find((p: any) => p.key === 'radius');
+    logInfo('[DEBUG] GraphQL Request Parameters:', {
+      query: qParam?.value || 'NONE',
+      lat: latParam?.value || 'NONE',
+      lon: lonParam?.value || 'NONE',
+      radius: radiusParam?.value || 'NONE',
+      totalParams: searchParams.length
+    });
+
     const newBody = {
       ...bodyPrev,
       operationName: 'GetModularFeed',
@@ -1354,6 +1423,20 @@ async function run() {
         ]);
         const nd = nextData;
 
+        // Extract seller information and filter dealers if enabled
+        const sellerInfo = extractSellerInfo(jsonLd, nd);
+        const isDealer = sellerInfo?.isDealer || false;
+        const FILTER_DEALERS = (process.env.OU_FILTER_DEALERS ?? 'false').toLowerCase() === 'true';
+
+        if (FILTER_DEALERS && isDealer) {
+          logInfo('[DEALER-FILTER] Skipping dealer listing', {
+            url,
+            seller: sellerInfo?.businessName || sellerInfo?.sellerName,
+            truYou: sellerInfo?.truYouVerified,
+          });
+          continue; // Skip to next item
+        }
+
         const title = (await getTextFast(detail, 'h1')) || (typeof nd?.props?.pageProps?.title === 'string' ? nd.props.pageProps.title : null) || item.title || null;
         const price = extractPriceFromStructures(jsonLd) ?? extractPriceFromNextData(nd) ?? sanitizeInteger(item.price ?? null, { min: 0 });
         const mileage = extractMileageFromStructures(jsonLd) ?? extractMileageFromNextData(nd) ?? sanitizeInteger(item.mileage ?? null, { min: 0 });
@@ -1417,6 +1500,11 @@ async function run() {
           model,
           posted_at,
           needsTimestampResolution,
+          // Seller information (dealer detection)
+          is_dealer: isDealer,
+          seller_name: sellerInfo?.sellerName || null,
+          seller_business_name: sellerInfo?.businessName || null,
+          seller_verified: sellerInfo?.truYouVerified || false,
         };
 
         // Make/Model filtering strictly via parsed values (no substring)
@@ -1472,6 +1560,15 @@ async function run() {
         model: c.model,
         posted_at: c.posted_at,
       }));
+
+    // DEBUG: Log cities found in scraped listings
+    const cityCounts = finalRows.reduce((acc, row) => {
+      const city = row.city || 'UNKNOWN';
+      acc[city] = (acc[city] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    logInfo('[DEBUG] Cities found in scraped listings:', cityCounts);
+
     logInfo('[UPSERT] inserting', { rows: finalRows.length });
     for (const group of chunked(finalRows, 75)) {
       // FINAL RECENCY FILTER – NOTHING OLDER THAN X HOURS IS EVER UPSERTED
@@ -1494,21 +1591,39 @@ async function run() {
           rows: skipped.map(r => ({ source: r.source, remote_id: r.remote_id })),
         });
       }
-      if (!cleaned.length) continue;
+
+      // Deduplicate by remote_id to prevent "ON CONFLICT DO UPDATE command cannot affect row a second time"
+      const seen = new Set<string>();
+      const deduplicated = cleaned.filter(r => {
+        const key = `${r.source}:${r.remote_id}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      if (deduplicated.length < cleaned.length) {
+        logWarn('[UPsert] deduplicated batch', {
+          original: cleaned.length,
+          deduplicated: deduplicated.length,
+          duplicates: cleaned.length - deduplicated.length,
+        });
+      }
+
+      if (!deduplicated.length) continue;
       const up = await supaSvc
         .from('listings')
-        .upsert(cleaned, { onConflict: 'source,remote_id' });
+        .upsert(deduplicated, { onConflict: 'source,remote_id' });
       if (up.error) {
         logError('[UPsert] detail upsert error', {
           message: up.error.message,
           code: (up.error as any).code,
           details: (up.error as any).details,
           hint: (up.error as any).hint,
-          rows: cleaned.map(r => ({ source: r.source, remote_id: r.remote_id })),
+          rows: deduplicated.map(r => ({ source: r.source, remote_id: r.remote_id })),
         });
         errors++;
       } else {
-        logInfo('[UPsert] detail upsert success', { upsertedCount: cleaned.length });
+        logInfo('[UPsert] detail upsert success', { upsertedCount: deduplicated.length });
       }
     }
   }
@@ -1602,6 +1717,17 @@ async function run() {
       missingTimestamp,
     } as any);
   } catch {}
+
+  // Output success JSON for worker to parse
+  const inserted = accepted.length;
+  const skipped = (summaryBase.feedCount as number || 0) - inserted;
+  console.log(JSON.stringify({
+    ok: true,
+    inserted,
+    skipped,
+    errors,
+  }));
+
   await browser.close();
 }
 

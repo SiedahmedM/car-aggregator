@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { runDealFinder } from './deal_finder'
+import { spawn } from 'child_process' // Add this import at the top
 
 const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const SUPA_KEY = process.env.SUPABASE_SERVICE_ROLE!

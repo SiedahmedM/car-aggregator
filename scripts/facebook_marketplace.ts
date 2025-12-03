@@ -32,8 +32,36 @@ const FB_CAPTURE_ON_ZERO = (process.env.FB_CAPTURE_ON_ZERO ?? '1') !== '0'
 const FB_USE_STORAGE_STATE = (process.env.FB_USE_STORAGE_STATE ?? '0') === '1'
 const FB_STORAGE_STATE = process.env.FB_STORAGE_STATE || 'secrets/fb_state.json'
 
+// FB_MODE: Switch between different scraping strategies
+// "graphql"     -> existing behavior (interceptFacebookGraphQL)
+// "dom_chrono"  -> new DOM-based chronological mode (no GraphQL, pure DOM scraping)
+const FB_MODE = (process.env.FB_MODE || 'graphql').toLowerCase()
+
 // Run-specific directory (will be set per session)
 let RUN_DIR = DEBUG_DIR
+
+// Coordinates for distance-based filtering (used in dom_chrono mode)
+const OU_LAT = Number(process.env.FB_LAT || 34.052235)    // Los Angeles default
+const OU_LNG = Number(process.env.FB_LNG || -118.243683)
+
+// Multi-region configuration
+const FB_MULTI_REGION = (process.env.FB_MULTI_REGION ?? '0') === '1'
+const FB_REGION_COUNT = parseInt(process.env.FB_REGION_COUNT || '5', 10)
+const FB_REGION_DELAY_MS = parseInt(process.env.FB_REGION_DELAY_MS || '10000', 10)
+
+// Southern California regions for multi-region scraping
+const SOCAL_REGIONS = [
+  { name: 'Los Angeles, CA', lat: 34.0522, lng: -118.2437 },
+  { name: 'Irvine, CA', lat: 33.6846, lng: -117.8265 },
+  { name: 'Anaheim, CA', lat: 33.8366, lng: -117.9143 },
+  { name: 'Long Beach, CA', lat: 33.7701, lng: -118.1937 },
+  { name: 'Santa Ana, CA', lat: 33.7455, lng: -117.8677 },
+  { name: 'Riverside, CA', lat: 33.9533, lng: -117.3962 },
+  { name: 'San Bernardino, CA', lat: 34.1083, lng: -117.2898 },
+  { name: 'Pasadena, CA', lat: 34.1478, lng: -118.1445 },
+  { name: 'Torrance, CA', lat: 33.8358, lng: -118.3406 },
+  { name: 'Corona, CA', lat: 33.8753, lng: -117.5664 },
+]
 
 // Target filtering (no defaults - empty means "all vehicles" like OfferUp)
 const TARGET_MAKE  = (process.env.FB_MAKE  || '').toLowerCase()
@@ -49,15 +77,131 @@ const COLLECTION_LIMIT = TARGET_LIMIT * 2.5  // Collect 2.5x the target (e.g., 5
 // Vehicles category ID for GraphQL
 const VEHICLES_CATEGORY_ID = '546583916084032' // "Vehicles" (string form)
 const VEHICLES_CATEGORY_ID_NUM = 546583916084032 // numeric form for queries expecting numbers
-// Vehicle taxonomy IDs (if needed for future structured filtering)
-// const HONDA_MAKE_ID  = '308436969822020'
-// const CIVIC_MODEL_ID = '337357940220456'
+// Vehicle taxonomy IDs for URL-based filtering
+const HONDA_MAKE_ID  = '308436969822020'
+const CIVIC_MODEL_ID = '337357940220456'
+
+// Map of common makes to their taxonomy IDs (expand as needed)
+const MAKE_TAXONOMY_IDS: Record<string, string> = {
+  'honda': '308436969822020',
+  'toyota': '367518776669188',
+  'ford': '324686107884963',
+  'chevrolet': '372854749449175',
+  'nissan': '516372908427305',
+}
+
+// Map of common models to their taxonomy IDs (expand as needed)
+const MODEL_TAXONOMY_IDS: Record<string, string> = {
+  'civic': '337357940220456',
+  'accord': '402894793124461',
+  'camry': '457606364278619',
+  'corolla': '383286738417507',
+}
 
 // Target filter & count (doc_id variables alignment)
 const TARGET = {
-  limit: 20,
+  limit: TARGET_LIMIT,  // Use TARGET_LIMIT from env (FB_LIMIT)
   vehicleType: 'car_truck',
   sortBy: 'creation_time_descend' as const,
+}
+
+// ============================================================================
+// [FUZZY-SEARCH] Vehicle Dictionary & Title Parsing (from OfferUp)
+// Used for client-side HARD FILTER after fuzzy search collection
+// ============================================================================
+const FB_VEHICLE_DICTIONARY: { makes: Record<string, string[]> } = {
+  makes: {
+    "acura": ["rsx","tl","tsx","ilx","rl","mdx","rdx","tlx"],
+    "audi": ["a3","a4","a5","a6","a7","a8","q3","q5","q7","tt","s4","s5"],
+    "bmw": ["320","328","330","335","528","535","740","x1","x3","x5","m3","m5"],
+    "cadillac": ["cts","ats","xt5","escalade","srx"],
+    "chevrolet": ["camaro","malibu","impala","cruze","equinox","tahoe","silverado","trailblazer"],
+    "chrysler": ["200","300","pacifica","town and country"],
+    "dodge": ["charger","challenger","dart","durango","journey","ram"],
+    "ford": ["focus","fusion","mustang","escape","explorer","f150","fiesta","edge","ranger"],
+    "gmc": ["terrain","acadia","yukon","sierra"],
+    "honda": ["civic","accord","cr-v","crv","fit","pilot","odyssey","crosstour"],
+    "hyundai": ["elantra","sonata","tucson","accent","veloster","santa fe","kona","venue"],
+    "infiniti": ["g35","g37","qx60","qx80","q50","q60"],
+    "jeep": ["wrangler","grand cherokee","cherokee","compass","patriot","renegade"],
+    "kia": ["optima","soul","sportage","sorento","forte","rio","stinger"],
+    "lexus": ["es350","is250","is350","gs350","rx350","nx200t"],
+    "mazda": ["mazda3","mazda6","cx-5","cx5","cx-9","cx9"],
+    "mercedes": ["c300","e350","glc300","glk350","s550"],
+    "nissan": ["altima","sentra","maxima","rogue","pathfinder","versa","murano"],
+    "subaru": ["wrx","forester","outback","impreza","legacy"],
+    "toyota": ["camry","corolla","rav4","tundra","tacoma","prius","highlander","avalon","sequoia"],
+    "volkswagen": ["jetta","golf","passat","tiguan","beetle"],
+    "volvo": ["s60","xc60","xc90"],
+    "ram": ["1500","2500","3500"],
+    "tesla": ["model s","model 3","model x","model y"],
+    "mitsubishi": ["lancer","outlander","mirage"],
+    "buick": ["encore","enclave","lacrosse"],
+    "pontiac": ["g6","g8","vibe"],
+    "lincoln": ["mkz","mkx","navigator"],
+    "porsche": ["cayenne","macan","911"],
+    "jaguar": ["xf","xe","f-type"],
+    "mini": ["cooper","countryman"]
+  }
+}
+
+// [FUZZY-SEARCH] Parse make/model/year from listing title (OfferUp-style)
+function parseListingTitle(title?: string | null): { year: number | null; make: string | null; model: string | null } {
+  if (!title) return { year: null, make: null, model: null }
+  let s = title.toLowerCase()
+  s = s.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim()
+
+  // Extract year
+  let year: number | null = null
+  const ym = s.match(/\b(19|20)\d{2}\b/)
+  if (ym) {
+    const y = parseInt(ym[0], 10)
+    if (y >= 1950 && y <= 2100) year = y
+  }
+
+  // Detect make
+  const makes = Object.keys(FB_VEHICLE_DICTIONARY.makes)
+  let make: string | null = null
+  for (const mk of makes) {
+    if (s.startsWith(mk + ' ') || s === mk || s.includes(' ' + mk + ' ')) { make = mk; break }
+  }
+  if (!make) {
+    for (const mk of makes) { if (s.includes(mk)) { make = mk; break } }
+  }
+
+  // Detect model
+  let model: string | null = null
+  const tryModels = (mk: string) => {
+    const list = FB_VEHICLE_DICTIONARY.makes[mk] || []
+    let best: string | null = null
+    for (const m of list) {
+      if (s.includes(' ' + m + ' ') || s.endsWith(' ' + m) || s.startsWith(m + ' ') || s === m) {
+        if (!best || m.length > best.length) best = m
+      }
+    }
+    return best
+  }
+  if (make) {
+    model = tryModels(make) || null
+  } else {
+    for (const mk of makes) {
+      const best = tryModels(mk)
+      if (best) { make = mk; model = best; break }
+    }
+  }
+
+  // [TITLE-PARSE] Log parsing results
+  const wantedMakes = TARGET_MAKE ? [TARGET_MAKE] : []
+  const wantedModels = TARGET_MODEL ? [TARGET_MODEL] : []
+  const matchesWanted =
+    (wantedMakes.length === 0 || (make && wantedMakes.includes(make.toLowerCase()))) &&
+    (wantedModels.length === 0 || (model && wantedModels.includes((model as string).toLowerCase())))
+  const shouldLog = FB_DEBUG || !make || !model || matchesWanted
+  if (shouldLog) {
+    try { debug(`[TITLE-PARSE] "${title}" → year=${year}, make="${make}", model="${model}"`) } catch {}
+  }
+
+  return { year, make, model }
 }
 
 function ensureDir(p: string) {
@@ -126,23 +270,46 @@ const gqlRegex = /https:\/\/(www|web|m)\.facebook\.com\/api\/graphql(?:\/|\?|$)/
 
 // Single-install GraphQL interceptor ----------------------------------------
 let gqlInterceptorInstalled = false
-let marketplacePatchDisabled = false
+let marketplacePatchDisabled = false  // Enable GraphQL patching by default (works with make/model taxonomy IDs)
 let marketplacePatchTried = false
 let lastRequestWasMarketplace = false  // Track if last request was marketplace pagination
 
 export async function installMarketplaceGraphQLInterceptor(context: BrowserContext) {
-  if (gqlInterceptorInstalled) return () => Promise.resolve()
+  if (gqlInterceptorInstalled) {
+    if (FB_DEBUG) debug('[GQL-ROUTE] Interceptor already installed, skipping')
+    return () => Promise.resolve()
+  }
   gqlInterceptorInstalled = true
 
   const graphqlPattern = '**/api/graphql/**'
+  if (FB_DEBUG) debug(`[GQL-ROUTE] Installing interceptor with pattern: ${graphqlPattern}`)
 
   const handler = async (route: Route) => {
     const req = route.request()
-    if (req.method() !== 'POST') return route.continue()
+    const url = req.url()
+
+    // [FUZZY-SEARCH-PAGINATION] Debug: Log ALL requests hitting this handler
+    if (FB_DEBUG) {
+      debug(`[GQL-ROUTE] Request intercepted: ${req.method()} ${url}`)
+    }
+
+    if (req.method() !== 'POST') {
+      if (FB_DEBUG) debug(`[GQL-ROUTE] SKIP: Not POST method (${req.method()})`)
+      return route.continue()
+    }
 
     const headers = req.headers()
     const ct = headers['content-type'] || ''
-    if (!ct.includes('application/x-www-form-urlencoded')) return route.continue()
+
+    // [FUZZY-SEARCH-PAGINATION] Debug: Log content-type
+    if (FB_DEBUG) {
+      debug(`[GQL-ROUTE] Content-Type: ${ct}`)
+    }
+
+    if (!ct.includes('application/x-www-form-urlencoded')) {
+      if (FB_DEBUG) debug(`[GQL-ROUTE] SKIP: Wrong content-type (expected form-urlencoded, got ${ct})`)
+      return route.continue()
+    }
 
     const body = req.postData() || ''
     const params = new URLSearchParams(body)
@@ -189,6 +356,33 @@ export async function installMarketplaceGraphQLInterceptor(context: BrowserConte
       if (FB_DEBUG) {
         debug(`[PATCH] Applying patchMarketplaceVars to doc_id=${docIdForPatch}`)
       }
+
+      // [GQL-CAPTURE] Save first successful GraphQL request for future replay AFTER patching succeeds
+      // This captures fresh cookies/tokens needed for pagination
+      try {
+        const fs = await import('fs/promises')
+        const path = await import('path')
+        const captureFile = path.join(process.cwd(), 'facebook_gql_feed_req.json')
+
+        // Only save if file doesn't exist (don't overwrite existing captures)
+        try {
+          await fs.access(captureFile)
+          if (FB_DEBUG) debug('[GQL-CAPTURE] Request file already exists, skipping capture')
+        } catch {
+          // File doesn't exist, save this request
+          const requestToSave = {
+            url: url,
+            method: req.method(),
+            headers: headers,
+            postData: body
+          }
+          await fs.writeFile(captureFile, JSON.stringify(requestToSave, null, 2))
+          if (FB_DEBUG) debug(`[GQL-CAPTURE] Saved GraphQL request to ${captureFile}`)
+        }
+      } catch (e) {
+        if (FB_DEBUG) debug(`[GQL-CAPTURE] Failed to save request: ${(e as Error).message}`)
+      }
+
       return await patchMarketplaceVars(route, body, (FB_DEBUG ? (...a: any[]) => debug(...a) : undefined))
     }
     let variables: any
@@ -322,15 +516,40 @@ async function installCatchAllRoute(context: BrowserContext) {
   if (!FB_BLOCK_ASSETS) return
   await context.route('**/*', async (route) => {
     const req = route.request()
+    const url = req.url()
     const rt = req.resourceType()
-    if (rt === 'image' || rt === 'media' || rt === 'font' || rt === 'websocket') return route.abort()
-    // Optional host-level guard for chat/gateway sockets that can churn
+
+    // 1. Block by resource type (now includes stylesheets for massive bandwidth savings)
+    const blockedTypes = ['image', 'media', 'font', 'websocket', 'stylesheet', 'manifest']
+    if (blockedTypes.includes(rt)) {
+      return route.abort()
+    }
+
+    // 2. Block ALL fbcdn.net domains (CDN assets: static.xx.fbcdn.net, scontent.*, video.*)
     try {
-      const h = new URL(req.url()).hostname
+      const h = new URL(url).hostname
+
+      // Block Facebook CDN domains (saves ~400MB - static assets, images, videos)
+      if (/\.fbcdn\.net$/i.test(h)) {
+        return route.abort()
+      }
+
+      // Block chat/gateway domains
       if (/(^|\.)edge-chat\.facebook\.com$/i.test(h) || /(^|\.)gateway\.facebook\.com$/i.test(h)) {
         return route.abort()
       }
     } catch {}
+
+    // 3. Block by file extension (catches edge cases)
+    if (/\.(css|woff2?|ttf|eot|png|jpg|jpeg|gif|webp|svg|ico|mp4|webm|mov)(\?|$)/i.test(url)) {
+      return route.abort()
+    }
+
+    // 4. Block video/stream paths
+    if (/\/(dash|hls|video|stream)\//i.test(url)) {
+      return route.abort()
+    }
+
     // IMPORTANT: do not swallow other routes (like GraphQL)
     return route.fallback()
   })
@@ -346,53 +565,44 @@ async function warmupHome(page: Page) {
   }
 }
 
-// Patch Marketplace variables using simple params.query approach for specific doc
-// CRITICAL: This patching is REQUIRED for chronological sorting to work!
-// Counterintuitively, when we inject params.query WITH filterSortingParams.sort_by_filter=CREATION_TIME,
-// Facebook honors the chronological order (value=0). Without params.query, Facebook ignores the sort
-// parameter and uses relevance ranking instead (value>0).
-// This was discovered by comparing la13 (working, value=0) vs la23 (broken, value>0).
+// ============================================================================
+// [FUZZY-SEARCH] Patch Marketplace GraphQL variables with fuzzy query string
+// This adopts OfferUp's approach: cast wide net with fuzzy search, filter client-side
+// ============================================================================
 async function patchMarketplaceVars(route: Route, body: string, dbg?: (...args: any[]) => void) {
   if (marketplacePatchDisabled) return route.continue({ postData: body })
   const params = new URLSearchParams(body)
   const docId = params.get('doc_id')
 
-  // Note: We now apply patching to ALL marketplace requests, not just the specific doc_id
-  // This ensures chronological sorting is consistent across pagination
-  if (dbg) {
-    dbg(`[PATCH] Processing doc_id=${docId}`)
-  }
-
   let variables: any
   try { variables = JSON.parse(params.get('variables') || '{}') } catch { return route.continue({ postData: body }) }
 
-  // Add make/model filter via params.query (only if specified - empty means "all vehicles")
+  // [FUZZY-SEARCH] Build fuzzy query string from make/model env vars
   const WANT_MAKE = (process.env.FB_MAKE || '').trim()
   const WANT_MODEL = (process.env.FB_MODEL || '').trim()
   const queryParts = [WANT_MAKE, WANT_MODEL].filter(Boolean)
 
+  // Inject params.query for fuzzy search (like OfferUp's "q: 'honda civic'")
   variables.params = variables.params || {}
   if (queryParts.length > 0) {
-    variables.params.query = queryParts.join(' ')
+    const fuzzyQuery = queryParts.join(' ')
+    variables.params.query = fuzzyQuery
+    if (dbg) {
+      dbg(`[FUZZY-SEARCH] Injected params.query="${fuzzyQuery}" for doc_id=${docId}`)
+    }
   } else {
-    // CRITICAL: Facebook requires a REAL search query (not just a space) for chronological sorting!
-    // A space character is treated as "no search" and causes relevance ranking.
-    // Using a single common letter like "a" matches almost all listings while enabling chronological mode.
-    // This was discovered by comparing working requests (with "Honda Civic") vs failing (with " " space).
+    // No filter specified - use minimal query to trigger chronological sorting
     variables.params.query = 'a'
   }
 
-  // CRITICAL: Also inject filterSortingParams for chronological sorting
-  // Without this, Facebook ignores params.query and uses relevance ranking (value>0)
-  // With both params.query AND filterSortingParams, Facebook uses chronological order (value=0)
+  // CRITICAL: Inject filterSortingParams for chronological sorting during pagination
   variables.filterSortingParams = variables.filterSortingParams || {}
   variables.filterSortingParams.sort_by_filter = 'CREATION_TIME'
   variables.filterSortingParams.sort_order = 'DESCEND'
   variables.filterSortingParams.sortBy = 'creation_time_descend'
 
   if (dbg) {
-    const queryValue = variables.params.query
-    dbg(`[PATCH] Applied: query="${queryValue}", sort_by_filter=CREATION_TIME, doc_id=${docId}`)
+    dbg(`[PATCH] Applied sort_by_filter=CREATION_TIME for doc_id=${docId}`)
   }
 
   params.set('variables', JSON.stringify(variables))
@@ -401,23 +611,35 @@ async function patchMarketplaceVars(route: Route, body: string, dbg?: (...args: 
 
 // Scroll window or inner container (Marketplace often uses an inner scroller)
 async function smartScroll(page: Page) {
-  await page.evaluate(() => {
-    const candidates: (Element | null)[] = [
-      document.querySelector('[role="main"]'),
-      document.querySelector('[data-pagelet="MainFeed"]'),
-      document.scrollingElement,
-      document.documentElement,
-      document.body
-    ]
-    for (const el of candidates) {
-      const sc = el as HTMLElement | null
-      if (!sc) continue
-      const before = sc.scrollTop
-      sc.scrollTo({ top: sc.scrollHeight })
-      if (sc.scrollTop !== before) return
-    }
-    window.scrollTo(0, document.body.scrollHeight)
-  })
+  // [SCROLL-FIX] MUCH slower, more human-like scrolling to trigger Facebook's infinite scroll
+  // User observation: "when I scroll too fast manually, sometimes the next row doesn't load"
+  // Solution: Multiple small scrolls with pauses, mimicking careful manual scrolling
+
+  // Do 3-5 micro-scrolls per "page" scroll to better trigger intersection observers
+  const microScrolls = randInt(3, 5)
+
+  // Get viewport height and calculate total scroll distance
+  const viewportHeight = await page.evaluate(() => window.innerHeight)
+  const totalDistance = viewportHeight * 0.8  // Total: less than 1 viewport
+
+  for (let i = 0; i < microScrolls; i++) {
+    await page.evaluate((distance) => {
+      window.scrollBy({
+        top: distance,
+        behavior: 'smooth'
+      })
+    }, totalDistance / microScrolls)
+
+    // Wait between micro-scrolls (200-500ms)
+    await page.waitForTimeout(randInt(200, 500))
+  }
+
+  // Longer pause after completing the scroll "page" (1.5-2.5 seconds)
+  // This gives Facebook time to:
+  // 1. Detect scroll position via intersection observers
+  // 2. Make GraphQL request
+  // 3. Render new content
+  await page.waitForTimeout(randInt(1500, 2500))
 }
 
 // Login wall detection/dismissal --------------------------------------------
@@ -473,8 +695,12 @@ type ListingRow = {
   city: string | null
   posted_at: string | null
   first_seen_at: string
+  last_seen_at?: string | null
+  seen_count?: number
+  is_new?: boolean
   created_at_ts?: number
   extraction_source?: 'graphql' | 'graphql_replay' | 'ssr' | 'dom'
+  distance_mi?: number | null
 }
 
 function isVehicleRow(r: ListingRow): boolean {
@@ -530,6 +756,43 @@ function ts(r: ListingRow): number {
 
 function sortByFreshestDesc(a: ListingRow, b: ListingRow) {
   return ts(b) - ts(a)
+}
+
+// [NEW-LISTING-DETECTION] Query DB to identify which candidates are NEW vs already SEEN
+async function detectNewListings(candidates: ListingRow[]): Promise<{ trulyNew: ListingRow[]; alreadySeen: ListingRow[] }> {
+  if (candidates.length === 0) {
+    return { trulyNew: [], alreadySeen: [] }
+  }
+
+  const remoteIds = candidates.map(c => c.remote_id)
+
+  try {
+    const { data: existing, error } = await supaSvc
+      .from('listings')
+      .select('remote_id')
+      .eq('source', 'facebook')
+      .in('remote_id', remoteIds)
+
+    if (error) {
+      warn('[DETECT-NEW] DB query failed:', error.message)
+      // On error, assume all are NEW (safer than assuming all are SEEN)
+      return { trulyNew: candidates, alreadySeen: [] }
+    }
+
+    const existingIds = new Set((existing || []).map(e => e.remote_id))
+
+    const trulyNew = candidates.filter(c => !existingIds.has(c.remote_id))
+    const alreadySeen = candidates.filter(c => existingIds.has(c.remote_id))
+
+    if (FB_DEBUG) {
+      debug(`[DETECT-NEW] Candidates: ${candidates.length}, NEW: ${trulyNew.length}, SEEN: ${alreadySeen.length}`)
+    }
+
+    return { trulyNew, alreadySeen }
+  } catch (e) {
+    warn('[DETECT-NEW] Exception:', (e as Error).message)
+    return { trulyNew: candidates, alreadySeen: [] }
+  }
 }
 
 function parseIntSafe(s: any): number | null {
@@ -901,12 +1164,19 @@ async function fetchFacebookFeedFromSaved(cursor?: string | null): Promise<any |
       headers: headers as any,
       body: JSON.stringify(body),
     } as any)
-    if (!(resp as any).ok) return null
+    if (!(resp as any).ok) {
+      if (FB_DEBUG) debug(`[FB-REPLAY] HTTP error: ${(resp as any).status} ${(resp as any).statusText}`)
+      return null
+    }
     const text = await (resp as any).text()
+    if (FB_DEBUG) debug(`[FB-REPLAY] Response length: ${text.length} bytes`)
     const cleaned = text.startsWith('for (;;);') ? text.slice('for (;;);'.length) : text
-    return JSON.parse(cleaned)
+    const parsed = JSON.parse(cleaned)
+    if (FB_DEBUG) debug(`[FB-REPLAY] Parsed successfully`)
+    return parsed
   } catch (e) {
     warn('[FB-REPLAY] Failed:', (e as Error).message)
+    if (FB_DEBUG) debug(`[FB-REPLAY] Error stack: ${(e as Error).stack}`)
     return null
   }
 }
@@ -1052,13 +1322,15 @@ async function extractDomListings(page: Page): Promise<ListingRow[]> {
 async function enrichFacebookDetails(context: BrowserContext, rows: ListingRow[]): Promise<ListingRow[]> {
   const enriched: ListingRow[] = []
   const queue = [...rows]
-  const concurrency = Math.max(1, Math.min(3, parseInt(process.env.FB_DETAIL_CONCURRENCY || '2', 10) || 2))
+  const concurrency = Math.max(1, Math.min(6, parseInt(process.env.FB_DETAIL_CONCURRENCY || '4', 10) || 4))
 
   async function work() {
     while (queue.length) {
       const row = queue.shift()!
       let page: Page | null = null
       try {
+        // Stagger page creation to keep behavior human-like (especially with concurrency=4)
+        await new Promise(resolve => setTimeout(resolve, randInt(200, 600)))
         page = await context.newPage()
         await page.goto(row.url, { waitUntil: 'domcontentloaded', timeout: 25_000 })
         await page.waitForTimeout(randInt(250, 650))
@@ -1152,7 +1424,232 @@ async function enrichFacebookDetails(context: BrowserContext, rows: ListingRow[]
   return enriched
 }
 
-async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[]> {
+// ============================================================================
+// [MULTI-REGION] Helper to change location via UI to preserve "Newest" sort
+// ============================================================================
+async function setRegionViaUI(page: Page, locationName: string) {
+  info(`[UI-REGION] Changing location to: ${locationName}`);
+
+  try {
+    // 1. Click the Location/Filter button.
+    // It usually displays the current city or "Location". We look for the button with the map pin icon or label.
+    // Try multiple selectors as FB changes classes often.
+    // Note: 'div[aria-label="Change location"]' is common for the desktop view.
+    const locBtn = page.locator('div[aria-label="Change location"], span:has-text("Location"), button:has-text("Location")').first();
+
+    // Wait briefly to ensure UI is interactive
+    await page.waitForTimeout(2000);
+
+    if (await locBtn.count() > 0 && await locBtn.isVisible()) {
+      await locBtn.click();
+    } else {
+      // Fallback: Click the text that likely shows the current radius (e.g. "Within 20 mi")
+      warn('[UI-REGION] Standard location button not found. Trying radius/text fallback...');
+      await page.click('div[role="button"]:has-text("mi")');
+    }
+
+    await page.waitForTimeout(1500);
+
+    // 2. Find the input box in the modal
+    // It usually has aria-label="Location" or placeholder="Zip code or city"
+    const input = page.locator('input[aria-label="Location"], input[placeholder*="Zip"], input[placeholder*="City"]');
+    await input.waitFor({ state: 'visible', timeout: 5000 });
+
+    // 3. Clear and Type the new location
+    await input.click();
+    await input.press('Control+A'); // or Command+A for mac, simplified by using triple click usually
+    await input.click({ clickCount: 3 });
+    await page.keyboard.press('Backspace');
+    await page.waitForTimeout(500);
+
+    await input.fill(locationName);
+    await page.waitForTimeout(2000); // Wait for dropdown suggestions
+
+    // 4. Select the first suggestion (ArrowDown + Enter is reliable)
+    await page.keyboard.press('ArrowDown');
+    await page.waitForTimeout(500);
+    await page.keyboard.press('Enter');
+
+    await page.waitForTimeout(1000);
+
+    // 5. Click "Apply"
+    const applyBtn = page.locator('div[aria-label="Apply"], span:has-text("Apply")').first();
+    if (await applyBtn.isVisible()) {
+      await applyBtn.click();
+    } else {
+      // Sometimes hitting Enter on the dropdown already applied it, or we need to hit Enter again
+      await page.keyboard.press('Enter');
+    }
+
+    // 6. Wait for feed to reload/update
+    await page.waitForTimeout(3000);
+    info(`[UI-REGION] Successfully changed location to ${locationName}`);
+
+  } catch (e) {
+    warn(`[UI-REGION] Failed to set location via UI: ${(e as Error).message}`);
+    // We proceed anyway; sometimes the location is already correct or the UI changed.
+  }
+}
+
+// ============================================================================
+// [MULTI-REGION] Helper to force "Date listed: Newest first" via UI
+// ============================================================================
+async function forceSortByNewest(page: Page) {
+  info('[UI-SORT] Forcing sort order to "Newest first"...');
+
+  try {
+    // 1. Find the Sort button.
+    // It usually text like "Sort by: Suggested" or just "Sort"
+    const sortBtn = page.locator('span:has-text("Sort by"), div[aria-label="Sort results"], span:has-text("Suggested")').first();
+
+    // Check if we are already on newest (optimization)
+    const btnText = await sortBtn.textContent().catch(() => '');
+    if (btnText && btnText.includes('Newest')) {
+      info('[UI-SORT] Already sorted by Newest.');
+      return;
+    }
+
+    await sortBtn.click();
+    await page.waitForTimeout(1000);
+
+    // 2. Select "Date listed: Newest first" from the dropdown menu
+    // Facebook uses specific menu items role="menuitemradio" usually
+    const newestOption = page.locator('span:has-text("Date listed: Newest first")').first();
+
+    if (await newestOption.isVisible()) {
+      await newestOption.click();
+      info('[UI-SORT] Clicked "Newest first". Waiting for feed reload...');
+
+      // Critical: Wait for the feed to actually update
+      await page.waitForTimeout(3000);
+    } else {
+      warn('[UI-SORT] Could not find "Newest first" option in dropdown.');
+    }
+
+  } catch (e) {
+    warn(`[UI-SORT] Failed to set sort order: ${(e as Error).message}`);
+  }
+}
+
+// ============================================================================
+// DOM Chronological Mode - Pure DOM scraping without GraphQL
+// ============================================================================
+async function runDomChrono(
+  context: BrowserContext,
+  page: Page,
+  skipNavigation: boolean = false
+): Promise<ListingRow[]> {
+  if (!skipNavigation) {
+    const baseUrl =
+      process.env.FB_CATEGORY_URL ||
+      "https://www.facebook.com/marketplace/category/vehicles?sortBy=creation_time_descend&daysSinceListed=1";
+
+    info('[DOM-CHRONO] Navigating to:', baseUrl)
+
+    // Navigate to category/search URL
+    await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 45_000 });
+    await page.waitForTimeout(randInt(800, 1500));
+  }
+
+  // Optional: if FB_MAKE/FB_MODEL are set, type a query into the Marketplace search box
+  const searchQuery = [TARGET_MAKE, TARGET_MODEL].filter(Boolean).join(" ").trim();
+  if (searchQuery.length > 0) {
+    info('[DOM-CHRONO] Attempting search for:', searchQuery)
+    try {
+      // Marketplace search input is usually a role="searchbox"
+      const searchBox = page.locator('input[aria-label="Search Marketplace"], input[role="searchbox"]');
+      if (await searchBox.count()) {
+        await searchBox.first().fill(searchQuery);
+        await searchBox.first().press("Enter");
+        await page.waitForTimeout(randInt(1200, 2200));
+      }
+    } catch (e) {
+      warn('[DOM-CHRONO] Search box interaction failed:', (e as Error).message)
+    }
+  }
+
+  // Scroll more aggressively to over-sample the feed
+  const scrolls = Math.max(
+    6,
+    parseInt(process.env.FB_DOM_CHRONO_SCROLLS || "10", 10) || 10
+  );
+
+  info(`[DOM-CHRONO] Scrolling ${scrolls} times to collect listings...`)
+  for (let i = 0; i < scrolls; i++) {
+    await page.evaluate(() => {
+      window.scrollBy(0, window.innerHeight * 1.2);
+    });
+    await page.waitForTimeout(randInt(900, 1800));
+  }
+
+  // Extract all DOM listings
+  let domRows = await extractDomListings(page);
+  info(
+    `[DOM-CHRONO] DOM extracted ${domRows.length} listings before filters`
+  );
+
+  // Filter to vehicles and target make/model
+  domRows = domRows.filter(isVehicleRow).filter(isTargetRow);
+  info(
+    `[DOM-CHRONO] After vehicle/make/model filters: ${domRows.length} listings`
+  );
+
+  // Optional distance filtering (if distance_mi present)
+  const maxDistance =
+    parseInt(process.env.FB_CHRONO_MAX_DISTANCE_MI || "", 10) || null;
+  if (maxDistance != null && maxDistance > 0) {
+    const beforeDist = domRows.length;
+    domRows = domRows.filter(
+      (r) => r.distance_mi == null || r.distance_mi <= maxDistance
+    );
+    info(
+      `[DOM-CHRONO] Distance filter: ${beforeDist} → ${domRows.length} (<= ${maxDistance} mi)`
+    );
+  }
+
+  if (!domRows.length) {
+    info("[DOM-CHRONO] No candidates after filters.");
+    return [];
+  }
+
+  // Enrich top K rows for posted_at/year/mileage (enrichment is expensive)
+  const enrichLimit = parseInt(
+    process.env.FB_DOM_CHRONO_ENRICH_LIMIT || "80",
+    10
+  );
+  const toEnrich = domRows.slice(0, enrichLimit);
+
+  info(
+    `[DOM-CHRONO] Enriching ${toEnrich.length} listings from detail pages…`
+  );
+  const enriched = await enrichFacebookDetails(context, toEnrich);
+
+  const enrichedIds = new Set(enriched.map((r) => r.remote_id));
+  const unenriched = domRows.filter((r) => !enrichedIds.has(r.remote_id));
+  let all = [...enriched, ...unenriched];
+
+  // Sort by posted_at descending (fallback to first_seen_at)
+  all.sort((a, b) => {
+    const ta = a.posted_at
+      ? Date.parse(a.posted_at)
+      : Date.parse(a.first_seen_at);
+    const tb = b.posted_at
+      ? Date.parse(b.posted_at)
+      : Date.parse(b.first_seen_at);
+    return tb - ta;
+  });
+
+  const limit = TARGET_LIMIT || Math.max(20, parseInt(process.env.FB_LIMIT || "60", 10) || 60);
+  if (all.length > limit) all = all.slice(0, limit);
+
+  info(
+    `[DOM-CHRONO] Final sorted result count: ${all.length} (limit=${limit})`
+  );
+
+  return all;
+}
+
+async function interceptFacebookGraphQL(sessionId?: string, regionName?: string): Promise<ListingRow[]> {
   let browser: Browser | null = null
   lastLoginWallDetected = false
   const collected: RawGQLEdge[] = []
@@ -1167,7 +1664,7 @@ async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[
   const runId = sessionId || `run_${Date.now()}`
   RUN_DIR = path.join(DEBUG_DIR, runId)
   const runStartTime = Date.now()
-  // Maintain newest top TARGET.limit items while scrolling
+  // Maintain newest top TARGET_LIMIT items while scrolling
   const top: ListingRow[] = []
   const topSeen = new Set<string>()
   function pushRows(rows: ListingRow[]) {
@@ -1182,7 +1679,7 @@ async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[
     top.sort((a, b) => (Number(b.created_at_ts ?? 0) - Number(a.created_at_ts ?? 0))
       || ((b.posted_at || '').localeCompare(a.posted_at || ''))
       || ((b.first_seen_at || '').localeCompare(a.first_seen_at || '')))
-    if (top.length > TARGET.limit) top.length = TARGET.limit
+    if (top.length > TARGET_LIMIT) top.length = TARGET_LIMIT
   }
   try {
     // Proxy (sticky session)
@@ -1512,16 +2009,57 @@ async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[
     // Small pre-navigation wait to avoid robotic cadence
     await page.waitForTimeout(randInt(250, 1250))
     try {
-      // Navigate to category URL with sortBy parameter for proper time sorting
-      // CRITICAL: The sortBy=creation_time_descend URL parameter ONLY works when COMBINED with
-      // params.query in the GraphQL request (set by patchMarketplaceVars function).
-      // Without params.query, Facebook ignores sortBy and uses relevance ranking instead.
-      // This counterintuitive behavior was discovered by comparing la13 (working) vs la23 (broken).
-      // Note: daysSinceListed URL parameter doesn't work - Facebook ignores it
-      // We rely on sortBy=creation_time_descend + params.query injection for chronological results
+      // ============================================================================
+      // SCROLL-WINDOW MODE vs URL-FILTER MODE
+      // ============================================================================
+      const USE_SCROLL_WINDOW = (process.env.FB_SCROLL_WINDOW_MODE ?? '0') === '1'
 
-      const categoryUrl = `https://www.facebook.com/marketplace/category/vehicles?sortBy=creation_time_descend&exact=false`
-      info(`[FB] Navigating to category URL: ${categoryUrl}`)
+      let categoryUrl: string
+      if (USE_SCROLL_WINDOW) {
+        // Scroll-window mode: Use generic vehicles URL to maintain chronological sort
+        // Filtering happens via GraphQL fuzzy query + client-side filtering
+        // Note: Adding taxonomy IDs to URL causes Facebook to use relevance ranking instead of chronological
+        const params = new URLSearchParams()
+        params.set('sortBy', 'creation_time_descend')  // Maintain chronological sort
+        params.set('daysSinceListed', '1')
+        params.set('exact', 'false')
+
+        categoryUrl = `https://www.facebook.com/marketplace/category/vehicles?${params.toString()}`
+        if (TARGET_MAKE || TARGET_MODEL) {
+          info(`[SCROLL-WINDOW] Filtering for ${TARGET_MAKE || ''} ${TARGET_MODEL || ''} via GraphQL query + client-side filtering`)
+        }
+        info(`[SCROLL-WINDOW] Navigating to: ${categoryUrl}`)
+      } else {
+        // URL-filter mode: Add make/model taxonomy IDs to URL for server-side filtering
+        // This way Facebook returns pre-filtered results already sorted by latest post date
+        categoryUrl = 'https://www.facebook.com/marketplace/category/vehicles?sortBy=creation_time_descend&exact=false'
+
+        // Build filtered URL if make/model are specified
+        const hasTargetFilter = TARGET_MAKE || TARGET_MODEL
+        if (hasTargetFilter) {
+          const params = new URLSearchParams()
+          params.set('sortBy', 'creation_time_descend')
+          params.set('exact', 'false')
+
+          // Add make filter if available
+          if (TARGET_MAKE && MAKE_TAXONOMY_IDS[TARGET_MAKE]) {
+            params.set('make', MAKE_TAXONOMY_IDS[TARGET_MAKE])
+            info(`[URL-FILTER] Adding make filter: ${TARGET_MAKE} (ID: ${MAKE_TAXONOMY_IDS[TARGET_MAKE]})`)
+          }
+
+          // Add model filter if available
+          if (TARGET_MODEL && MODEL_TAXONOMY_IDS[TARGET_MODEL]) {
+            params.set('model', MODEL_TAXONOMY_IDS[TARGET_MODEL])
+            info(`[URL-FILTER] Adding model filter: ${TARGET_MODEL} (ID: ${MODEL_TAXONOMY_IDS[TARGET_MODEL]})`)
+          }
+
+          categoryUrl = `https://www.facebook.com/marketplace/category/vehicles?${params.toString()}`
+          info(`[URL-FILTER] Navigating to pre-filtered URL: ${categoryUrl}`)
+        } else {
+          info(`[URL-FILTER] No make/model specified - using generic vehicles URL`)
+        }
+      }
+
       await page.goto(categoryUrl, { waitUntil: 'domcontentloaded', timeout: 45_000 })
     } catch (e) {
       warn('Nav failed', (e as Error).message)
@@ -1607,6 +2145,130 @@ async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[
         return []
       }
     }
+
+    // [FIX] Force location change via UI if a region name is provided
+    // This ensures we get the specific feed for this city (e.g., "Irvine, CA")
+    if (regionName) {
+      await setRegionViaUI(page, regionName)
+
+      // [FIX] Force sort order back to "Newest" because changing location resets it
+      await forceSortByNewest(page)
+    }
+
+    // ⚡ SCROLL-WINDOW MODE: Fast scroll hack for quick chronological batch
+    const USE_SCROLL_WINDOW = (process.env.FB_SCROLL_WINDOW_MODE ?? '0') === '1'
+
+    if (USE_SCROLL_WINDOW) {
+      info('[SCROLL-WINDOW] Using scroll-window mode (continuous DOM extraction)')
+
+      // Small human-like mouse movements
+      try {
+        await page.mouse.move(randInt(100, 400), randInt(100, 300))
+        await page.waitForTimeout(randInt(150, 400))
+        await page.mouse.move(randInt(500, 900), randInt(200, 600))
+      } catch {}
+
+      const viewportHeight = await page.evaluate(() => window.innerHeight)
+      const scrolls = Math.max(6, parseInt(process.env.FB_SCROLL_WINDOW_SCROLLS || '10', 10) || 10)
+
+      // CONTINUOUS DOM EXTRACTION during scrolling
+      const allListings = new Map<string, ListingRow>()  // Key = remote_id
+
+      for (let i = 0; i < scrolls; i++) {
+        // Scroll one viewport
+        await page.mouse.wheel(0, viewportHeight)
+
+        // CRITICAL: Wait 1200-1800ms for Facebook's intersection observer to trigger
+        await page.waitForTimeout(randInt(1200, 1800))
+
+        // Extract DOM after EACH scroll (not just at the end)
+        const batchRows = await extractDomListings(page)
+        batchRows.forEach(row => {
+          if (!allListings.has(row.remote_id)) {
+            allListings.set(row.remote_id, row)
+          }
+        })
+
+        if (FB_DEBUG) {
+          debug(`[SCROLL-WINDOW] After scroll ${i + 1}/${scrolls}: ${allListings.size} unique listings collected`)
+        }
+      }
+
+      // Convert Map to array
+      const domRows = Array.from(allListings.values())
+      info(`[SCROLL-WINDOW] DOM extracted ${domRows.length} unique listings after ${scrolls} scrolls`)
+
+      // Filter: vehicles only (isVehicleRow already exists)
+      let candidates = domRows.filter(isVehicleRow)
+      info(`[SCROLL-WINDOW] After vehicle filter: ${candidates.length} listings`)
+
+      // Filter: make/model (isTargetRow already exists)
+      if (TARGET_MAKE || TARGET_MODEL) {
+        candidates = candidates.filter(isTargetRow)
+        info(`[SCROLL-WINDOW] After make/model filter (${TARGET_MAKE || 'any'}/${TARGET_MODEL || 'any'}): ${candidates.length} listings`)
+      }
+
+      // Limit collection window before enrichment
+      const WINDOW_COLLECTION_LIMIT = Math.max(
+        TARGET_LIMIT,
+        parseInt(process.env.FB_WINDOW_COLLECTION_LIMIT || '80', 10) || 80
+      )
+      if (candidates.length > WINDOW_COLLECTION_LIMIT) {
+        candidates = candidates.slice(0, WINDOW_COLLECTION_LIMIT)
+        info(`[SCROLL-WINDOW] Limiting to ${WINDOW_COLLECTION_LIMIT} candidates before enrichment`)
+      }
+
+      // Detail-page enrichment for posted_at / year / mileage
+      const doDetailEnrich = (process.env.FB_DETAIL_ENRICH ?? '1') !== '0'
+      let resultRows = candidates
+
+      if (doDetailEnrich && candidates.length > 0) {
+        const enrichLimit = parseInt(process.env.FB_DETAIL_ENRICH_LIMIT || '80', 10)
+        const toEnrich = candidates.slice(0, enrichLimit)
+        info(`[SCROLL-WINDOW] Enriching ${toEnrich.length} listings from detail pages`)
+
+        // Use existing enrichFacebookDetails with higher concurrency
+        const enriched = await enrichFacebookDetails(context, toEnrich)
+
+        const enrichedIds = new Set(toEnrich.map(r => r.remote_id))
+        const unenriched = candidates.filter(r => !enrichedIds.has(r.remote_id))
+        resultRows = [...enriched, ...unenriched]
+
+        const enrichedWithTimestamp = enriched.filter(r => r.posted_at != null).length
+        info(`[SCROLL-WINDOW] Enrichment complete: ${enriched.length} enriched, ${enrichedWithTimestamp} with timestamps`)
+      }
+
+      // Optional: posted_within_hours filter (e.g., last 3 hours)
+      if (FB_FILTER_POSTED_WITHIN_HOURS != null) {
+        const beforeFilter = resultRows.length
+        const cutoffTime = Date.now() - FB_FILTER_POSTED_WITHIN_HOURS * 3600_000
+        resultRows = resultRows.filter(row => {
+          if (!row.posted_at) return true  // Keep if unknown (safer)
+          const ts = new Date(row.posted_at).getTime()
+          return Number.isFinite(ts) ? ts >= cutoffTime : true
+        })
+        info(`[SCROLL-WINDOW] Timestamp filter (last ${FB_FILTER_POSTED_WITHIN_HOURS}h): ${beforeFilter} → ${resultRows.length}`)
+      }
+
+      // Final sort: strictly newest first by posted_at (fallback to first_seen_at)
+      resultRows.sort((a, b) => {
+        const aTime = a.posted_at ? new Date(a.posted_at).getTime() : Date.parse(a.first_seen_at)
+        const bTime = b.posted_at ? new Date(b.posted_at).getTime() : Date.parse(b.first_seen_at)
+        return bTime - aTime
+      })
+
+      // Limit to TARGET_LIMIT newest
+      if (resultRows.length > TARGET_LIMIT) {
+        info(`[SCROLL-WINDOW] Limiting from ${resultRows.length} to ${TARGET_LIMIT} newest listings`)
+        resultRows = resultRows.slice(0, TARGET_LIMIT)
+      }
+
+      info(`[SCROLL-WINDOW] Final result: ${resultRows.length} listings (enriched, filtered, sorted chronologically)`)
+
+      // Return early - skip normal scroll loop
+      return resultRows
+    }
+
     // If we have a saved request, use replay pattern (faster, no scrolls)
     const savedReqExists = await fs.access('facebook_gql_feed_req.json').then(() => true).catch(() => false)
     const collectedBeforeReplay = collected.length
@@ -1616,10 +2278,18 @@ async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[
       let pages = 0
       const maxPages = Math.min(SCROLL_PAGES, 10)
       while (pages < maxPages && collected.length < MAX_ITEMS) {
+        if (FB_DEBUG) debug(`[FB-REPLAY] Fetching page ${pages + 1} with cursor: ${cursor || 'null (first page)'}`)
         const r = await fetchFacebookFeedFromSaved(cursor)
-        if (!r) break
+        if (!r) {
+          if (FB_DEBUG) debug(`[FB-REPLAY] fetchFacebookFeedFromSaved returned null, stopping`)
+          break
+        }
         const edges = extractEdgesFromBody(r)
-        if (!edges.length) break
+        if (FB_DEBUG) debug(`[FB-REPLAY] Page ${pages + 1}: extracted ${edges.length} edges`)
+        if (!edges.length) {
+          if (FB_DEBUG) debug(`[FB-REPLAY] No edges found in response, stopping`)
+          break
+        }
         // Tag edges with extraction source for tracking
         const taggedEdges = edges.map(e => ({
           ...e,
@@ -1654,11 +2324,36 @@ async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[
         await page.mouse.move(randInt(500, 900), randInt(200, 600))
       } catch {}
       for (let i = 0; i < SCROLL_PAGES; i++) {
-        await smartScroll(page)
-        await page.waitForTimeout(randInt(SCROLL_MIN_MS, SCROLL_MAX_MS))
+        // [FUZZY-SEARCH-PAGINATION] Track state before scroll to detect if new content loaded
+        const beforeHeight = await page.evaluate(() => document.body.scrollHeight)
+        const beforeMatched = matched.length
 
-        const stats = await page.evaluate(() => ({ h: document.body.scrollHeight, inner: window.innerHeight }))
-        debug(`Scroll ${i + 1}/${SCROLL_PAGES}`, { bodyH: stats.h, innerH: stats.inner, collected: collected.length })
+        await smartScroll(page)
+
+        // [SCROLL-FIX] Wait for network to become idle after scroll
+        // Increased timeout to 15 seconds since we're scrolling slower now
+        try {
+          await page.waitForLoadState('networkidle', { timeout: 15000 })
+          if (FB_DEBUG) debug(`[SCROLL] Network idle after scroll ${i + 1}`)
+        } catch (e) {
+          if (FB_DEBUG) debug(`[SCROLL] Network idle timeout after 15s (continuing anyway)`)
+        }
+
+        // [SCROLL-FIX] Additional random wait removed - smartScroll already includes 1.5-2.5s wait
+        // await page.waitForTimeout(randInt(SCROLL_MIN_MS, SCROLL_MAX_MS))
+
+        // Track state after scroll
+        const afterHeight = await page.evaluate(() => document.body.scrollHeight)
+        const stats = { h: afterHeight, inner: await page.evaluate(() => window.innerHeight) }
+
+        if (FB_DEBUG) {
+          debug(`Scroll ${i + 1}/${SCROLL_PAGES}`, {
+            bodyH: stats.h,
+            innerH: stats.inner,
+            collected: collected.length,
+            heightChange: afterHeight - beforeHeight
+          })
+        }
 
         if (i === Math.floor(SCROLL_PAGES / 2) && collected.length === 0) {
           warn('Mid-run: still 0 edges collected; possible auth/visibility restriction or API change.')
@@ -1677,8 +2372,9 @@ async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[
             }
           } catch {}
         }
-        // Early stop match counter
+        // [FUZZY-SEARCH-PAGINATION] Early stop match counter - check both GraphQL AND DOM matches
         try {
+          // Check GraphQL matches
           const tmpRows = (() => {
             const raw = collected.map(normalizeEdge).filter(Boolean) as ListingRow[]
             const seenTmp = new Set<string>()
@@ -1695,10 +2391,70 @@ async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[
             }
           }
           if (targetBatch.length) pushRows(targetBatch)
+
+          // [FUZZY-SEARCH-PAGINATION] Check DOM listings on EVERY scroll (not just after scroll 3)
+          // This is needed because GraphQL interception isn't working
+          try {
+            const domRows = await extractDomListings(page)
+            if (FB_DEBUG) {
+              debug(`[DOM-SCROLL] Extracted ${domRows.length} DOM listings at scroll ${i + 1}/${SCROLL_PAGES}`)
+            }
+
+            // Filter DOM rows using HARD FILTER logic (make/model match)
+            for (const row of domRows) {
+              if (matchedIds.has(row.remote_id)) continue // Skip duplicates
+
+              // Parse title for make/model
+              const parsed = parseListingTitle(row.title)
+              const rowMake = (row.make || parsed.make || '').toLowerCase()
+              const rowModel = (row.model || parsed.model || '').toLowerCase()
+
+              // Check if it matches our target
+              const makeMatch = !TARGET_MAKE || rowMake === TARGET_MAKE
+              const modelMatch = !TARGET_MODEL || rowModel === TARGET_MODEL
+
+              if (makeMatch && modelMatch) {
+                matched.push(row)
+                matchedIds.add(row.remote_id)
+                if (FB_DEBUG) {
+                  debug(`[DOM-SCROLL] MATCH: "${row.title}" (${rowMake} ${rowModel})`)
+                }
+
+                if (matched.length >= COLLECTION_LIMIT) break
+              }
+            }
+
+            if (FB_DEBUG) {
+              debug(`[DOM-SCROLL] Total matched so far: ${matched.length}/${COLLECTION_LIMIT}`)
+            }
+          } catch (e) {
+            if (FB_DEBUG) debug(`[DOM-SCROLL] DOM extraction failed: ${(e as Error).message}`)
+          }
+
+          // [FUZZY-SEARCH-PAGINATION] Detect if new content was loaded (like OfferUp checks for new items)
+          const afterMatched = matched.length
+          const heightChanged = afterHeight !== beforeHeight
+          const matchesChanged = afterMatched !== beforeMatched
+
+          // IMPORTANT: Don't stop early! Based on user feedback, Facebook needs ALL 8 scrolls
+          // before it actually loads content. Only check after completing all scrolls.
+          if (!heightChanged && !matchesChanged && i >= SCROLL_PAGES - 1) {
+            info(`[FB-SCROLL] Completed all ${SCROLL_PAGES} scrolls with no new content (height: ${beforeHeight}→${afterHeight}, matches: ${beforeMatched}→${afterMatched}).`)
+            // Don't break - let it complete the loop naturally
+          }
+
+          if (FB_DEBUG) {
+            if (heightChanged || matchesChanged) {
+              debug(`[SCROLL] Content loaded: height ${beforeHeight}→${afterHeight}, matches ${beforeMatched}→${afterMatched}`)
+            } else {
+              debug(`[SCROLL] No new content yet, continuing (scroll ${i + 1}/${SCROLL_PAGES})`)
+            }
+          }
+
           debug('Target match count', { matchCount: matched.length, collectionLimit: COLLECTION_LIMIT })
           // Changed: Stop when we hit COLLECTION_LIMIT (we'll sort and filter to TARGET_LIMIT later)
-          if (top.length >= TARGET.limit || matched.length >= COLLECTION_LIMIT) {
-            info(`[FB] Reached ${COLLECTION_LIMIT} collected rows; stopping to sort by timestamp.`)
+          if (top.length >= TARGET_LIMIT || matched.length >= COLLECTION_LIMIT) {
+            info(`[FB] Reached ${matched.length} matched rows; stopping to sort by timestamp.`)
             break
           }
         } catch {}
@@ -1935,37 +2691,141 @@ async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[
     finalRows.sort(sortByFreshestDesc)
     const limited = finalRows.slice(0, Math.min(MAX_ITEMS, TARGET_LIMIT))
 
+    // [NEW-LISTING-DETECTION] Detect which candidates are NEW vs already SEEN
+    // This allows us to prioritize enriching NEW listings (they need timestamps for alerts)
+    const { trulyNew, alreadySeen } = await detectNewListings(limited)
+    info(`[NEW-DETECTION] Found ${trulyNew.length} NEW listings, ${alreadySeen.length} already seen`)
+
     // OPTIONAL: only enrich if we actually care about year/mileage (we do, for KNN)
     const doDetailEnrich = (process.env.FB_DETAIL_ENRICH ?? '1') !== '0'
     let resultRows = limited
 
     if (doDetailEnrich && limited.length > 0) {
-      info('[FB-DETAIL] Enriching detail for rows', { count: limited.length })
-      resultRows = await enrichFacebookDetails(context, limited)
-      const enrichedRowsWithYear = resultRows.filter(r => r.year != null).length
-      const enrichedRowsWithMileage = resultRows.filter(r => r.mileage != null).length
-      info('[FB-DETAIL] Enrichment stats', { rows: resultRows.length, withYear: enrichedRowsWithYear, withMileage: enrichedRowsWithMileage })
+      // [NEW-LISTING-DETECTION] Prioritize enriching NEW listings first
+      // NEW listings need timestamps for alert detection, SEEN listings are lower priority
+      const enrichLimit = parseInt(process.env.FB_DETAIL_ENRICH_LIMIT || '50')
+      const toEnrich = [
+        ...trulyNew.slice(0, enrichLimit),  // Enrich ALL new (up to limit)
+        ...alreadySeen.slice(0, Math.max(0, enrichLimit - trulyNew.length))  // Then fill remaining slots with SEEN
+      ]
+
+      info(`[FB-DETAIL] Enriching ${toEnrich.length} listings (${Math.min(trulyNew.length, enrichLimit)} NEW + ${toEnrich.length - Math.min(trulyNew.length, enrichLimit)} SEEN)`)
+      const enriched = await enrichFacebookDetails(context, toEnrich)
+
+      // Merge enriched data back into full list
+      const enrichedIds = new Set(toEnrich.map(r => r.remote_id))
+      const unenriched = limited.filter(r => !enrichedIds.has(r.remote_id))
+      resultRows = [...enriched, ...unenriched]
+
+      const enrichedRowsWithYear = enriched.filter(r => r.year != null).length
+      const enrichedRowsWithMileage = enriched.filter(r => r.mileage != null).length
+      info('[FB-DETAIL] Enrichment stats', { total: resultRows.length, enriched: enriched.length, withYear: enrichedRowsWithYear, withMileage: enrichedRowsWithMileage })
     }
 
-    // NOW apply target filter AFTER enrichment (so detail pages can fill in missing make/model)
+    // [URL-FILTER] STAGE 3: Client-side HARD FILTER (only needed if URL filtering failed/unavailable)
+    // Skip if we successfully used URL-based taxonomy filtering (Facebook already filtered for us)
     const hasTargetFilter =
       (process.env.FB_MAKE && process.env.FB_MAKE.trim().length > 0) ||
       (process.env.FB_MODEL && process.env.FB_MODEL.trim().length > 0)
 
-    try {
-      const beforeFilterCount = resultRows.length
-      const filtered = resultRows.filter(isTargetRow)
+    const usedUrlFilter =
+      (TARGET_MAKE && MAKE_TAXONOMY_IDS[TARGET_MAKE]) ||
+      (TARGET_MODEL && MODEL_TAXONOMY_IDS[TARGET_MODEL])
 
-      if (hasTargetFilter) {
-        // If user asked for a specific make/model, ALWAYS enforce it,
-        // even if that means returning 0 rows.
-        info('[FB] Applying client-side filter:', { make: TARGET_MAKE, model: TARGET_MODEL, before: beforeFilterCount, after: filtered.length })
-        resultRows = filtered
-      } else if (filtered.length) {
-        // If no explicit target filter, you MAY still use filtered as a soft preference
-        resultRows = filtered
+    if (hasTargetFilter && usedUrlFilter) {
+      // URL filtering was used - Facebook already filtered results for us
+      info(`[URL-FILTER] Skipping client-side HARD FILTER - Facebook already filtered via taxonomy IDs`)
+    } else if (hasTargetFilter && !usedUrlFilter) {
+      // Only apply HARD FILTER if we couldn't use URL filtering (taxonomy IDs not available)
+      const beforeHardFilter = resultRows.length
+      info(`[HARD-FILTER] URL filtering unavailable - applying client-side title parsing filter on ${beforeHardFilter} listings`)
+
+      // Parse all titles using vehicle dictionary
+      const wantMake = TARGET_MAKE ? TARGET_MAKE.toLowerCase() : null
+      const wantModel = TARGET_MODEL ? TARGET_MODEL.toLowerCase() : null
+
+      const hardFiltered: ListingRow[] = []
+      let rejectedByMake = 0
+      let rejectedByModel = 0
+
+      for (const row of resultRows) {
+        // Parse title to extract make/model/year
+        const parsed = parseListingTitle(row.title)
+
+        // Check make filter
+        if (wantMake) {
+          const rowMake = (row.make || parsed.make || '').toLowerCase()
+          if (rowMake !== wantMake) {
+            rejectedByMake++
+            if (FB_DEBUG) {
+              info(`[HARD-FILTER] REJECT (make): "${row.title}" - got make="${rowMake}", want="${wantMake}"`)
+            }
+            continue
+          }
+        }
+
+        // Check model filter
+        if (wantModel) {
+          const rowModel = (row.model || parsed.model || '').toLowerCase()
+          if (rowModel !== wantModel) {
+            rejectedByModel++
+            if (FB_DEBUG) {
+              info(`[HARD-FILTER] REJECT (model): "${row.title}" - got model="${rowModel}", want="${wantModel}"`)
+            }
+            continue
+          }
+        }
+
+        // Passed all filters
+        hardFiltered.push(row)
       }
-    } catch {}
+
+      const afterHardFilter = hardFiltered.length
+      info(`[HARD-FILTER] Kept: ${afterHardFilter} listings (rejected: ${rejectedByMake} by make, ${rejectedByModel} by model)`)
+
+      resultRows = hardFiltered
+    }
+
+    // [FUZZY-SEARCH] STAGE 4: TIMESTAMP FILTER - Filter by posted_at timestamp (like OfferUp's OU_FILTER_POSTED_WITHIN_HOURS)
+    if (FB_FILTER_POSTED_WITHIN_HOURS != null) {
+      const beforeTimeFilter = resultRows.length
+      info(`[TIMESTAMP-FILTER] Input: ${beforeTimeFilter} listings (will filter by posted within ${FB_FILTER_POSTED_WITHIN_HOURS} hours)`)
+
+      const cutoffTime = Date.now() - FB_FILTER_POSTED_WITHIN_HOURS * 3600_000
+      const timeFiltered: ListingRow[] = []
+      let rejectedByTimestamp = 0
+      let missingTimestamp = 0
+
+      for (const row of resultRows) {
+        if (!row.posted_at) {
+          missingTimestamp++
+          if (FB_DEBUG) {
+            info(`[TIMESTAMP-FILTER] SKIP (no timestamp): "${row.title}"`)
+          }
+          // Keep listings without timestamps (better to include than exclude)
+          timeFiltered.push(row)
+          continue
+        }
+
+        const postedTime = new Date(row.posted_at).getTime()
+        if (postedTime < cutoffTime) {
+          rejectedByTimestamp++
+          if (FB_DEBUG) {
+            const ageHours = Math.round((Date.now() - postedTime) / 3600_000)
+            info(`[TIMESTAMP-FILTER] REJECT (too old): "${row.title}" - posted ${ageHours}h ago, want <${FB_FILTER_POSTED_WITHIN_HOURS}h`)
+          }
+          continue
+        }
+
+        // Passed timestamp filter
+        timeFiltered.push(row)
+      }
+
+      const afterTimeFilter = timeFiltered.length
+      info(`[TIMESTAMP-FILTER] Kept: ${afterTimeFilter} listings (rejected: ${rejectedByTimestamp} too old, ${missingTimestamp} missing timestamp but kept)`)
+
+      resultRows = timeFiltered
+    }
 
     // CRITICAL: Sort by timestamp and limit to TARGET_LIMIT to get the MOST RECENT listings
     // We collected more than needed (COLLECTION_LIMIT) to ensure we capture the newest posts
@@ -1999,6 +2859,31 @@ async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[
 
       resultRows = sorted
     }
+
+    // [FUZZY-SEARCH] STAGE-GATE SUMMARY - Log progression through each processing stage
+    info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    info('[STAGE-GATE] Processing Pipeline Summary:')
+    info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+    info(`[STAGE 1] EXTRACTION:`)
+    info(`  - GraphQL requests: ${metrics.graphqlRequests}`)
+    info(`  - GraphQL edges:    ${metrics.graphqlEdges}`)
+    info(`  - SSR edges:        ${metrics.ssrEdges}`)
+    info(`  - DOM candidates:   ${metrics.domCandidates}`)
+    info(`[STAGE 2] NORMALIZATION & DEDUP:`)
+    info(`  - Normalized:       ${metrics.normalized}`)
+    info(`  - After dedup:      ${metrics.deduped}`)
+    info(`[STAGE 3] HARD FILTER: (make/model only)`)
+    info(`  - See [HARD-FILTER] logs above for details`)
+    info(`[STAGE 4] TIMESTAMP FILTER: (posted_within_hours)`)
+    info(`  - See [TIMESTAMP-FILTER] logs above for details`)
+    info(`[STAGE 5] ENRICHMENT:`)
+    info(`  - Enriched:         ${doDetailEnrich ? limited.length : 0}`)
+    info(`[STAGE 6] FINAL SORT & LIMIT:`)
+    info(`  - Final count:      ${resultRows.length}`)
+    info(`  - With year:        ${resultRows.filter(r => r.year != null).length}`)
+    info(`  - With mileage:     ${resultRows.filter(r => r.mileage != null).length}`)
+    info(`  - With timestamp:   ${resultRows.filter(r => r.posted_at != null).length}`)
+    info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
 
     // Final summary for this run
     const finalWithYear = resultRows.filter(r => r.year != null).length
@@ -2136,36 +3021,230 @@ async function interceptFacebookGraphQL(sessionId?: string): Promise<ListingRow[
   }
 }
 
-async function upsertListings(rows: ListingRow[]) {
-  if (!rows.length) return { inserted: 0, skipped: 0 }
+// [NEW-LISTING-DETECTION] Smart upsert: track NEW vs SEEN listings
+async function upsertListings(rows: ListingRow[]): Promise<{ inserted: number; updated: number; newListingIds: string[] }> {
+  if (!rows.length) return { inserted: 0, updated: 0, newListingIds: [] }
+
   // Remove fields not in database schema
   const cleaned = rows.map(({ extraction_source, created_at_ts, ...rest }) => rest)
-  const batched = [] as any[][]
-  for (let i = 0; i < cleaned.length; i += 50) batched.push(cleaned.slice(i, i + 50))
+
+  const newListingIds: string[] = []
   let inserted = 0
-  let skipped = 0
+  let updated = 0
+
+  // Process in batches of 10 to avoid overwhelming DB with individual queries
+  const batched = [] as typeof cleaned[]
+  for (let i = 0; i < cleaned.length; i += 10) batched.push(cleaned.slice(i, i + 10))
+
   for (const chunk of batched) {
-    const { error } = await supaSvc
-      .from('listings')
-      .upsert(chunk as any, { onConflict: 'remote_id,source' })
-    if (error) {
-      console.error('[FB] upsert error', error.message)
-      // Best effort fallback: try without conflict target
-      const { error: err2 } = await supaSvc.from('listings').upsert(chunk as any)
-      if (err2) console.error('[FB] upsert fallback error', err2.message)
-    } else {
-      inserted += chunk.length
+    for (const row of chunk) {
+      try {
+        // Check if listing exists
+        const { data: existing, error: queryError } = await supaSvc
+          .from('listings')
+          .select('id, seen_count')
+          .eq('source', row.source)
+          .eq('remote_id', row.remote_id)
+          .maybeSingle()
+
+        if (queryError) {
+          warn(`[UPSERT] Query error for ${row.remote_id}:`, queryError.message)
+          continue
+        }
+
+        const now = new Date().toISOString()
+
+        if (!existing) {
+          // TRUE NEW LISTING - insert with is_new=true
+          const { data: inserted_row, error: insertError } = await supaSvc
+            .from('listings')
+            .insert({
+              ...row,
+              first_seen_at: now,
+              last_seen_at: now,
+              seen_count: 1,
+              is_new: true
+            })
+            .select('id')
+            .maybeSingle()
+
+          if (insertError) {
+            warn(`[UPSERT] Insert error for ${row.remote_id}:`, insertError.message)
+          } else {
+            inserted++
+            if (inserted_row?.id) {
+              newListingIds.push(inserted_row.id)
+            }
+            if (FB_DEBUG) {
+              debug(`[UPSERT] NEW: ${row.title} (${row.remote_id})`)
+            }
+          }
+        } else {
+          // EXISTING LISTING - update with is_new=false, increment seen_count
+          const { error: updateError } = await supaSvc
+            .from('listings')
+            .update({
+              price: row.price,
+              mileage: row.mileage,
+              posted_at: row.posted_at || null,
+              last_seen_at: now,
+              seen_count: (existing.seen_count || 0) + 1,
+              is_new: false
+            })
+            .eq('id', existing.id)
+
+          if (updateError) {
+            warn(`[UPSERT] Update error for ${row.remote_id}:`, updateError.message)
+          } else {
+            updated++
+            if (FB_DEBUG) {
+              debug(`[UPSERT] UPDATED: ${row.title} (seen ${(existing.seen_count || 0) + 1} times)`)
+            }
+          }
+        }
+      } catch (e) {
+        warn(`[UPSERT] Exception for ${row.remote_id}:`, (e as Error).message)
+      }
     }
   }
-  return { inserted, skipped }
+
+  info(`[UPSERT] Inserted ${inserted} new, updated ${updated} existing listings`)
+  if (newListingIds.length > 0) {
+    info(`[UPSERT] New listing IDs: ${newListingIds.join(', ')}`)
+  }
+
+  return { inserted, updated, newListingIds }
 }
 
-async function main() {
+// ============================================================================
+// DOM Chronological Session Runner - Separate from GraphQL mode
+// ============================================================================
+async function runDomChronoSession(sessionId?: string, regionName?: string): Promise<ListingRow[]> {
+  let browser: Browser | null = null
+  lastLoginWallDetected = false
+
+  try {
+    const usingProxy = !!(process.env.FB_PROXY_SERVER && process.env.FB_PROXY_USERNAME)
+    const proxyServer = process.env.FB_PROXY_SERVER
+    const proxyUserBase = process.env.FB_PROXY_USERNAME
+    const proxyPass = process.env.FB_PROXY_PASSWORD
+    const proxySession = sessionId || process.env.FB_PROXY_SESSION_ID || Math.random().toString(36).slice(2, 10)
+
+    const launchOpts: LaunchOptions = {
+      headless: HEADLESS,
+      args: ['--disable-blink-features=AutomationControlled', '--no-sandbox'],
+    }
+    if (proxyServer && proxyUserBase && proxyPass) {
+      launchOpts.proxy = {
+        server: proxyServer,
+        username: `${proxyUserBase}-session-${proxySession}`,
+        password: proxyPass,
+      }
+    }
+
+    browser = await chromium.launch(launchOpts)
+    const context = await browser.newContext({
+      viewport: { width: 1366, height: 900 },
+      userAgent:
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      timezoneId: 'America/Los_Angeles',
+      locale: 'en-US',
+      geolocation:
+        process.env.OU_LAT && process.env.OU_LNG
+          ? {
+              latitude: Number(process.env.OU_LAT),
+              longitude: Number(process.env.OU_LNG),
+            }
+          : undefined,
+      permissions: ['geolocation'],
+      storageState: FB_USE_STORAGE_STATE ? FB_STORAGE_STATE : undefined,
+    })
+
+    // Load cookies if provided (same logic as interceptFacebookGraphQL)
+    if (!FB_USE_STORAGE_STATE && FB_COOKIES_PATH) {
+      try {
+        const raw = await fs.readFile(FB_COOKIES_PATH, 'utf8')
+        const json = JSON.parse(raw)
+        let cookies: any[] = []
+        if (Array.isArray(json?.cookies)) {
+          cookies = json.cookies
+        } else if (Array.isArray(json)) {
+          cookies = json
+        }
+        if (Array.isArray(cookies) && cookies.length) {
+          const mapped = cookies.map((c: any) => {
+            let host = c.domain || (c.url ? new URL(c.url).hostname : 'facebook.com')
+            if (host.startsWith('.')) host = host.slice(1)
+            if (!host.includes('.')) host = 'facebook.com'
+            return {
+              name: c.name,
+              value: c.value,
+              domain: `.${host}`,
+              path: c.path || '/',
+              expires: c.expirationDate || c.expires || -1,
+              httpOnly: c.httpOnly ?? false,
+              secure: c.secure ?? true,
+              sameSite: (c.sameSite as any) || 'Lax',
+            }
+          })
+          await context.addCookies(mapped)
+          debug('[DOM-CHRONO] Loaded cookies from', FB_COOKIES_PATH, '(count:', cookies.length, ')')
+        }
+      } catch (e) {
+        warn('[DOM-CHRONO] Failed to load cookies:', (e as Error).message)
+      }
+    }
+
+    const page = await context.newPage()
+
+    // Warmup home (reuse warmupHome helper)
+    await warmupHome(page)
+
+    // If login wall appears, bail early
+    if (await isLoginWallVisible(page)) {
+      warn('[DOM-CHRONO] Login wall visible; cookies likely invalid.')
+      lastLoginWallDetected = true
+      return []
+    }
+
+    // Navigate to marketplace first
+    const baseUrl =
+      process.env.FB_CATEGORY_URL ||
+      "https://www.facebook.com/marketplace/category/vehicles?sortBy=creation_time_descend&daysSinceListed=1"
+
+    info('[DOM-CHRONO-SESSION] Navigating to:', baseUrl)
+    await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 45_000 })
+    await page.waitForTimeout(randInt(800, 1500))
+
+    // THEN change region via UI if provided
+    if (regionName) {
+      await setRegionViaUI(page, regionName)
+
+      // [FIX] Force sort order back to "Newest" because changing location resets it
+      await forceSortByNewest(page)
+    }
+
+    // Now run the extraction/scrolling logic (skip navigation since we already navigated)
+    const rows = await runDomChrono(context, page, true)
+    return rows
+  } finally {
+    try {
+      await browser?.close()
+    } catch {}
+  }
+}
+
+async function scrapeRegion(regionName?: string) {
   const usingProxy = !!(process.env.FB_PROXY_SERVER && process.env.FB_PROXY_USERNAME)
   const baseSession = (process.env.FB_PROXY_SESSION_ID || 'la01').trim()
   let session = baseSession
 
-  console.log('[FB] Starting Marketplace capture...', { headless: HEADLESS, pages: SCROLL_PAGES, proxy: usingProxy ? 'on' : 'off', cookies: !!FB_COOKIES_PATH })
+  console.log(`[FB] Starting Marketplace capture... (mode=${FB_MODE})`, {
+    headless: HEADLESS,
+    pages: SCROLL_PAGES,
+    proxy: usingProxy ? 'on' : 'off',
+    cookies: !!FB_COOKIES_PATH
+  })
 
   let allRows: ListingRow[] = []
   for (let attempt = 1; attempt <= FB_MAX_ATTEMPTS; attempt++) {
@@ -2175,8 +3254,16 @@ async function main() {
       if (FB_DEBUG) console.log('[FB] Rotating sticky session ->', session)
     }
 
-    const rows = await interceptFacebookGraphQL(session)
+    let rows: ListingRow[] = []
+    if (FB_MODE === 'dom_chrono') {
+      rows = await runDomChronoSession(session, regionName)
+    } else {
+      // [FIX] Pass regionName here so the interceptor can change the UI
+      rows = await interceptFacebookGraphQL(session, regionName)
+    }
+
     if (FB_DEBUG) console.log(`[FB] Attempt ${attempt}: captured ${rows.length} rows`)
+
     if (rows.length === 0) {
       // If a login wall was detected, don't waste attempts rotating
       if (lastLoginWallDetected) {
@@ -2190,12 +3277,16 @@ async function main() {
         break
       }
     }
+
     if (rows.length >= FB_MIN_ROWS_SUCCESS) {
       allRows = rows
       break // success
     }
 
-    if (!FB_ROTATE_ON_ZERO) { allRows = rows; break } // no auto-rotate configured
+    if (!FB_ROTATE_ON_ZERO) {
+      allRows = rows
+      break
+    } // no auto-rotate configured
     // else: loop to next attempt with rotated session
   }
 
@@ -2211,7 +3302,7 @@ async function main() {
   // This matches OfferUp's approach (see offerup.ts lines 1479-1486)
   // ==================================================================================
   let filteredRows = allRows
-  if (FB_FILTER_POSTED_WITHIN_HOURS != null && allRows.length > 0) {
+  if (FB_FILTER_POSTED_WITHIN_HOURS != null && allRows.length > 0 && process.env.FB_SCROLL_WINDOW_MODE !== '1') {
     const cutoff = Date.now() - FB_FILTER_POSTED_WITHIN_HOURS * 3_600_000
     const before = filteredRows.length
     const withTimestamps = filteredRows.filter(r => r.posted_at).length
@@ -2229,7 +3320,115 @@ async function main() {
   }
   
   const res = await upsertListings(filteredRows)
-  console.log(JSON.stringify({ ok: true, source: 'facebook', inserted: res.inserted, skipped: res.skipped }))
+
+  // [NEW-LISTING-DETECTION] Output summary with NEW listings highlighted
+  info(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
+  info(`[FINAL RESULTS]`)
+  info(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
+  info(`Total scraped:     ${filteredRows.length} listings`)
+  info(`New listings:      ${res.inserted} 🆕`)
+  info(`Already seen:      ${res.updated} (updated)`)
+  info(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`)
+
+  if (res.inserted === 0) {
+    info(`ℹ️  No new listings found. All ${res.updated} listings have been seen before.`)
+  } else {
+    info(`✨ Found ${res.inserted} NEW listing${res.inserted === 1 ? '' : 's'}!`)
+    // Optionally log details of new listings (for dealer to review)
+    if (FB_DEBUG && res.newListingIds.length > 0) {
+      const newListings = filteredRows.filter(r =>
+        res.newListingIds.some(id => String(id).includes(r.remote_id))
+      )
+      for (const listing of newListings) {
+        debug(`  🆕 ${listing.year || '?'} ${listing.make || '?'} ${listing.model || '?'} - $${listing.price || '?'} - ${listing.title}`)
+      }
+    }
+  }
+
+  console.log(JSON.stringify({
+    ok: true,
+    source: 'facebook',
+    inserted: res.inserted,
+    updated: res.updated,
+    newListings: res.newListingIds.length,
+    newListingIds: res.newListingIds
+  }))
+
+  return { inserted: res.inserted, updated: res.updated }
+}
+
+async function main() {
+  if (!FB_MULTI_REGION) {
+    // Single region mode - run once
+    await scrapeRegion()
+    return
+  }
+
+  // Multi-region mode
+  console.log('\n' + '='.repeat(70))
+  console.log('[MULTI-REGION] Facebook Marketplace Multi-Region Scraper')
+  console.log('='.repeat(70))
+  console.log(`Regions: ${FB_REGION_COUNT}`)
+  console.log(`Delay between regions: ${FB_REGION_DELAY_MS}ms`)
+  console.log('='.repeat(70) + '\n')
+
+  const regionsToScrape = SOCAL_REGIONS.slice(0, FB_REGION_COUNT)
+  const startTime = Date.now()
+  const results: Array<{ region: string; inserted: number; updated: number }> = []
+
+  for (let i = 0; i < regionsToScrape.length; i++) {
+    const region = regionsToScrape[i]
+    console.log(`\n[${ i + 1}/${FB_REGION_COUNT}] Scraping: ${region.name}`)
+    console.log('─'.repeat(70))
+
+    // Override OU_LAT/OU_LNG for this region (used in dom_chrono mode)
+    process.env.OU_LAT = region.lat.toString()
+    process.env.OU_LNG = region.lng.toString()
+
+    try {
+      const stats = await scrapeRegion(region.name)
+      results.push({
+        region: region.name,
+        inserted: stats.inserted,
+        updated: stats.updated,
+      })
+    } catch (err) {
+      console.error(`[MULTI-REGION] Error scraping ${region.name}:`, err)
+      results.push({
+        region: region.name,
+        inserted: 0,
+        updated: 0,
+      })
+    }
+
+    // Delay before next region (except for last)
+    if (i < regionsToScrape.length - 1) {
+      console.log(`\n[MULTI-REGION] Waiting ${FB_REGION_DELAY_MS / 1000}s before next region...\n`)
+      await new Promise(resolve => setTimeout(resolve, FB_REGION_DELAY_MS))
+    }
+  }
+
+  // Summary
+  const endTime = Date.now()
+  const durationSec = Math.round((endTime - startTime) / 1000)
+  const totalInserted = results.reduce((sum, r) => sum + r.inserted, 0)
+  const totalUpdated = results.reduce((sum, r) => sum + r.updated, 0)
+
+  console.log('\n' + '='.repeat(70))
+  console.log('[MULTI-REGION] SUMMARY')
+  console.log('='.repeat(70))
+  console.log(`Duration: ${durationSec}s (${Math.floor(durationSec / 60)}m ${durationSec % 60}s)`)
+  console.log(`Regions scraped: ${results.length}/${FB_REGION_COUNT}`)
+  console.log(`Total inserted: ${totalInserted}`)
+  console.log(`Total updated: ${totalUpdated}`)
+  console.log('='.repeat(70))
+
+  console.log('\nResults by region:')
+  results.forEach((r, i) => {
+    console.log(`  ${i + 1}. ${r.region.padEnd(20)} (+${r.inserted} ~${r.updated})`)
+  })
+
+  console.log('\n[MULTI-REGION] All regions processed!')
 }
 
 // CLI

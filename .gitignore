@@ -43,3 +43,5 @@ next-env.d.ts
 # local secrets (cookies, tokens, etc.)
 secrets/
 debug/facebook/
+# Claude Code configuration
+.claude/

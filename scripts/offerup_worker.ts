@@ -44,7 +44,33 @@ function runOfferupWithEnv(jobId: string, params: any): Promise<{ ok: boolean; i
 {
   return new Promise((resolve) => {
     const env = { ...process.env };
-    // Map params to env filters
+
+    // IMPORTANT: Clear all filter env vars first so UI params take precedence over .env.local
+    // Only clear if we have UI params, otherwise use .env.local defaults
+    const hasUIParams = params && (
+      params.makes?.length || params.models?.length ||
+      params.minYear || params.maxYear ||
+      params.minPrice || params.maxPrice ||
+      params.minMileage || params.maxMileage
+    );
+
+    console.log('[WORKER] hasUIParams:', hasUIParams);
+    if (hasUIParams) {
+      console.log('[WORKER] Clearing .env.local filter vars...');
+      // Clear filter env vars so .env.local doesn't override UI params
+      delete env.OU_FILTER_MIN_YEAR;
+      delete env.OU_FILTER_MAX_YEAR;
+      delete env.OU_FILTER_MIN_PRICE;
+      delete env.OU_FILTER_MAX_PRICE;
+      delete env.OU_FILTER_MIN_MILEAGE;
+      delete env.OU_FILTER_MAX_MILEAGE;
+      delete env.OU_FILTER_MAKES;
+      delete env.OU_FILTER_MODELS;
+      delete env.OU_FILTER_POSTED_WITHIN_HOURS;
+    }
+
+    // Map params to env filters (these will now override .env.local)
+    console.log('[WORKER] Setting env vars from UI params...');
     if (params.minYear) env.OU_FILTER_MIN_YEAR = String(params.minYear);
     if (params.maxYear) env.OU_FILTER_MAX_YEAR = String(params.maxYear);
     if (params.minMileage) env.OU_FILTER_MIN_MILEAGE = String(params.minMileage);
@@ -59,6 +85,13 @@ function runOfferupWithEnv(jobId: string, params: any): Promise<{ ok: boolean; i
     if (params.radius) env.OU_RADIUS_MILES = String(params.radius);
     if (params.maxItems) env.OU_MAX_ITEMS = String(params.maxItems);
     if (typeof params.strictModel !== 'undefined') env.OU_STRICT_MODEL = String(params.strictModel);
+
+    console.log('[WORKER] Final env vars being passed to scraper:');
+    console.log('[WORKER]   OU_FILTER_MAKES:', env.OU_FILTER_MAKES);
+    console.log('[WORKER]   OU_FILTER_MODELS:', env.OU_FILTER_MODELS);
+    console.log('[WORKER]   OU_FILTER_POSTED_WITHIN_HOURS:', env.OU_FILTER_POSTED_WITHIN_HOURS);
+    console.log('[WORKER]   OU_FILTER_MIN_YEAR:', env.OU_FILTER_MIN_YEAR);
+    console.log('[WORKER]   OU_FILTER_MAX_YEAR:', env.OU_FILTER_MAX_YEAR);
 
     const tsxPath = './node_modules/.bin/tsx';
     const child = spawn(tsxPath, ['scripts/offerup.ts'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -101,6 +134,13 @@ function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
 async function processOne() {
   const job = await claimJob();
   if (!job) return false;
+
+  console.log('[WORKER] ========================================');
+  console.log('[WORKER] Processing job:', job.id);
+  console.log('[WORKER] Search ID:', job.search_id);
+  console.log('[WORKER] Params:', JSON.stringify(job.params, null, 2));
+  console.log('[WORKER] ========================================');
+
   const result = await runOfferupWithEnv(job.id, job.params || {});
   const patch: any = { finished_at: new Date().toISOString() };
   if (result.cancelled) {

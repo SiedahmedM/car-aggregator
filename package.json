@@ -10,10 +10,19 @@
     "offerup": "dotenv -e .env.local -- tsx ./scripts/offerup.ts",
     "offerup:worker": "dotenv -e .env.local -- tsx ./scripts/offerup_worker.ts",
     "facebook:vehicles": "dotenv -e .env.local -- tsx ./scripts/facebook_marketplace.ts",
+    "facebook:simple": "dotenv -e .env.local -- tsx ./scripts/facebook_marketplace_simple.ts",
+    "facebook:multi-region-ui": "dotenv -e .env.local -- tsx ./scripts/facebook_multi_region_ui.ts",
+    "facebook:chrono": "dotenv -e .env.local -- tsx ./scripts/facebook_chrono.ts",
+    "facebook:capture-chrono": "dotenv -e .env.local -- tsx ./scripts/fb_capture_chrono.ts",
+    "facebook:force-capture": "dotenv -e .env.local -- tsx ./scripts/fb_force_capture.ts",
+    "facebook:force-capture-mobile": "dotenv -e .env.local -- tsx ./scripts/fb_force_capture_mobile.ts",
+    "facebook:force-capture-hybrid": "dotenv -e .env.local -- tsx ./scripts/fb_force_capture_hybrid.ts",
+    "test:facebook:chrono-search": "dotenv -e .env.local -- tsx ./scripts/fb_chrono_search_test.ts",
     "test:offerup:filters": "tsx ./scripts/tests/offerup_filters_test.ts",
     "deal-finder": "dotenv -e .env.local -- tsx ./scripts/deal_finder.ts",
     "deal-finder:queue": "dotenv -e .env.local -- tsx ./scripts/deal_finder_queue.ts",
-    "test:deal-finder:sanity": "tsx ./scripts/deal_finder_sanity.ts"
+    "test:deal-finder:sanity": "tsx ./scripts/deal_finder_sanity.ts",
+    "cleanup:old-listings": "dotenv -e .env.local -- tsx ./scripts/cleanup_old_listings.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.74.0",

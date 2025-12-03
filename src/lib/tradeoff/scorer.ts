@@ -12,7 +12,7 @@ export interface TradeoffParams {
 const FALLBACK_SLOPE_PER_YEAR = -1500     // sensible generic default
 const FALLBACK_SLOPE_PER_MILE = -0.05     // -$0.05 per mile (~$50 per 1k)
 const MIN_PRICE_SCALE = 500               // prevent divide-by-near-zero on tiny IQR
-const HALF_LIFE_HOURS_DEFAULT = 72        // 3 days
+const HALF_LIFE_HOURS_DEFAULT = 168       // 7 days - reduced recency bias for better deal quality
 const MAX_AGE_HOURS_IF_MISSING = 24 * 5   // treat missing postedAt as 5 days old
 
 function toNum(v: unknown): number | null {

@@ -1,3 +1,3 @@
-ReferenceError: STRICT_MODEL is not defined
-    at run (/Users/mohamedsiedahmed/car-aggregator/scripts/offerup.ts:1054:18)
-    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+browserContext.newPage: Target page, context or browser has been closed
+    at runOne (/Users/mohamedsiedahmed/car-aggregator/scripts/offerup.ts:1389:36)
+    at async run (/Users/mohamedsiedahmed/car-aggregator/scripts/offerup.ts:1510:3)

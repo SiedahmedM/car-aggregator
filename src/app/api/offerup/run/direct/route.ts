@@ -53,6 +53,29 @@ async function getSearchesForTodayOrLast(): Promise<OfferupSearch[]> {
 function runOfferupDirect(params: OfferupParams, name?: string): Promise<{ ok: boolean; inserted?: number; skipped?: number; errors?: number; log: string }> {
   return new Promise((resolve) => {
     const env = { ...process.env }
+
+    // IMPORTANT: Clear all filter env vars first so UI params take precedence over .env.local
+    // Only clear if we have UI params, otherwise use .env.local defaults
+    const hasUIParams = params && (
+      params.makes?.length || params.models?.length ||
+      params.minYear || params.maxYear ||
+      params.minPrice || params.maxPrice ||
+      params.minMileage || params.maxMileage
+    );
+
+    if (hasUIParams) {
+      // Clear filter env vars so .env.local doesn't override UI params
+      delete env.OU_FILTER_MIN_YEAR;
+      delete env.OU_FILTER_MAX_YEAR;
+      delete env.OU_FILTER_MIN_PRICE;
+      delete env.OU_FILTER_MAX_PRICE;
+      delete env.OU_FILTER_MIN_MILEAGE;
+      delete env.OU_FILTER_MAX_MILEAGE;
+      delete env.OU_FILTER_MAKES;
+      delete env.OU_FILTER_MODELS;
+      delete env.OU_FILTER_POSTED_WITHIN_HOURS;
+    }
+
     if (params) {
       if (params.minYear) env.OU_FILTER_MIN_YEAR = String(params.minYear)
       if (params.maxYear) env.OU_FILTER_MAX_YEAR = String(params.maxYear)

@@ -1,0 +1,1 @@
+At any point if you need to reference my database fields and tables for context check the file here: /Users/mohamedsiedahmed/car-aggregator/Supabase Snippet Listings Table Column Definitions.csv
