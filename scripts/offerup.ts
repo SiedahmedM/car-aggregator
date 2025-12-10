@@ -542,6 +542,65 @@ const FILTER_HINTS: FilterHints = {
   makeOptions: [],
   sortOptions: [],
 };
+const DEFAULT_FILTER_KEYS = {
+  priceMin: 'PRICE_MIN',
+  priceMax: 'PRICE_MAX',
+  yearMin: 'VEH_YEAR_MIN',
+  yearMax: 'VEH_YEAR_MAX',
+  mileage: 'VEH_MILEAGE',
+};
+const DEFAULT_MILEAGE_BANDS = [0, 25000, 50000, 75000, 100000, 125000, 150000, 175000, 200000];
+
+function resetFilterHints() {
+  FILTER_HINTS.price = null;
+  FILTER_HINTS.year = null;
+  FILTER_HINTS.mileageBands = [];
+  FILTER_HINTS.makeOptions = [];
+  FILTER_HINTS.sortOptions = [];
+}
+
+function hydrateFilterHintsFromBody(body: any) {
+  try {
+    const filters = body?.data?.modularFeed?.filters;
+    if (!Array.isArray(filters)) return;
+    for (const filter of filters) {
+      const target = String(filter?.targetName || '').toUpperCase();
+      if (target === 'PRICE' && !FILTER_HINTS.price) {
+        const minKey = filter?.lowerBound?.targetName || DEFAULT_FILTER_KEYS.priceMin;
+        const maxKey = filter?.upperBound?.targetName || DEFAULT_FILTER_KEYS.priceMax;
+        if (minKey && maxKey) FILTER_HINTS.price = { minKey, maxKey };
+      } else if (target === 'VEH_YEAR' && !FILTER_HINTS.year) {
+        const minKey = filter?.lowerBound?.targetName || DEFAULT_FILTER_KEYS.yearMin;
+        const maxKey = filter?.upperBound?.targetName || DEFAULT_FILTER_KEYS.yearMax;
+        if (minKey && maxKey) FILTER_HINTS.year = { minKey, maxKey };
+      } else if (target === 'VEH_MILEAGE' && !FILTER_HINTS.mileageBands.length) {
+        const options = Array.isArray(filter?.options) ? filter.options : [];
+        const bands = options
+          .map((opt: any) => Number(opt?.value))
+          .filter((n: number) => Number.isFinite(n))
+          .sort((a: number, b: number) => a - b);
+        if (bands.length) FILTER_HINTS.mileageBands = bands;
+      } else if (target === 'VEH_MAKE' && !FILTER_HINTS.makeOptions.length) {
+        const options = Array.isArray(filter?.options) ? filter.options : [];
+        FILTER_HINTS.makeOptions = options
+          .map((opt: any) => ({
+            value: typeof opt?.value === 'string' ? opt.value : '',
+            label: typeof opt?.label === 'string' ? opt.label.toLowerCase() : '',
+          }))
+          .filter((opt: { value: string; label: string }) => opt.value && opt.label);
+      }
+    }
+  } catch {}
+}
+
+function resolveMileageBand(maxMileage: number | null): string | null {
+  if (maxMileage == null) return null;
+  const bands = FILTER_HINTS.mileageBands.length ? FILTER_HINTS.mileageBands : DEFAULT_MILEAGE_BANDS;
+  const match = bands.find((band) => band >= maxMileage);
+  if (typeof match === 'number') return String(match);
+  if (bands.length) return String(bands[bands.length - 1]);
+  return null;
+}
 const LAST_INJECTED: { mileageBand?: number } = {};
 
 // Short, bounded selector wait to avoid long locator hangs
@@ -1202,6 +1261,28 @@ function buildSearchParamsWithFilters(baseParams: any[], q: string): any[] {
   const cap = Math.max(20, Math.min(100, MAX_ITEMS));
   setParam('limit', String(cap));
 
+  const priceKeys = FILTER_HINTS.price ?? {
+    minKey: DEFAULT_FILTER_KEYS.priceMin,
+    maxKey: DEFAULT_FILTER_KEYS.priceMax,
+  };
+  if (F_MIN_PRICE != null) setParam(priceKeys.minKey, String(F_MIN_PRICE));
+  else deleteParam(priceKeys.minKey);
+  if (F_MAX_PRICE != null) setParam(priceKeys.maxKey, String(F_MAX_PRICE));
+  else deleteParam(priceKeys.maxKey);
+
+  const yearKeys = FILTER_HINTS.year ?? {
+    minKey: DEFAULT_FILTER_KEYS.yearMin,
+    maxKey: DEFAULT_FILTER_KEYS.yearMax,
+  };
+  if (F_MIN_YEAR != null) setParam(yearKeys.minKey, String(F_MIN_YEAR));
+  else deleteParam(yearKeys.minKey);
+  if (F_MAX_YEAR != null) setParam(yearKeys.maxKey, String(F_MAX_YEAR));
+  else deleteParam(yearKeys.maxKey);
+
+  const mileageValue = resolveMileageBand(F_MAX_MILEAGE ?? null);
+  if (mileageValue) setParam(DEFAULT_FILTER_KEYS.mileage, mileageValue);
+  else deleteParam(DEFAULT_FILTER_KEYS.mileage);
+
   return params;
 }
 
@@ -1347,6 +1428,7 @@ async function collectActiveFeedGraphQL(q: string): Promise<FeedItem[]> {
     return [];
   }
 
+  hydrateFilterHintsFromBody(first);
   bodies.push(first);
   let cur = first;
   let pagesFetched = 0;
@@ -1375,6 +1457,7 @@ async function collectActiveFeedGraphQL(q: string): Promise<FeedItem[]> {
     const next = await gqlFetchNextPageFromSaved(cursor);
     if (!next) break;
 
+    hydrateFilterHintsFromBody(next);
     const tiles = extractFeedTilesFromBody(next);
     if (!Array.isArray(tiles) || !tiles.length) break;
 
@@ -1391,6 +1474,7 @@ async function collectActiveFeedGraphQL(q: string): Promise<FeedItem[]> {
 
 async function runRegion(regionName?: string) {
   const t0 = Date.now();
+  resetFilterHints();
   const browser = await chromium.launch({ headless: HEADLESS });
   const context = await browser.newContext({ userAgent: DESKTOP_UA });
   const page = await context.newPage();
