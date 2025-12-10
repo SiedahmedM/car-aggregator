@@ -27,7 +27,7 @@ async function main() {
   await page.goto('https://www.facebook.com/', { waitUntil: 'load', timeout: 60_000 })
 
   // Give you time to complete manual auth + navigation
-  const waitMs = Math.max(10_000, parseInt(process.env.FB_WAIT_MS || '60000', 10) || 60_000)
+  const waitMs = Math.max(10_000, parseInt(process.env.FB_WAIT_MS || '150000', 10) || 105_000)
   console.log(`[FB] Waiting ${waitMs}ms for manual login/navigation...`)
   await page.waitForTimeout(waitMs)
 

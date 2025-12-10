@@ -1,0 +1,113 @@
+table_schema,table_name,column_name,data_type
+public,arbitrage_valuations,id,uuid
+public,arbitrage_valuations,listing_id,uuid
+public,arbitrage_valuations,liquidity_tier,USER-DEFINED
+public,arbitrage_valuations,complexity_tier,USER-DEFINED
+public,arbitrage_valuations,asset_type,text
+public,arbitrage_valuations,projected_profit,numeric
+public,arbitrage_valuations,valuation_data,jsonb
+public,arbitrage_valuations,created_at,timestamp with time zone
+public,arbitrage_valuations,updated_at,timestamp with time zone
+public,deal_finder_jobs,id,uuid
+public,deal_finder_jobs,created_at,timestamp with time zone
+public,deal_finder_jobs,started_at,timestamp with time zone
+public,deal_finder_jobs,finished_at,timestamp with time zone
+public,deal_finder_jobs,status,text
+public,deal_finder_jobs,user_id,uuid
+public,deal_finder_jobs,make,text
+public,deal_finder_jobs,model,text
+public,deal_finder_jobs,sources,ARRAY
+public,deal_finder_jobs,reference_car_ids,ARRAY
+public,deal_finder_jobs,result,jsonb
+public,deal_finder_jobs,error,text
+public,deal_finder_jobs,wins,jsonb
+public,deal_finder_jobs,run_now,boolean
+public,deal_scores,id,uuid
+public,deal_scores,listing_id,uuid
+public,deal_scores,user_id,uuid
+public,deal_scores,score,numeric
+public,deal_scores,confidence,numeric
+public,deal_scores,knn_neighbors,jsonb
+public,deal_scores,created_at,timestamp with time zone
+public,deal_scores,updated_at,timestamp with time zone
+public,deal_scores,job_id,uuid
+public,dismissed_deals,listing_id,uuid
+public,dismissed_deals,dismissed_at,timestamp with time zone
+public,flipped_cars,id,uuid
+public,flipped_cars,year,integer
+public,flipped_cars,make,text
+public,flipped_cars,model,text
+public,flipped_cars,mileage,integer
+public,flipped_cars,purchase_price,numeric
+public,flipped_cars,sale_price,numeric
+public,flipped_cars,profit,numeric
+public,flipped_cars,profit_percentage,numeric
+public,flipped_cars,days_to_flip,integer
+public,flipped_cars,source,text
+public,flipped_cars,purchase_date,date
+public,flipped_cars,sale_date,date
+public,flipped_cars,notes,text
+public,flipped_cars,created_at,timestamp with time zone
+public,listings,id,uuid
+public,listings,source,text
+public,listings,remote_id,text
+public,listings,url,text
+public,listings,title,text
+public,listings,price,integer
+public,listings,year,integer
+public,listings,make,text
+public,listings,model,text
+public,listings,mileage,integer
+public,listings,title_status,text
+public,listings,vin,text
+public,listings,city,text
+public,listings,seller_contact,text
+public,listings,posted_at,timestamp with time zone
+public,listings,first_seen_at,timestamp with time zone
+public,listings,updated_at,timestamp with time zone
+public,listings,remote_slug,text
+public,listings,distance_mi,integer
+public,listings,needstimestampresolution,boolean
+public,listings,raw_payload,jsonb
+public,listings,last_seen_at,timestamp with time zone
+public,listings,seen_count,integer
+public,listings,is_new,boolean
+public,listings,is_dealer,boolean
+public,listings,seller_name,text
+public,listings,seller_business_name,text
+public,listings,seller_verified,boolean
+public,offerup_jobs,id,uuid
+public,offerup_jobs,created_at,timestamp with time zone
+public,offerup_jobs,started_at,timestamp with time zone
+public,offerup_jobs,finished_at,timestamp with time zone
+public,offerup_jobs,status,text
+public,offerup_jobs,search_id,uuid
+public,offerup_jobs,params,jsonb
+public,offerup_jobs,result,jsonb
+public,offerup_jobs,error,text
+public,offerup_searches,id,uuid
+public,offerup_searches,created_at,timestamp with time zone
+public,offerup_searches,date_key,date
+public,offerup_searches,name,text
+public,offerup_searches,params,jsonb
+public,offerup_searches,user_id,uuid
+public,offerup_searches,active,boolean
+public,raw_html,id,uuid
+public,raw_html,source,text
+public,raw_html,remote_id,text
+public,raw_html,url,text
+public,raw_html,html,text
+public,raw_html,captured_at,timestamp with time zone
+public,saved_deals,listing_id,uuid
+public,saved_deals,note,text
+public,saved_deals,saved_at,timestamp with time zone
+public,sources,id,uuid
+public,sources,source,text
+public,sources,label,text
+public,sources,config,jsonb
+public,sources,enabled,boolean
+public,sources,created_at,timestamp with time zone
+public,watched_listings,id,uuid
+public,watched_listings,listing_id,uuid
+public,watched_listings,watched_at,timestamp with time zone
+public,watched_listings,created_at,timestamp with time zone

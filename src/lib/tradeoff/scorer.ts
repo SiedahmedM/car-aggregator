@@ -12,7 +12,7 @@ export interface TradeoffParams {
 const FALLBACK_SLOPE_PER_YEAR = -1500     // sensible generic default
 const FALLBACK_SLOPE_PER_MILE = -0.05     // -$0.05 per mile (~$50 per 1k)
 const MIN_PRICE_SCALE = 500               // prevent divide-by-near-zero on tiny IQR
-const HALF_LIFE_HOURS_DEFAULT = 168       // 7 days - reduced recency bias for better deal quality
+const HALF_LIFE_HOURS_DEFAULT = 72        // 3 days
 const MAX_AGE_HOURS_IF_MISSING = 24 * 5   // treat missing postedAt as 5 days old
 
 function toNum(v: unknown): number | null {
@@ -89,20 +89,17 @@ export function computeTradeoffParams(wins: FlippedCar[]): TradeoffParams {
   const slopePerYearEmp = median(slopeY)       // $ per year (often negative)
   const slopePerMileEmp = median(slopeM)       // $ per mile (often negative)
 
-  // Robust price scale: clamp empirical IQR into [800, 4000]
+  // Robust price scale
   let priceIQR = iqr(prices)
   if (!Number.isFinite(priceIQR) || priceIQR <= 0) {
-    // Fall back if identical or pathological
     const robust = Math.max(
       MIN_PRICE_SCALE,
-      mad(prices) * 1.4826 * 2.5,
+      mad(prices) * 2.5 * 1.4826,   // stronger fallback
       (baselinePrice || 10000) * 0.08
     )
     priceIQR = robust
     console.warn('[TRADEOFF] priceIQR=0; using robust fallback scale:', priceIQR)
   }
-  // Clamp to a sensible band for stability across segments
-  priceIQR = Math.min(4000, Math.max(800, priceIQR))
 
   // Price-tier prior & shrinkage
   const tier = Math.min(3, Math.max(1, baselinePrice / 20000)) // 10–60k → 0.5–3 scale, clipped to [1,3]
@@ -130,7 +127,21 @@ export function computeTradeoffParams(wins: FlippedCar[]): TradeoffParams {
   slopePerYear = Math.max(-YEAR_CAP, Math.min(YEAR_CAP, slopePerYear))
   slopePerMile = Math.max(-MILE_CAP, Math.min(MILE_CAP, slopePerMile))
 
-  // Keep the same field name so callers don’t change
+  // === Price scale widening for broad ranges ===
+  const ALLOWED_DELTA_YEARS = 5
+  const ALLOWED_DELTA_MILES = 50_000
+  const PRICE_SCALE_MIN_FRACTION = 0.08      // at least 8% of baseline price
+  const PRICE_SCALE_ALLOWANCE_FRACTION = 0.30 // use 30% of slope-implied allowance
+
+  const allowance =
+    Math.abs(slopePerYear) * ALLOWED_DELTA_YEARS +
+    Math.abs(slopePerMile) * ALLOWED_DELTA_MILES
+
+  const priceScaleMin = Math.max(MIN_PRICE_SCALE, baselinePrice * PRICE_SCALE_MIN_FRACTION)
+  const widened = Math.max(priceIQR, priceScaleMin, allowance * PRICE_SCALE_ALLOWANCE_FRACTION)
+
+  // Keep the same field name so callers don't change
+  priceIQR = widened
 
   console.log('[TRADEOFF] Params:', {
     baselineYear, baselineMiles, baselinePrice,
@@ -185,15 +196,12 @@ export function scoreListingTradeoff(
   const ageHours = Math.max(0, (nowMs - postedMs) / (1000 * 60 * 60))
   const lambda = Math.log(2) / halfLifeHours
   const freshness = Math.exp(-lambda * ageHours)
-  // Soft floor on freshness to avoid crushing slightly older posts
-  const FRESHNESS_FLOOR = 0.75
-  const freshnessAdj = Math.max(freshness, FRESHNESS_FLOOR)
 
-  const tradeoffScore = similarity * dealBonus * freshnessAdj
+  const tradeoffScore = similarity * dealBonus * freshness
 
   return {
     tradeoffSimilarity: Math.round(similarity * 10000) / 10000,
-    freshness: Math.round(freshnessAdj * 10000) / 10000,
+    freshness: Math.round(freshness * 10000) / 10000,
     tradeoffScore: Math.round(tradeoffScore * 10000) / 10000,
     adjustedPrice: Math.round(adjustedPrice),
     residual: Math.round(residual),

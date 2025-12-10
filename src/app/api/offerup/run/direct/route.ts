@@ -18,6 +18,8 @@ type OfferupParams = {
   lng?: number
   radius?: number
   maxItems?: number
+  multiRegion?: number
+  regionCount?: number
 }
 
 type OfferupSearch = { id: string; name?: string; params: OfferupParams; created_at?: string; date_key?: string; active?: boolean }
@@ -90,6 +92,8 @@ function runOfferupDirect(params: OfferupParams, name?: string): Promise<{ ok: b
       if (params.lng) env.OU_LNG = String(params.lng)
       if (params.radius) env.OU_RADIUS_MILES = String(params.radius)
       if (params.maxItems) env.OU_MAX_ITEMS = String(params.maxItems)
+      if (params.multiRegion) env.OU_MULTI_REGION = String(params.multiRegion)
+      if (params.regionCount) env.OU_REGION_COUNT = String(params.regionCount)
     }
     // If no explicit models, treat the saved-search name as a model hint
     if ((!params?.models || params.models.length === 0) && name) {

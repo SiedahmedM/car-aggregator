@@ -519,33 +519,18 @@ async function installCatchAllRoute(context: BrowserContext) {
     const url = req.url()
     const rt = req.resourceType()
 
-    // 1. Block by resource type (now includes stylesheets for massive bandwidth savings)
-    const blockedTypes = ['image', 'media', 'font', 'websocket', 'stylesheet', 'manifest']
+    // 1. Block only images and videos (minimal blocking to preserve UI functionality)
+    const blockedTypes = ['image', 'media']
     if (blockedTypes.includes(rt)) {
       return route.abort()
     }
 
-    // 2. Block ALL fbcdn.net domains (CDN assets: static.xx.fbcdn.net, scontent.*, video.*)
-    try {
-      const h = new URL(url).hostname
-
-      // Block Facebook CDN domains (saves ~400MB - static assets, images, videos)
-      if (/\.fbcdn\.net$/i.test(h)) {
-        return route.abort()
-      }
-
-      // Block chat/gateway domains
-      if (/(^|\.)edge-chat\.facebook\.com$/i.test(h) || /(^|\.)gateway\.facebook\.com$/i.test(h)) {
-        return route.abort()
-      }
-    } catch {}
-
-    // 3. Block by file extension (catches edge cases)
-    if (/\.(css|woff2?|ttf|eot|png|jpg|jpeg|gif|webp|svg|ico|mp4|webm|mov)(\?|$)/i.test(url)) {
+    // 2. Block image/video file extensions
+    if (/\.(png|jpg|jpeg|gif|webp|svg|ico|bmp|mp4|webm|mov|avi|flv)(\?|$)/i.test(url)) {
       return route.abort()
     }
 
-    // 4. Block video/stream paths
+    // 3. Block video/stream paths
     if (/\/(dash|hls|video|stream)\//i.test(url)) {
       return route.abort()
     }
@@ -3298,7 +3283,7 @@ async function scrapeRegion(regionName?: string) {
   // 1. DOM data rarely includes posted_at timestamps
   // 2. Detail pages are the only reliable source for posted_at
   // 3. We need accurate timestamps before filtering by recency
-  // 
+  //
   // This matches OfferUp's approach (see offerup.ts lines 1479-1486)
   // ==================================================================================
   let filteredRows = allRows
@@ -3318,7 +3303,62 @@ async function scrapeRegion(regionName?: string) {
       console.log(`[FB] Timestamp filter: ${before} rows -> ${after} rows (within ${FB_FILTER_POSTED_WITHIN_HOURS}h, ${withTimestamps} had timestamps)`)
     }
   }
-  
+
+  // ==================================================================================
+  // FINAL PRE-UPSERT FILTERING:
+  // Apply business rules before upserting to database:
+  // 1. Price must be at least $15,000
+  // 2. Year must be 2012 or newer
+  // 3. Posted within last 2 days (48 hours)
+  // ==================================================================================
+  const beforeFinalFilter = filteredRows.length
+  const twoDaysAgo = Date.now() - (2 * 24 * 3_600_000)  // 48 hours in milliseconds
+
+  filteredRows = filteredRows.filter(row => {
+    // Price filter: must be >= $15,000
+    if (row.price == null || row.price < 15000) {
+      if (FB_DEBUG) {
+        debug(`[FINAL-FILTER] REJECT (price < $15k): "${row.title}" - price: $${row.price}`)
+      }
+      return false
+    }
+
+    // Year filter: must be >= 2012
+    if (row.year == null || row.year < 2012) {
+      if (FB_DEBUG) {
+        debug(`[FINAL-FILTER] REJECT (year < 2012): "${row.title}" - year: ${row.year}`)
+      }
+      return false
+    }
+
+    // Date filter: must be posted within last 2 days
+    if (row.posted_at) {
+      const postedTime = new Date(row.posted_at).getTime()
+      if (Number.isFinite(postedTime) && postedTime < twoDaysAgo) {
+        if (FB_DEBUG) {
+          const ageHours = Math.round((Date.now() - postedTime) / 3600_000)
+          debug(`[FINAL-FILTER] REJECT (posted > 2 days ago): "${row.title}" - posted ${ageHours}h ago`)
+        }
+        return false
+      }
+    } else {
+      // If no posted_at timestamp, reject it (can't verify it's within 2 days)
+      if (FB_DEBUG) {
+        debug(`[FINAL-FILTER] REJECT (no posted_at): "${row.title}"`)
+      }
+      return false
+    }
+
+    // Passed all filters
+    return true
+  })
+
+  const afterFinalFilter = filteredRows.length
+  const rejectedByFinalFilter = beforeFinalFilter - afterFinalFilter
+
+  info(`[FINAL-FILTER] Applied business rules: ${beforeFinalFilter} listings -> ${afterFinalFilter} listings`)
+  info(`[FINAL-FILTER] Rejected: ${rejectedByFinalFilter} (price < $15k, year < 2012, or posted > 2 days ago)`)
+
   const res = await upsertListings(filteredRows)
 
   // [NEW-LISTING-DETECTION] Output summary with NEW listings highlighted

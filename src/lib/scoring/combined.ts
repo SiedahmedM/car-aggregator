@@ -5,9 +5,9 @@ import { scoreListing as scoreListingKNN } from '../knn/scorer'
 
 const TRADEOFF_WEIGHT = 0.70
 const KNN_WEIGHT = 0.30
-const MIN_GATE = 0.08
+const MIN_GATE = 0.05
 const MAX_GATE = 0.20
-// const MIN_COMBINED_CONFIDENCE = 0.08  // fallback gate if LOOCV not available
+const MIN_SCORE_FLOOR = 0.15  // Fixed score floor from old commit
 
 export function computeLOOCVThreshold(
   wins: FlippedCar[],
@@ -109,7 +109,7 @@ export function prepareCombinedContext(wins: FlippedCar[]): CombinedContext {
 
   const thrRaw = computeLOOCVThreshold(wins, tw, kw, params)
   const threshold = Math.min(Math.max(thrRaw, MIN_GATE), MAX_GATE)
-  const scoreFloor = Math.max(0.12, Math.min(0.25, 0.5 * threshold + 0.05))
+  const scoreFloor = MIN_SCORE_FLOOR  // Use fixed score floor from old commit
 
   console.log('[COMBINED] Gate:', {
     thresholdRaw: +thrRaw.toFixed(3),

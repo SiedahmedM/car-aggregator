@@ -12,6 +12,8 @@ type Params = {
   maxPrice?: number
   postedWithinHours?: number
   radius?: number
+  multiRegion?: number
+  regionCount?: number
 }
 
 type Search = { id: string; name: string; params: Params; created_at: string; date_key: string; active: boolean }
@@ -212,6 +214,8 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
           maxPrice: parseInt(String(fd.get('maxPrice') || '')) || undefined,
           postedWithinHours: parseInt(String(fd.get('postedWithinHours') || '')) || undefined,
           radius: parseInt(String(fd.get('radius') || '')) || undefined,
+          multiRegion: String(fd.get('multiRegion') || '') === '1' ? 1 : undefined,
+          regionCount: parseInt(String(fd.get('regionCount') || '')) || undefined,
         },
       }
       const res = await fetch('/api/offerup/searches', {
@@ -537,7 +541,24 @@ export default function SearchesClient({ initialSearches, initialJobs }: { initi
               </div>
               <div className="md:col-span-3">
                 <label className="mb-1 block text-xs text-neutral-400">Radius (miles)</label>
-                <input name="radius" type="number" placeholder="150" className="w-full rounded-lg bg-neutral-950 border border-white/10 px-3 py-2 text-sm" />
+                <input name="radius" type="number" placeholder="35" className="w-full rounded-lg bg-neutral-950 border border-white/10 px-3 py-2 text-sm" />
+              </div>
+              <div className="md:col-span-3">
+                <label className="mb-1 flex items-center gap-1 text-xs text-neutral-400">
+                  Multi-Region
+                  <span className="text-[10px] text-neutral-500">• optional</span>
+                </label>
+                <select name="multiRegion" className="w-full rounded-lg bg-neutral-950 border border-white/10 px-3 py-2 text-sm">
+                  <option value="">Single Location</option>
+                  <option value="1">Multi-Region (6 cities)</option>
+                </select>
+                <div className="mt-1 text-[10px] text-neutral-500">
+                  Multi-region scrapes 6 cities (80 mile radius each)
+                </div>
+              </div>
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-xs text-neutral-400">Region Count</label>
+                <input name="regionCount" type="number" placeholder="3" min="1" max="6" className="w-full rounded-lg bg-neutral-950 border border-white/10 px-3 py-2 text-sm" />
               </div>
               <div className="md:col-span-12 flex items-center gap-2 pt-1">
                 <button disabled={busy} className="rounded-lg bg-emerald-600 px-3 py-2 text-sm text-white transition hover:bg-emerald-500 active:bg-emerald-600 disabled:opacity-50">

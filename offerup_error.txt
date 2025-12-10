@@ -1,3 +1,3 @@
 browserContext.newPage: Target page, context or browser has been closed
-    at runOne (/Users/mohamedsiedahmed/car-aggregator/scripts/offerup.ts:1389:36)
-    at async run (/Users/mohamedsiedahmed/car-aggregator/scripts/offerup.ts:1510:3)
+    at runOne (/Users/mohamedsiedahmed/car-aggregator/scripts/offerup.ts:1414:36)
+    at run (/Users/mohamedsiedahmed/car-aggregator/scripts/offerup.ts:1534:54)

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { MakeModelCardView } from './MakeModelCardView'
 
 // --- TYPES ---
 type ListingRow = {
@@ -125,7 +126,6 @@ function ListingCard({ r, onWatch, onDelete }: { r: ListingRow, onWatch?: (id: s
 
       {/* MMR and Profit Display */}
       {mmr && (
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         <div className="mt-3 p-2 bg-neutral-950/50 rounded-lg border border-white/5">
           <div className="flex items-center justify-between text-xs">
             <span className="text-neutral-400">Est. MMR:</span>
@@ -183,14 +183,17 @@ function ListingCard({ r, onWatch, onDelete }: { r: ListingRow, onWatch?: (id: s
 // --- MAIN COMPONENT ---
 export function LiveMarketFeed({
   initialListings,
+  initialExotics = [],
   initialWatched,
   searchParams
 }: {
   initialListings: ListingRow[]
+  initialExotics?: ListingRow[]
   initialWatched: WatchedListing[]
   searchParams: Record<string, string>
 }) {
   const [listings, setListings] = useState<ListingRow[]>(initialListings)
+  const [exotics, setExotics] = useState<ListingRow[]>(initialExotics)
   const [watchedListings, setWatchedListings] = useState<WatchedListing[]>(initialWatched)
   const [showAll, setShowAll] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -294,6 +297,7 @@ export function LiveMarketFeed({
         // Move from watched back to listings
         const watched = watchedListings.find(w => w.id === listingId)
         if (watched) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { watched_at, ...listing } = watched
           setListings(prev => [listing, ...prev])
           setWatchedListings(prev => prev.filter(w => w.id !== listingId))
@@ -448,6 +452,83 @@ export function LiveMarketFeed({
 
   return (
     <>
+      {/* === EXOTICS ($100K+) === */}
+      {exotics.length > 0 && (
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-white">🏎️ Exotics</h2>
+            <div className="text-xs text-neutral-400">{exotics.length} high-value vehicles</div>
+          </div>
+
+          {/* Mobile View */}
+          <div className="md:hidden space-y-4">
+            {exotics.map(e => (
+              <div key={e.id} className="relative">
+                <ListingCard r={e} onWatch={handleWatch} onDelete={handleDelete} />
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-auto rounded-xl ring-1 ring-white/10 bg-neutral-900/20">
+            <table className="min-w-full text-sm">
+              <thead className="bg-neutral-950/50 text-left text-neutral-400 text-xs uppercase tracking-wider">
+                <tr>
+                  <th className="py-3 pl-4 pr-2">Posted</th>
+                  <th className="py-3 pr-2">Vehicle</th>
+                  <th className="py-3 pr-2">Price</th>
+                  <th className="py-3 pr-2">Miles</th>
+                  <th className="py-3 pr-2">Location</th>
+                  <th className="py-3 pr-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {exotics.map((e) => (
+                  <tr key={e.id} className="group hover:bg-white/5 transition">
+                    <td className="py-3 pl-4 pr-2 text-neutral-400 text-xs whitespace-nowrap">
+                      {e.first_seen_at ? getTimeAgo(e.first_seen_at) : '—'}
+                    </td>
+                    <td className="py-3 pr-2 font-medium text-neutral-200">
+                      {e.title || `${e.year || ''} ${e.make || ''} ${e.model || ''}`.trim() || '—'}
+                    </td>
+                    <td className="py-3 pr-2 text-yellow-400 font-bold">
+                      {e.price ? `$${Number(e.price).toLocaleString()}` : '—'}
+                    </td>
+                    <td className="py-3 pr-2 text-neutral-400">
+                      {e.mileage ? `${(Number(e.mileage)/1000).toFixed(0)}k` : '—'}
+                    </td>
+                    <td className="py-3 pr-2 text-neutral-400 text-xs">
+                      {e.city || '—'}
+                    </td>
+                    <td className="py-3 pr-4 text-right flex gap-2 justify-end">
+                      {e.url && (
+                        <a href={e.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-xs font-medium">
+                          OPEN
+                        </a>
+                      )}
+                      <button
+                        onClick={() => handleWatch(e.id)}
+                        disabled={loading}
+                        className="text-emerald-400 hover:text-emerald-300 text-xs font-medium disabled:opacity-50"
+                      >
+                        WATCH
+                      </button>
+                      <button
+                        onClick={() => handleDelete(e.id)}
+                        disabled={loading}
+                        className="text-rose-400 hover:text-rose-300 text-xs font-medium disabled:opacity-50"
+                      >
+                        DELETE
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
       {/* === CURRENTLY WATCHING === */}
       {watchedListings.length > 0 && (
         <section className="mb-8">
@@ -736,6 +817,22 @@ export function LiveMarketFeed({
             </div>
           )}
         </div>
+      </section>
+
+      {/* === MAKE/MODEL CARD VIEW === */}
+      <section className="pt-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-white">Browse by Make & Model</h2>
+          <div className="text-xs text-neutral-400">
+            Organized view of {displayedListings.length} listings
+          </div>
+        </div>
+
+        <MakeModelCardView
+          listings={displayedListings}
+          onWatch={handleWatch}
+          onDelete={handleDelete}
+        />
       </section>
     </>
   )

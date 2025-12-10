@@ -64,7 +64,7 @@ export default function AnalyticsPage() {
     setDealErr(null)
     if (!dealsLoaded) setLoadingDeals(true)
     try {
-      const res = await fetch('/api/deal-scores/top?limit=10', { cache: 'no-store' })
+      const res = await fetch('/api/deal-scores/top?limit=15', { cache: 'no-store' })
       if (!res.ok) {
         const j = await res.json().catch(() => ({}))
         setDealErr(j.error || 'Failed to load deals')
@@ -159,10 +159,10 @@ export default function AnalyticsPage() {
           )}
         </div>
 
-        {/* Card 2: Deal Scores (Top 10) */}
+        {/* Card 2: Deal Scores (Top 15) */}
         <div className="rounded-2xl bg-neutral-900/60 ring-1 ring-white/10 divide-y divide-white/10 shadow-sm shadow-black/30">
           <div className="p-3 flex items-center justify-between">
-            <div className="text-sm font-medium">Deal Scores (Top 10)</div>
+            <div className="text-sm font-medium">Deal Scores (Top 15)</div>
             <div className="flex items-center gap-2">
               <button onClick={() => setShowNewHunt((s) => !s)} className="text-xs rounded-md bg-blue-600 text-white px-2 py-1 hover:bg-blue-500">
                 {showNewHunt ? 'Close hunt' : 'Start new hunt'}

@@ -34,19 +34,41 @@ const logError = (msg: string, meta?: Record<string, unknown>) => log('error', m
 
 // ---------- Env knobs ----------
 // Note: legacy OFFERUP_URL is ignored; we now rely solely on GraphQL active feed.
-// Item cap
-const MAX_ITEMS = parseInt(process.env.OU_MAX_ITEMS || '60', 10);
+// Item cap (increased from 60 to 200 for better coverage)
+const MAX_ITEMS = parseInt(process.env.OU_MAX_ITEMS || '200', 10);
 // UI scroll passes removed
 const HEADLESS = (process.env.OU_HEADLESS ?? 'true').toLowerCase() === 'true';
-const LAT = Number(process.env.OU_LAT ?? '33.8166');
-const LNG = Number(process.env.OU_LNG ?? '-118.0373');
-const RADIUS = parseInt(process.env.OU_RADIUS_MILES || '35', 10);
+
+// Multi-region configuration
+const OU_MULTI_REGION = (process.env.OU_MULTI_REGION ?? '0') === '1';
+const OU_REGION_COUNT = parseInt(process.env.OU_REGION_COUNT || '6', 10);
+const OU_REGION_DELAY_MS = parseInt(process.env.OU_REGION_DELAY_MS || '5000', 10);
+
+// Major regions for multi-region scraping (Southern California + Arizona)
+const US_REGIONS = [
+  { name: 'Los Angeles, CA', lat: 34.0522, lng: -118.2437 },
+  { name: 'San Francisco, CA', lat: 37.7749, lng: -122.4194 },
+  { name: 'San Diego, CA', lat: 32.7157, lng: -117.1611 },
+  { name: 'Orange County, CA', lat: 33.7175, lng: -117.8311 },
+  { name: 'Phoenix, AZ', lat: 33.4484, lng: -112.0740 },
+  { name: 'Scottsdale, AZ', lat: 33.4942, lng: -111.9261 },
+];
+
+// Location (will be overridden in multi-region mode)
+let LAT = Number(process.env.OU_LAT ?? '33.8166');
+let LNG = Number(process.env.OU_LNG ?? '-118.0373');
+let RADIUS = parseInt(process.env.OU_RADIUS_MILES || '35', 10);
 
 // DEBUG: Log loaded coordinates immediately
 console.log('[DEBUG] Loaded coordinates from environment:');
 console.log('  OU_LAT =', LAT, '(from env:', process.env.OU_LAT, ')');
 console.log('  OU_LNG =', LNG, '(from env:', process.env.OU_LNG, ')');
 console.log('  OU_RADIUS_MILES =', RADIUS);
+console.log('  OU_MULTI_REGION =', OU_MULTI_REGION);
+if (OU_MULTI_REGION) {
+  console.log('  OU_REGION_COUNT =', OU_REGION_COUNT);
+  console.log('  OU_REGION_DELAY_MS =', OU_REGION_DELAY_MS);
+}
 const DETAIL_CONCURRENCY = Math.min(3, parseInt(process.env.OU_DETAIL_CONCURRENCY || '3', 10) || 3);
 const PAGINATE_PAGES = parseInt(process.env.OU_PAGINATE_PAGES || '6', 10);
 // UI/scroll/mobile fallbacks removed entirely
@@ -299,9 +321,21 @@ const VEHICLE_DICTIONARY: { makes: Record<string, string[]> } = {
     "buick": ["encore","enclave","lacrosse"],
     "pontiac": ["g6","g8","vibe"],
     "lincoln": ["mkz","mkx","navigator"],
-    "porsche": ["cayenne","macan","911"],
-    "jaguar": ["xf","xe","f-type"],
-    "mini": ["cooper","countryman"]
+    "porsche": ["cayenne","macan","911","boxster","cayman","panamera","taycan"],
+    "jaguar": ["xf","xe","f-type","f-pace","e-pace"],
+    "mini": ["cooper","countryman"],
+    // Ultra-Luxury & Exotic Brands
+    "lamborghini": ["aventador","huracan","urus","gallardo","murcielago"],
+    "ferrari": ["488","458","f430","california","portofino","812","f8","sf90","roma","296","laferrari"],
+    "rolls royce": ["phantom","ghost","wraith","cullinan","dawn"],
+    "bentley": ["continental","flying spur","bentayga","mulsanne"],
+    "aston martin": ["db9","db11","vantage","dbs","rapide","vanquish"],
+    "maserati": ["ghibli","quattroporte","levante","granturismo","grancabrio"],
+    "mclaren": ["720s","570s","650s","540c","600lt","gt","artura","p1"],
+    "bugatti": ["veyron","chiron"],
+    "lotus": ["elise","exige","evora","emira"],
+    "alfa romeo": ["giulia","stelvio","4c"],
+    "maybach": ["s class","gls"]
   }
 };
 
@@ -343,6 +377,33 @@ function parseModelFromTitle(title?: string | null): { year: number | null; make
   };
   if (make) {
     model = tryModels(make) || null;
+
+    // Fallback: If model not found in dictionary, try to extract it from the title
+    if (!model) {
+      // Remove year and make from the title to get remaining tokens
+      const withoutYear = s.replace(/\b(19|20)\d{2}\b/, '').trim();
+      const makeIndex = withoutYear.indexOf(make);
+      if (makeIndex !== -1) {
+        const afterMake = withoutYear.substring(makeIndex + make.length).trim();
+        // Extract first meaningful token(s) after make
+        // Handle patterns like: "benz e class", "e class", "civic", "3 series"
+        const modelMatch = afterMake.match(/^([a-z0-9]+(?:\s+[a-z0-9]+)?)\b/);
+        if (modelMatch) {
+          const extracted = modelMatch[1].trim();
+          // Filter out common non-model words
+          const skipWords = ['benz', 'for', 'sale', 'auto', 'car', 'vehicle', 'sedan', 'coupe', 'suv'];
+          if (!skipWords.includes(extracted.split(' ')[0])) {
+            // For "benz e class", skip "benz" and get "e class"
+            if (make === 'mercedes' && extracted.startsWith('benz ')) {
+              const afterBenz = extracted.substring(5).trim();
+              if (afterBenz) model = afterBenz;
+            } else {
+              model = extracted;
+            }
+          }
+        }
+      }
+    }
   } else {
     // dictionary-wide fallback
     for (const mk of makes) {
@@ -1328,7 +1389,7 @@ async function collectActiveFeedGraphQL(q: string): Promise<FeedItem[]> {
   return items;
 }
 
-async function run() {
+async function runRegion(regionName?: string) {
   const t0 = Date.now();
   const browser = await chromium.launch({ headless: HEADLESS });
   const context = await browser.newContext({ userAgent: DESKTOP_UA });
@@ -1340,7 +1401,8 @@ async function run() {
   if (F_MAKES.length) qParts.push(...F_MAKES);
   if (F_MODELS.length) qParts.push(...F_MODELS);
   const SEARCH_Q = (process.env.OU_SEARCH_QUERY || '').trim();
-  const q = (SEARCH_Q || qParts.join(' ').trim());
+  const DEFAULT_VEHICLE_QUERY = 'car truck suv'; // Fallback to ensure vehicle-only results
+  const q = (SEARCH_Q || qParts.join(' ').trim() || DEFAULT_VEHICLE_QUERY);
 
   if (q.length) {
     logInfo('[ACTIVE-FEED] query', { q });
@@ -1390,27 +1452,59 @@ async function run() {
 
     if (keep) strictFeed.push({ ...tile, parsed });
   }
-  try { logInfo('[HARD FILTER] kept feed', { kept: strictFeed.length }); } catch {}
+  const beforeHardFilter = feed.length;
+  const afterHardFilter = strictFeed.length;
+  const hardFilterRejected = beforeHardFilter - afterHardFilter;
+  logInfo('[HARD FILTER] Results', {
+    before: beforeHardFilter,
+    after: afterHardFilter,
+    rejected: hardFilterRejected,
+    filters: {
+      makes: F_MAKES.length > 0 ? F_MAKES : 'none',
+      models: F_MODELS.length > 0 ? F_MODELS : 'none',
+      priceRange: F_MIN_PRICE || F_MAX_PRICE ? `${F_MIN_PRICE || 0}-${F_MAX_PRICE || '∞'}` : 'none',
+      yearRange: F_MIN_YEAR || F_MAX_YEAR ? `${F_MIN_YEAR || 0}-${F_MAX_YEAR || '∞'}` : 'none'
+    }
+  });
+
   // ---------------- END HARD FILTER ------------------------
   const seen = new Set<string>();
-  feed = feed.filter(it => {
+  const beforeDedupe = strictFeed.length;
+  const deduped = strictFeed.filter(it => {
     if (!it.id || seen.has(it.id)) return false;
     seen.add(it.id);
     return true;
-  }).slice(0, MAX_ITEMS);
+  });
+  const duplicatesRemoved = beforeDedupe - deduped.length;
+  if (duplicatesRemoved > 0) {
+    logInfo('[DEDUPLICATION] Removed duplicates', { removed: duplicatesRemoved, remaining: deduped.length });
+  }
 
-  // Final feed selection for detail-phase
-  const finalFeed: FeedItem[] = strictFeed;
+  const beforeCap = deduped.length;
+  const finalFeed: FeedItem[] = deduped.slice(0, MAX_ITEMS);
+  const cappedCount = beforeCap - finalFeed.length;
+  if (cappedCount > 0) {
+    logInfo('[MAX_ITEMS CAP] Capped listings', { cap: MAX_ITEMS, capped: cappedCount, processing: finalFeed.length });
+  } else {
+    logInfo('[FEED READY] Proceeding to detail phase', { totalItems: finalFeed.length, maxCap: MAX_ITEMS });
+  }
 
   const summaryBase = { feedCount: finalFeed.length } as any;
   const accepted: any[] = [];
   let errors = 0;
+  let dealersFiltered = 0;
+  let timestampRejected = 0;
 
   const queue = [...finalFeed];
   const workers: Promise<void>[] = [];
+  let processedCount = 0;
   const runOne = async () => {
     while (queue.length) {
       const item = queue.shift()!;
+      processedCount++;
+      if (processedCount % 10 === 0) {
+        logInfo('[DETAIL-PHASE] Progress', { processed: processedCount, remaining: queue.length });
+      }
       const detail = await context.newPage();
       await detail.waitForTimeout(75 + Math.random() * 75);
       const url = item.url;
@@ -1429,6 +1523,7 @@ async function run() {
         const FILTER_DEALERS = (process.env.OU_FILTER_DEALERS ?? 'false').toLowerCase() === 'true';
 
         if (FILTER_DEALERS && isDealer) {
+          dealersFiltered++;
           logInfo('[DEALER-FILTER] Skipping dealer listing', {
             url,
             seller: sellerInfo?.businessName || sellerInfo?.sellerName,
@@ -1456,6 +1551,7 @@ async function run() {
             const ts = new Date(posted_at).getTime();
             if (!Number.isFinite(ts) || ts < cutoff) {
               RUN_STATS.postedRejected++;
+              timestampRejected++;
               try { logInfo('[TS] too old', { url, posted_at }); } catch {}
               continue;
             } else {
@@ -1469,6 +1565,7 @@ async function run() {
           }
         } else {
           RUN_STATS.missingTimestamp++;
+          timestampRejected++;
           needsTimestampResolution = true;
           try { logInfo('[TS] missing timestamp → rejecting', { url, id: remote_id }); } catch {}
           continue;
@@ -1507,18 +1604,8 @@ async function run() {
           seller_verified: sellerInfo?.truYouVerified || false,
         };
 
-        // Make/Model filtering strictly via parsed values (no substring)
-        const wantsMake = F_MAKES.length ? F_MAKES.map(m => m.toLowerCase()) : null;
-        const wantsModel = F_MODELS.length ? F_MODELS.map(m => m.toLowerCase()) : null;
-        const parsedMake = parsed.make ? parsed.make.toLowerCase() : null;
-        const parsedModel = parsed.model ? parsed.model.toLowerCase() : null;
-
-        if (wantsMake && !wantsMake.includes(parsedMake as any)) {
-          continue;
-        }
-        if (wantsModel && !wantsModel.includes(parsedModel as any)) {
-          continue;
-        }
+        // Make/Model filtering already applied in hard filter phase (lines 1434-1435)
+        // Removed duplicate filter here for performance
 
         accepted.push(candidate);
       } catch (e: any) {
@@ -1531,14 +1618,31 @@ async function run() {
   };
 
   const workerCount = Math.max(1, Math.min(DETAIL_CONCURRENCY, 3));
+  logInfo('[DETAIL-PHASE] Starting detail enrichment', {
+    totalItems: finalFeed.length,
+    workers: workerCount,
+    concurrency: DETAIL_CONCURRENCY
+  });
+
   for (let i = 0; i < workerCount; i++) workers.push(runOne());
   await Promise.all(workers);
 
+  logInfo('[DETAIL-PHASE] Completed detail enrichment', {
+    processed: finalFeed.length,
+    accepted: accepted.length,
+    dealersFiltered,
+    timestampRejected,
+    errors,
+    successRate: `${((accepted.length / finalFeed.length) * 100).toFixed(1)}%`
+  });
+
+  // Track actual inserted count
+  let actualInsertedCount = 0;
+
   if (accepted.length) {
-    // Require minimal fields: remote_id, source, url, model
+    // Require minimal fields: remote_id, source, url
     const sinceMs = F_POSTED_WITHIN_HOURS != null ? (Date.now() - (F_POSTED_WITHIN_HOURS * 3600_000)) : null;
     const finalRows = accepted
-      .filter(r => typeof r.model === 'string' && r.model.length > 0)
       .filter(r => {
         if (sinceMs == null) return r.posted_at != null;
         if (!r.posted_at) return false;
@@ -1571,20 +1675,14 @@ async function run() {
 
     logInfo('[UPSERT] inserting', { rows: finalRows.length });
     for (const group of chunked(finalRows, 75)) {
-      // FINAL RECENCY FILTER – NOTHING OLDER THAN X HOURS IS EVER UPSERTED
-      let rows = group;
-      if (F_POSTED_WITHIN_HOURS !== null) {
-        const cutoff = Date.now() - F_POSTED_WITHIN_HOURS * 3600_000; // Date.now() is UTC-based; compare using UTC timestamps
-        rows = rows.filter(r => {
-          if (!r.posted_at) return false; // must have timestamp
-          const ts = new Date(r.posted_at).getTime();
-          if (Number.isNaN(ts)) return false;
-          return ts >= cutoff;
-        });
-      }
+      // Timestamp filtering already applied twice:
+      // 1. During detail phase (lines 1520-1541) - filters for recency
+      // 2. Before finalRows (lines 1621-1628) - validates timestamps
+      // Removed redundant third filter here for performance
+
       // Enforce source/remote_id presence
-      const cleaned = rows.filter(r => r.source && r.remote_id);
-      const skipped = rows.filter(r => !r.source || !r.remote_id);
+      const cleaned = group.filter(r => r.source && r.remote_id);
+      const skipped = group.filter(r => !r.source || !r.remote_id);
       if (skipped.length) {
         logWarn('[UPsert] skipping rows missing keys', {
           skippedCount: skipped.length,
@@ -1624,6 +1722,7 @@ async function run() {
         errors++;
       } else {
         logInfo('[UPsert] detail upsert success', { upsertedCount: deduplicated.length });
+        actualInsertedCount += deduplicated.length;
       }
     }
   }
@@ -1718,17 +1817,23 @@ async function run() {
     } as any);
   } catch {}
 
-  // Output success JSON for worker to parse
-  const inserted = accepted.length;
+  // Output success JSON for worker to parse (only in single-region mode)
+  // Use actualInsertedCount which reflects items that actually made it to the database
+  const inserted = actualInsertedCount;
   const skipped = (summaryBase.feedCount as number || 0) - inserted;
-  console.log(JSON.stringify({
-    ok: true,
-    inserted,
-    skipped,
-    errors,
-  }));
+
+  if (!OU_MULTI_REGION) {
+    console.log(JSON.stringify({
+      ok: true,
+      inserted,
+      skipped,
+      errors,
+    }));
+  }
 
   await browser.close();
+
+  return { inserted, skipped };
 }
 
 // Placeholder for future timestamp resolution worker
@@ -1737,7 +1842,89 @@ async function resolveTimestampFallback(url: string): Promise<string | null> {
   return null;
 }
 
-run().catch(async (err) => {
+async function main() {
+  if (!OU_MULTI_REGION) {
+    // Single region mode - run once
+    await runRegion();
+    return;
+  }
+
+  // Multi-region mode
+  console.log('\n' + '='.repeat(70));
+  console.log('[MULTI-REGION] OfferUp Multi-Region Scraper');
+  console.log('='.repeat(70));
+  console.log(`Regions: ${OU_REGION_COUNT}`);
+  console.log(`Delay between regions: ${OU_REGION_DELAY_MS}ms`);
+  console.log('='.repeat(70) + '\n');
+
+  const regionsToScrape = US_REGIONS.slice(0, OU_REGION_COUNT);
+  const startTime = Date.now();
+  const results: Array<{ region: string; inserted: number; skipped: number }> = [];
+
+  for (let i = 0; i < regionsToScrape.length; i++) {
+    const region = regionsToScrape[i];
+    console.log(`\n[${i + 1}/${OU_REGION_COUNT}] Scraping: ${region.name}`);
+    console.log('─'.repeat(70));
+
+    // Override LAT/LNG/RADIUS for this region
+    LAT = region.lat;
+    LNG = region.lng;
+    RADIUS = 80; // 80 miles for multi-region mode
+
+    try {
+      const stats = await runRegion(region.name);
+      results.push({
+        region: region.name,
+        inserted: stats.inserted,
+        skipped: stats.skipped,
+      });
+    } catch (err) {
+      console.error(`[MULTI-REGION] Error scraping ${region.name}:`, err);
+      results.push({
+        region: region.name,
+        inserted: 0,
+        skipped: 0,
+      });
+    }
+
+    // Delay before next region (except for last)
+    if (i < regionsToScrape.length - 1) {
+      console.log(`\n[MULTI-REGION] Waiting ${OU_REGION_DELAY_MS / 1000}s before next region...\n`);
+      await new Promise(resolve => setTimeout(resolve, OU_REGION_DELAY_MS));
+    }
+  }
+
+  // Summary
+  const endTime = Date.now();
+  const durationSec = Math.round((endTime - startTime) / 1000);
+  const totalInserted = results.reduce((sum, r) => sum + r.inserted, 0);
+  const totalSkipped = results.reduce((sum, r) => sum + r.skipped, 0);
+
+  console.log('\n' + '='.repeat(70));
+  console.log('[MULTI-REGION] Summary');
+  console.log('='.repeat(70));
+  console.log(`Duration: ${durationSec}s`);
+  console.log(`Total inserted: ${totalInserted}`);
+  console.log(`Total skipped: ${totalSkipped}`);
+  console.log('='.repeat(70));
+
+  console.log('\nResults by region:');
+  results.forEach((r, i) => {
+    console.log(`  ${i + 1}. ${r.region.padEnd(20)} (+${r.inserted} ~${r.skipped})`);
+  });
+
+  console.log('\n[MULTI-REGION] All regions processed!');
+
+  // Output final JSON for worker to parse (multi-region summary)
+  console.log(JSON.stringify({
+    ok: true,
+    inserted: totalInserted,
+    skipped: totalSkipped,
+    errors: 0,
+  }));
+}
+
+main().catch(async (err) => {
   logError('offerup script failed:', { error: String(err) });
   try {
     await fs.writeFile('offerup_error.txt', String(err?.stack || err));

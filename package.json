@@ -25,6 +25,7 @@
     "cleanup:old-listings": "dotenv -e .env.local -- tsx ./scripts/cleanup_old_listings.ts"
   },
   "dependencies": {
+    "@cardog-icons/react": "^1.0.1",
     "@supabase/supabase-js": "^2.74.0",
     "date-fns": "^4.1.0",
     "fast-xml-parser": "^5.3.0",

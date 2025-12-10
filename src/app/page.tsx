@@ -1,7 +1,7 @@
 // app/page.tsx
 import Link from 'next/link'
 import { supaAdmin } from '@/lib/supabase-admin'
-import { SmartDiscovery } from '@/app/components/SmartDiscovery'
+import { DealScoresTable } from '@/app/components/DealScoresTable'
 import { LiveMarketFeed } from '@/app/components/LiveMarketFeed'
 
 export const revalidate = 0
@@ -37,41 +37,8 @@ export default async function Page({ searchParams }: { searchParams?: Record<str
 
   // --- DATA FETCHING ---
 
-  // 1. Smart Search deals - Get most recent job's top deals with reference cars
-  const { data: latestJobData } = await supaAdmin
-    .from('deal_finder_jobs')
-    .select('id, wins, make, model')
-    .eq('status', 'success')
-    .order('finished_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
-  let smartDeals: SmartDeal[] = []
-  let referenceWins: Array<{ id: string; year: number; make: string; model: string; profit: number }> = []
-
-  if (latestJobData) {
-    // Fetch top deals for SmartDiscovery component (3 top + 12 grouped = 15 total)
-    const { data: smartScores } = await supaAdmin
-      .from('deal_scores')
-      .select('score, confidence, listing:listings!inner(*)')
-      .eq('job_id', latestJobData.id)
-      .gt('score', 0)
-      .order('score', { ascending: false })
-      .limit(15)
-
-    smartDeals = (smartScores || []) as unknown as SmartDeal[]
-
-    // Extract reference cars (wins) from the job
-    if (latestJobData.wins && Array.isArray(latestJobData.wins)) {
-      referenceWins = (latestJobData.wins as Array<{ year: number; mileage: number; purchasePrice: number }>).map((win, idx) => ({
-        id: `win-${idx + 1}`,
-        year: win.year,
-        make: latestJobData.make || 'Unknown',
-        model: latestJobData.model || 'Unknown',
-        profit: 0, // We don't have profit data for user-submitted wins
-      }))
-    }
-  }
+  // Clear smart deals - will show empty state (no data fetching for now)
+  const smartDeals: SmartDeal[] = []
 
   // 2. The Raw Feed (Live Market Feed)
   const minYear = parseInt(sp.minYear || '') || 0
@@ -150,7 +117,10 @@ export default async function Page({ searchParams }: { searchParams?: Record<str
   const watchedIds = new Set(watchedListings.map(w => w.id))
   const filteredRows = rows.filter(r => !watchedIds.has(r.id))
 
-
+  // Separate exotics ($100k+) from regular listings
+  const EXOTIC_THRESHOLD = 100000
+  const exoticListings = filteredRows.filter(r => r.price && r.price >= EXOTIC_THRESHOLD)
+  const regularListings = filteredRows.filter(r => !r.price || r.price < EXOTIC_THRESHOLD)
 
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-200 pb-20">
@@ -173,20 +143,16 @@ export default async function Page({ searchParams }: { searchParams?: Record<str
 
       <div className="mx-auto max-w-7xl px-4 py-6 space-y-8">
 
-        {/* === SMART DISCOVERY (Pattern → Reveal) === */}
-        {smartDeals && smartDeals.length > 0 && referenceWins.length > 0 && (
-          <SmartDiscovery
-            wins={referenceWins}
-            deals={smartDeals}
-          />
-        )}
-
         {/* === LIVE MARKET FEED WITH WATCH/DELETE === */}
         <LiveMarketFeed
-          initialListings={filteredRows}
+          initialListings={regularListings}
+          initialExotics={exoticListings}
           initialWatched={watchedListings}
           searchParams={sp}
         />
+
+        {/* === SMART SEARCH RESULTS (Top 15 Deals Ranked by Score) === */}
+        <DealScoresTable deals={smartDeals} />
 
       </div>
     </main>
