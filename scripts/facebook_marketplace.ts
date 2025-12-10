@@ -390,6 +390,17 @@ export async function installMarketplaceGraphQLInterceptor(context: BrowserConte
     const beforeVars = variables && typeof variables === 'object' ? JSON.parse(JSON.stringify(variables)) : null
     marketplacePatchTried = true
 
+    // CRITICAL: Remove params.query if it exists - it triggers relevance ranking!
+    if (variables.params?.query) {
+      if (FB_DEBUG) {
+        debug(`[CHRONO-FIX] Removing params.query="${variables.params.query}" from fallback patching path`)
+      }
+      delete variables.params.query
+      if (Object.keys(variables.params || {}).length === 0) {
+        delete variables.params
+      }
+    }
+
     // Inject filters and sort (try to match existing container/shape)
     const setSort = () => {
       const trySet = (obj: any): boolean => {
@@ -562,40 +573,84 @@ async function patchMarketplaceVars(route: Route, body: string, dbg?: (...args: 
   let variables: any
   try { variables = JSON.parse(params.get('variables') || '{}') } catch { return route.continue({ postData: body }) }
 
-  // [FUZZY-SEARCH] Build fuzzy query string from make/model env vars
-  const WANT_MAKE = (process.env.FB_MAKE || '').trim()
-  const WANT_MODEL = (process.env.FB_MODEL || '').trim()
-  const queryParts = [WANT_MAKE, WANT_MODEL].filter(Boolean)
-
-  // Inject params.query for fuzzy search (like OfferUp's "q: 'honda civic'")
-  // NOTE: Only inject query if make/model is specified. Otherwise, let URL params handle sorting.
-  // Injecting params.query='a' was causing Facebook to use RELEVANCE ranking instead of chronological!
-  variables.params = variables.params || {}
-  if (queryParts.length > 0) {
-    const fuzzyQuery = queryParts.join(' ')
-    variables.params.query = fuzzyQuery
-    if (dbg) {
-      dbg(`[FUZZY-SEARCH] Injected params.query="${fuzzyQuery}" for doc_id=${docId}`)
-    }
-  } else {
-    // No filter specified - DO NOT inject params.query
-    // Setting params.query='a' was causing Facebook to use RELEVANCE ranking
-    // Instead, rely purely on URL sortBy + filterSortingParams for chronological
-    if (dbg) {
-      dbg(`[FUZZY-SEARCH] No make/model specified - skipping query injection to preserve chronological sort`)
-    }
-  }
-
-  // CRITICAL: Inject filterSortingParams for chronological sorting during pagination
+  // [CHRONOLOGICAL-FIX] Use taxonomy IDs in stringVerticalFields instead of params.query
+  // params.query triggers RELEVANCE ranking, breaking chronological sorting
+  const WANT_MAKE = (process.env.FB_MAKE || '').trim().toLowerCase()
+  const WANT_MODEL = (process.env.FB_MODEL || '').trim().toLowerCase()
+  
+  // CRITICAL: Inject filterSortingParams FIRST to ensure chronological sorting
   variables.filterSortingParams = variables.filterSortingParams || {}
   variables.filterSortingParams.sort_by_filter = 'CREATION_TIME'
   variables.filterSortingParams.sort_order = 'DESCEND'
   variables.filterSortingParams.sortBy = 'creation_time_descend'
+  variables.filterSortingParams.sort_by = 'creation_time_descend'
 
-  if (dbg) {
-    dbg(`[PATCH] Applied sort_by_filter=CREATION_TIME for doc_id=${docId}`)
+  // Use taxonomy IDs for filtering instead of params.query to preserve chronological sorting
+  const makeId = WANT_MAKE && MAKE_TAXONOMY_IDS[WANT_MAKE] ? MAKE_TAXONOMY_IDS[WANT_MAKE] : null
+  const modelId = WANT_MODEL && MODEL_TAXONOMY_IDS[WANT_MODEL] ? MODEL_TAXONOMY_IDS[WANT_MODEL] : null
+
+  if (makeId || modelId) {
+    // Use stringVerticalFields with taxonomy IDs (preserves chronological sorting)
+    variables.stringVerticalFields = variables.stringVerticalFields || []
+    
+    // Remove existing make/model entries if any
+    variables.stringVerticalFields = variables.stringVerticalFields.filter((f: any) => {
+      const name = f?.name || f?.key
+      return name !== 'make' && name !== 'model'
+    })
+    
+    // Add make filter if available
+    if (makeId) {
+      variables.stringVerticalFields.push({ name: 'make', values: [makeId] })
+      if (dbg) {
+        dbg(`[CHRONO-FIX] Using taxonomy ID for make filter: ${WANT_MAKE} -> ${makeId}`)
+      }
+    }
+    
+    // Add model filter if available
+    if (modelId) {
+      variables.stringVerticalFields.push({ name: 'model', values: [modelId] })
+      if (dbg) {
+        dbg(`[CHRONO-FIX] Using taxonomy ID for model filter: ${WANT_MODEL} -> ${modelId}`)
+      }
+    }
+    
+    // CRITICAL: Remove params.query if it exists - it triggers relevance ranking!
+    if (variables.params?.query) {
+      if (dbg) {
+        dbg(`[CHRONO-FIX] Removing params.query="${variables.params.query}" to preserve chronological sorting`)
+      }
+      delete variables.params.query
+      // Clean up empty params object
+      if (Object.keys(variables.params || {}).length === 0) {
+        delete variables.params
+      }
+    }
+  } else {
+    // No make/model specified - ensure params.query is NOT set
+    if (variables.params?.query) {
+      if (dbg) {
+        dbg(`[CHRONO-FIX] Removing params.query="${variables.params.query}" (no filters specified)`)
+      }
+      delete variables.params.query
+      if (Object.keys(variables.params || {}).length === 0) {
+        delete variables.params
+      }
+    }
   }
 
+  // Ensure topLevelVehicleType is set
+  if (!variables.stringVerticalFields?.some((f: any) => (f?.name || f?.key) === 'topLevelVehicleType')) {
+    variables.stringVerticalFields = variables.stringVerticalFields || []
+    variables.stringVerticalFields.push({ name: 'topLevelVehicleType', values: ['car_truck'] })
+  }
+
+  if (dbg) {
+    dbg(`[PATCH] Applied sort_by_filter=CREATION_TIME for doc_id=${docId} (chronological sorting enforced)`)
+    if (makeId || modelId) {
+      dbg(`[PATCH] Using taxonomy IDs for filtering (make: ${makeId || 'none'}, model: ${modelId || 'none'})`)
+    }
+  }
 
   params.set('variables', JSON.stringify(variables))
   return await route.continue({ postData: params.toString() })
@@ -1506,37 +1561,87 @@ async function setRegionViaUI(page: Page, locationName: string, radiusMeters: nu
 
 // ============================================================================
 // [MULTI-REGION] Helper to force "Date listed: Newest first" via UI
+// CRITICAL: This must be called when make/model filters are used to override relevance ranking
 // ============================================================================
 async function forceSortByNewest(page: Page) {
   info('[UI-SORT] Forcing sort order to "Newest first"...');
 
   try {
-    // 1. Find the Sort button.
-    // It usually text like "Sort by: Suggested" or just "Sort"
-    const sortBtn = page.locator('span:has-text("Sort by"), div[aria-label="Sort results"], span:has-text("Suggested")').first();
+    // Wait a bit for UI to stabilize
+    await page.waitForTimeout(1000);
+    
+    // 1. Find the Sort button with multiple selector strategies
+    const sortSelectors = [
+      'span:has-text("Sort by")',
+      'div[aria-label*="Sort"]',
+      'div[aria-label*="sort"]',
+      'span:has-text("Suggested")',
+      'div[role="button"]:has-text("Sort")',
+      '[data-testid*="sort"]',
+      'button:has-text("Sort")'
+    ];
+    
+    let sortBtn = null;
+    for (const selector of sortSelectors) {
+      try {
+        const btn = page.locator(selector).first();
+        const isVisible = await btn.isVisible({ timeout: 2000 }).catch(() => false);
+        if (isVisible) {
+          sortBtn = btn;
+          break;
+        }
+      } catch {}
+    }
+
+    if (!sortBtn) {
+      warn('[UI-SORT] Could not find sort button. UI may have changed.');
+      return;
+    }
 
     // Check if we are already on newest (optimization)
     const btnText = await sortBtn.textContent().catch(() => '');
-    if (btnText && btnText.includes('Newest')) {
+    if (btnText && (btnText.includes('Newest') || btnText.includes('Date listed'))) {
       info('[UI-SORT] Already sorted by Newest.');
       return;
     }
 
     await sortBtn.click();
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(800); // Wait for dropdown to appear
 
     // 2. Select "Date listed: Newest first" from the dropdown menu
     // Facebook uses specific menu items role="menuitemradio" usually
-    const newestOption = page.locator('span:has-text("Date listed: Newest first")').first();
-
-    if (await newestOption.isVisible()) {
-      await newestOption.click();
-      info('[UI-SORT] Clicked "Newest first". Waiting for feed reload...');
-
+    const newestSelectors = [
+      'span:has-text("Date listed: Newest first")',
+      'div:has-text("Date listed: Newest first")',
+      'span:has-text("Newest first")',
+      'div:has-text("Newest first")',
+      '[role="menuitem"]:has-text("Newest")',
+      '[role="menuitemradio"]:has-text("Newest")',
+      '[role="option"]:has-text("Newest")'
+    ];
+    
+    let clicked = false;
+    for (const selector of newestSelectors) {
+      try {
+        const option = page.locator(selector).first();
+        const isVisible = await option.isVisible({ timeout: 2000 }).catch(() => false);
+        if (isVisible) {
+          await option.click({ timeout: 2000 });
+          clicked = true;
+          break;
+        }
+      } catch {}
+    }
+    
+    if (clicked) {
       // Critical: Wait for the feed to actually update
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(2000);
+      info('[UI-SORT] Clicked "Newest first". Waiting for feed reload...');
     } else {
-      warn('[UI-SORT] Could not find "Newest first" option in dropdown.');
+      warn('[UI-SORT] Could not find "Newest first" option in dropdown. Trying alternative approach...');
+      // Fallback: try pressing Escape to close dropdown
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(500);
     }
 
   } catch (e) {
@@ -1913,26 +2018,32 @@ async function interceptFacebookGraphQL(sessionId?: string, regionName?: string,
         totalEdges += Array.isArray(edges) ? edges.length : 0
         if (edges?.length) {
           // Check for relevance ranking (non-zero values indicate relevance mode, not chronological)
-          if (FB_DEBUG) {
-            try {
-              const firstEdge = edges[0]
-              const tracking = firstEdge?.node?.tracking
-              if (tracking) {
-                const trackingObj = typeof tracking === 'string' ? JSON.parse(tracking) : tracking
-                const rankObjStr = trackingObj?.commerce_rank_obj
-                if (rankObjStr) {
-                  const rankObj = typeof rankObjStr === 'string' ? JSON.parse(rankObjStr) : rankObjStr
-                  const rankValue = rankObj?.value
-                  if (rankValue !== undefined && rankValue !== 0) {
-                    warn(`[RANKING] Facebook using RELEVANCE ranking (value=${rankValue.toExponential(2)}). Results may not be chronological!`)
-                    warn(`[RANKING] Note: commerce_rank_obj.value might just be a quality score, not sort indicator`)
-                  } else if (rankValue === 0) {
-                    debug(`[RANKING] Facebook using CHRONOLOGICAL sorting (value=0) - correct mode!`)
+          // CRITICAL: This detection helps identify when Facebook switches to relevance ranking
+          try {
+            const firstEdge = edges[0]
+            const tracking = firstEdge?.node?.tracking
+            if (tracking) {
+              const trackingObj = typeof tracking === 'string' ? JSON.parse(tracking) : tracking
+              const rankObjStr = trackingObj?.commerce_rank_obj
+              if (rankObjStr) {
+                const rankObj = typeof rankObjStr === 'string' ? JSON.parse(rankObjStr) : rankObjStr
+                const rankValue = rankObj?.value
+                if (rankValue !== undefined && rankValue !== 0) {
+                  warn(`[RANKING] ⚠️  Facebook using RELEVANCE ranking (value=${rankValue.toExponential(2)}). Results may not be chronological!`)
+                  warn(`[RANKING] This usually happens when params.query is present. Check if params.query was removed from GraphQL variables.`)
+                  warn(`[RANKING] Attempting to force UI sort to "Newest first" to override...`)
+                  // Try to force sort again if relevance ranking detected
+                  try {
+                    await forceSortByNewest(page)
+                  } catch {}
+                } else if (rankValue === 0) {
+                  if (FB_DEBUG) {
+                    debug(`[RANKING] ✓ Facebook using CHRONOLOGICAL sorting (value=0) - correct mode!`)
                   }
                 }
               }
-            } catch {}
-          }
+            }
+          } catch {}
 
           // Tag edges with extraction source for tracking
           const taggedEdges = edges.map(e => ({
@@ -2079,6 +2190,12 @@ async function interceptFacebookGraphQL(sessionId?: string, regionName?: string,
     await page.waitForTimeout(randInt(250, 1250))
     info('Page loaded:', await page.url())
 
+    // CRITICAL: Force sort to "Newest first" immediately after navigation
+    // This ensures chronological sorting even if GraphQL patching fails or params.query was used
+    info('[CHRONO-FIX] Forcing UI sort to "Newest first" after navigation')
+    await forceSortByNewest(page)
+    await page.waitForTimeout(1000) // Wait for sort to take effect
+
     // Diagnostic: Check if UI dropdown shows chronological sorting or still shows "Suggested"
     if (FB_DEBUG) {
       try {
@@ -2165,13 +2282,19 @@ async function interceptFacebookGraphQL(sessionId?: string, regionName?: string,
       info(`[MULTI-REGION] Changing to region: ${regionName}`)
       await setRegionViaUI(page, regionName, radiusMeters || 16000)
       
-      // In non-scroll-window mode, also force sort by newest
-      if (!USE_SCROLL_WINDOW) {
-        await forceSortByNewest(page)
-      }
-      
       // Wait for page to update after location change
       await page.waitForTimeout(2000)
+    }
+    
+    // CRITICAL: Always force sort by newest, especially when filters are applied
+    // This overrides any relevance ranking that might be triggered by params.query
+    // Even if we removed params.query, Facebook might still default to relevance
+    if (TARGET_MAKE || TARGET_MODEL) {
+      info('[CHRONO-FIX] Make/model filters detected - forcing UI sort to "Newest first" to ensure chronological results')
+      await forceSortByNewest(page)
+    } else {
+      // Even without filters, ensure we're sorted by newest
+      await forceSortByNewest(page)
     }
 
     if (USE_SCROLL_WINDOW) {
