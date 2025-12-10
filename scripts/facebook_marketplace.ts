@@ -568,6 +568,8 @@ async function patchMarketplaceVars(route: Route, body: string, dbg?: (...args: 
   const queryParts = [WANT_MAKE, WANT_MODEL].filter(Boolean)
 
   // Inject params.query for fuzzy search (like OfferUp's "q: 'honda civic'")
+  // NOTE: Only inject query if make/model is specified. Otherwise, let URL params handle sorting.
+  // Injecting params.query='a' was causing Facebook to use RELEVANCE ranking instead of chronological!
   variables.params = variables.params || {}
   if (queryParts.length > 0) {
     const fuzzyQuery = queryParts.join(' ')
@@ -576,8 +578,12 @@ async function patchMarketplaceVars(route: Route, body: string, dbg?: (...args: 
       dbg(`[FUZZY-SEARCH] Injected params.query="${fuzzyQuery}" for doc_id=${docId}`)
     }
   } else {
-    // No filter specified - use minimal query to trigger chronological sorting
-    variables.params.query = 'a'
+    // No filter specified - DO NOT inject params.query
+    // Setting params.query='a' was causing Facebook to use RELEVANCE ranking
+    // Instead, rely purely on URL sortBy + filterSortingParams for chronological
+    if (dbg) {
+      dbg(`[FUZZY-SEARCH] No make/model specified - skipping query injection to preserve chronological sort`)
+    }
   }
 
   // CRITICAL: Inject filterSortingParams for chronological sorting during pagination
@@ -589,6 +595,7 @@ async function patchMarketplaceVars(route: Route, body: string, dbg?: (...args: 
   if (dbg) {
     dbg(`[PATCH] Applied sort_by_filter=CREATION_TIME for doc_id=${docId}`)
   }
+
 
   params.set('variables', JSON.stringify(variables))
   return await route.continue({ postData: params.toString() })
@@ -1412,67 +1419,88 @@ async function enrichFacebookDetails(context: BrowserContext, rows: ListingRow[]
 // ============================================================================
 // [MULTI-REGION] Helper to change location via UI to preserve "Newest" sort
 // ============================================================================
-async function setRegionViaUI(page: Page, locationName: string) {
-  info(`[UI-REGION] Changing location to: ${locationName}`);
+async function setRegionViaUI(page: Page, locationName: string, radiusMeters: number = 16000) {
+  info(`[UI-REGION] Changing location to: ${locationName}`)
 
   try {
     // 1. Click the Location/Filter button.
-    // It usually displays the current city or "Location". We look for the button with the map pin icon or label.
-    // Try multiple selectors as FB changes classes often.
-    // Note: 'div[aria-label="Change location"]' is common for the desktop view.
-    const locBtn = page.locator('div[aria-label="Change location"], span:has-text("Location"), button:has-text("Location")').first();
-
-    // Wait briefly to ensure UI is interactive
-    await page.waitForTimeout(2000);
-
-    if (await locBtn.count() > 0 && await locBtn.isVisible()) {
-      await locBtn.click();
-    } else {
-      // Fallback: Click the text that likely shows the current radius (e.g. "Within 20 mi")
-      warn('[UI-REGION] Standard location button not found. Trying radius/text fallback...');
-      await page.click('div[role="button"]:has-text("mi")');
+    // Strategy: Look for the specific pattern "City · Radius" which is the most stable selector
+    let locBtn = page.locator('span:has-text("·")').filter({ hasText: /(mi|km)/ }).first()
+    
+    // Fallbacks if the specific text pattern isn't found
+    if (await locBtn.count() === 0) {
+        locBtn = page.locator('div[aria-label="Change location"]').first()
+    }
+    if (await locBtn.count() === 0) {
+        locBtn = page.locator('div[role="button"]:has-text("Location")').first()
     }
 
-    await page.waitForTimeout(1500);
-
-    // 2. Find the input box in the modal
-    // It usually has aria-label="Location" or placeholder="Zip code or city"
-    const input = page.locator('input[aria-label="Location"], input[placeholder*="Zip"], input[placeholder*="City"]');
-    await input.waitFor({ state: 'visible', timeout: 5000 });
-
-    // 3. Clear and Type the new location
-    await input.click();
-    await input.press('Control+A'); // or Command+A for mac, simplified by using triple click usually
-    await input.click({ clickCount: 3 });
-    await page.keyboard.press('Backspace');
-    await page.waitForTimeout(500);
-
-    await input.fill(locationName);
-    await page.waitForTimeout(2000); // Wait for dropdown suggestions
-
-    // 4. Select the first suggestion (ArrowDown + Enter is reliable)
-    await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(500);
-    await page.keyboard.press('Enter');
-
-    await page.waitForTimeout(1000);
-
-    // 5. Click "Apply"
-    const applyBtn = page.locator('div[aria-label="Apply"], span:has-text("Apply")').first();
-    if (await applyBtn.isVisible()) {
-      await applyBtn.click();
+    if (await locBtn.isVisible({ timeout: 3000 })) {
+      await locBtn.click()
     } else {
-      // Sometimes hitting Enter on the dropdown already applied it, or we need to hit Enter again
-      await page.keyboard.press('Enter');
+      warn('[UI-REGION] Could not find location button. Skipping UI change.')
+      return
     }
 
-    // 6. Wait for feed to reload/update
-    await page.waitForTimeout(3000);
-    info(`[UI-REGION] Successfully changed location to ${locationName}`);
+    await page.waitForTimeout(1500)
+
+    // 2. Find and clear the location input, then type new location
+    try {
+      // Look for the location input field in the dialog
+      const locationInput = page.locator('div[role="dialog"] input[type="text"], div[role="dialog"] input[aria-label*="Location"], div[role="dialog"] input[placeholder*="Location"]').first()
+      
+      if (await locationInput.isVisible({ timeout: 3000 })) {
+        // Clear existing text and type new location
+        await locationInput.click()
+        await page.waitForTimeout(300)
+        await locationInput.fill('')  // Clear
+        await page.waitForTimeout(300)
+        await locationInput.fill(locationName)
+        await page.waitForTimeout(1500)  // Wait for autocomplete suggestions
+        
+        // Try to click on the first autocomplete suggestion
+        const suggestion = page.locator('div[role="listbox"] div[role="option"], ul[role="listbox"] li').first()
+        if (await suggestion.isVisible({ timeout: 2000 })) {
+          await suggestion.click()
+          info(`[UI-REGION] Selected location from suggestions: ${locationName}`)
+          await page.waitForTimeout(1000)
+        } else {
+          // Press Enter to accept typed location
+          await page.keyboard.press('Enter')
+          info(`[UI-REGION] Entered location via keyboard: ${locationName}`)
+          await page.waitForTimeout(1000)
+        }
+      } else {
+        info(`[UI-REGION] Location input not found, trying to just apply current settings`)
+      }
+    } catch (e) {
+      info(`[UI-REGION] Could not type location: ${(e as Error).message}`)
+    }
+
+    // 3. Click "Apply" to close dialog and use new location
+    await page.waitForTimeout(500)
+    const applyBtn = page.locator('div[role="dialog"] div[aria-label="Apply"], div[role="dialog"] span:has-text("Apply")').first()
+    if (await applyBtn.isVisible({ timeout: 3000 })) {
+      await applyBtn.click()
+      await page.waitForTimeout(3000)
+      info(`[UI-REGION] Applied location settings`)
+    } else {
+      // Try clicking any visible Apply button
+      const anyApply = page.locator('span:has-text("Apply")').first()
+      if (await anyApply.isVisible({ timeout: 1000 })) {
+        await anyApply.click()
+        await page.waitForTimeout(3000)
+        info(`[UI-REGION] Applied via fallback`)
+      } else {
+        // Last resort: press Escape to close dialog
+        await page.keyboard.press('Escape')
+        await page.waitForTimeout(1000)
+        info(`[UI-REGION] Closed dialog with Escape`)
+      }
+    }
 
   } catch (e) {
-    warn(`[UI-REGION] Failed to set location via UI: ${(e as Error).message}`);
-    // We proceed anyway; sometimes the location is already correct or the UI changed.
+    warn(`[UI-REGION] Failed to set location: ${(e as Error).message}`)
   }
 }
 
@@ -1634,7 +1662,7 @@ async function runDomChrono(
   return all;
 }
 
-async function interceptFacebookGraphQL(sessionId?: string, regionName?: string): Promise<ListingRow[]> {
+async function interceptFacebookGraphQL(sessionId?: string, regionName?: string, radiusMeters?: number): Promise<ListingRow[]> {
   let browser: Browser | null = null
   lastLoginWallDetected = false
   const collected: RawGQLEdge[] = []
@@ -1897,7 +1925,7 @@ async function interceptFacebookGraphQL(sessionId?: string, regionName?: string)
                   const rankValue = rankObj?.value
                   if (rankValue !== undefined && rankValue !== 0) {
                     warn(`[RANKING] Facebook using RELEVANCE ranking (value=${rankValue.toExponential(2)}). Results may not be chronological!`)
-                    warn(`[RANKING] For chronological results, ensure params.query is set in GraphQL request`)
+                    warn(`[RANKING] Note: commerce_rank_obj.value might just be a quality score, not sort indicator`)
                   } else if (rankValue === 0) {
                     debug(`[RANKING] Facebook using CHRONOLOGICAL sorting (value=0) - correct mode!`)
                   }
@@ -2001,15 +2029,11 @@ async function interceptFacebookGraphQL(sessionId?: string, regionName?: string)
 
       let categoryUrl: string
       if (USE_SCROLL_WINDOW) {
-        // Scroll-window mode: Use generic vehicles URL to maintain chronological sort
+        // Scroll-window mode: Use SAME URL as working version (no daysSinceListed - Facebook ignores it)
+        // CRITICAL: Chronological sorting depends on GraphQL patching (filterSortingParams),
+        // NOT on URL parameters. The URL just gets us to the right page.
         // Filtering happens via GraphQL fuzzy query + client-side filtering
-        // Note: Adding taxonomy IDs to URL causes Facebook to use relevance ranking instead of chronological
-        const params = new URLSearchParams()
-        params.set('sortBy', 'creation_time_descend')  // Maintain chronological sort
-        params.set('daysSinceListed', '1')
-        params.set('exact', 'false')
-
-        categoryUrl = `https://www.facebook.com/marketplace/category/vehicles?${params.toString()}`
+        categoryUrl = `https://www.facebook.com/marketplace/category/vehicles?sortBy=creation_time_descend&daysSinceListed=1&exact=false`
         if (TARGET_MAKE || TARGET_MODEL) {
           info(`[SCROLL-WINDOW] Filtering for ${TARGET_MAKE || ''} ${TARGET_MODEL || ''} via GraphQL query + client-side filtering`)
         }
@@ -2017,13 +2041,14 @@ async function interceptFacebookGraphQL(sessionId?: string, regionName?: string)
       } else {
         // URL-filter mode: Add make/model taxonomy IDs to URL for server-side filtering
         // This way Facebook returns pre-filtered results already sorted by latest post date
-        categoryUrl = 'https://www.facebook.com/marketplace/category/vehicles?sortBy=creation_time_descend&exact=false'
+        categoryUrl = 'https://www.facebook.com/marketplace/category/vehicles?sortBy=creation_time_descend&daysSinceListed=1&exact=false'
 
         // Build filtered URL if make/model are specified
         const hasTargetFilter = TARGET_MAKE || TARGET_MODEL
         if (hasTargetFilter) {
           const params = new URLSearchParams()
           params.set('sortBy', 'creation_time_descend')
+          params.set('daysSinceListed', '1')  // CRITICAL for chronological sorting!
           params.set('exact', 'false')
 
           // Add make filter if available
@@ -2131,20 +2156,56 @@ async function interceptFacebookGraphQL(sessionId?: string, regionName?: string)
       }
     }
 
-    // [FIX] Force location change via UI if a region name is provided
-    // This ensures we get the specific feed for this city (e.g., "Irvine, CA")
-    if (regionName) {
-      await setRegionViaUI(page, regionName)
-
-      // [FIX] Force sort order back to "Newest" because changing location resets it
-      await forceSortByNewest(page)
-    }
-
     // ⚡ SCROLL-WINDOW MODE: Fast scroll hack for quick chronological batch
     const USE_SCROLL_WINDOW = (process.env.FB_SCROLL_WINDOW_MODE ?? '0') === '1'
 
+    // [MULTI-REGION] Change location via UI for each region
+    // This works in both scroll-window and non-scroll-window modes
+    if (regionName) {
+      info(`[MULTI-REGION] Changing to region: ${regionName}`)
+      await setRegionViaUI(page, regionName, radiusMeters || 16000)
+      
+      // In non-scroll-window mode, also force sort by newest
+      if (!USE_SCROLL_WINDOW) {
+        await forceSortByNewest(page)
+      }
+      
+      // Wait for page to update after location change
+      await page.waitForTimeout(2000)
+    }
+
     if (USE_SCROLL_WINDOW) {
       info('[SCROLL-WINDOW] Using scroll-window mode (continuous DOM extraction)')
+
+      // CRITICAL: Wait for initial GraphQL responses to be processed
+      // The page loads with server-rendered content, but we need the PATCHED GraphQL 
+      // responses to populate chronologically-sorted listings
+      info('[SCROLL-WINDOW] Waiting for initial GraphQL responses to be processed...')
+      
+      // Record initial GraphQL response count
+      const initialResponses = metrics.graphqlResponses
+      
+      // Get viewport height for scrolling
+      const viewportHeight = await page.evaluate(() => window.innerHeight)
+      
+      // Do a small scroll to trigger Facebook's intersection observer (loads more data via GraphQL)
+      await page.mouse.wheel(0, viewportHeight * 0.3)  // Small scroll to trigger data fetch
+      
+      // Wait for at least one new GraphQL response (with timeout)
+      const waitStart = Date.now()
+      const maxWaitMs = 5000
+      while (metrics.graphqlResponses === initialResponses && Date.now() - waitStart < maxWaitMs) {
+        await page.waitForTimeout(200)
+      }
+      
+      if (metrics.graphqlResponses > initialResponses) {
+        info(`[SCROLL-WINDOW] GraphQL responses received (${metrics.graphqlResponses - initialResponses} new). Starting DOM extraction.`)
+      } else {
+        warn('[SCROLL-WINDOW] No new GraphQL responses after initial scroll. Page might use SSR data.')
+      }
+      
+      // Additional wait for DOM to update after GraphQL response
+      await page.waitForTimeout(randInt(800, 1200))
 
       // Small human-like mouse movements
       try {
@@ -2153,7 +2214,6 @@ async function interceptFacebookGraphQL(sessionId?: string, regionName?: string)
         await page.mouse.move(randInt(500, 900), randInt(200, 600))
       } catch {}
 
-      const viewportHeight = await page.evaluate(() => window.innerHeight)
       const scrolls = Math.max(6, parseInt(process.env.FB_SCROLL_WINDOW_SCROLLS || '10', 10) || 10)
 
       // CONTINUOUS DOM EXTRACTION during scrolling
@@ -2196,8 +2256,45 @@ async function interceptFacebookGraphQL(sessionId?: string, regionName?: string)
       // Limit collection window before enrichment
       const WINDOW_COLLECTION_LIMIT = Math.max(
         TARGET_LIMIT,
-        parseInt(process.env.FB_WINDOW_COLLECTION_LIMIT || '80', 10) || 80
+        parseInt(process.env.FB_WINDOW_COLLECTION_LIMIT || '120', 10) || 120
       )
+
+      // ============================================================
+      // ⚡ OPTIMIZATION: PRE-ENRICHMENT FILTER (The "Fail Fast" Step)
+      // Drop items that clearly fail criteria based on DOM data alone.
+      // This prevents opening tabs for cars we know we don't want.
+      // ============================================================
+      const preEnrichCount = candidates.length
+
+      // Hardcoded rules matching your [FINAL-FILTER] logic from the logs
+      // You can swap these 15000/2012 numbers for env vars if you prefer later
+      const MIN_PRICE_HARD = 15000
+      const MIN_YEAR_HARD = 2012
+
+      candidates = candidates.filter(r => {
+        // 1. Price Check (if price exists in DOM)
+        if (r.price != null && r.price < MIN_PRICE_HARD) {
+            // It's $4,000, we want $15,000+. Drop it now.
+            return false
+        }
+
+        // 2. Year Check (if year exists in DOM/Title)
+        if (r.year != null && r.year < MIN_YEAR_HARD) {
+            // It's a 2008, we want 2012+. Drop it now.
+            return false
+        }
+
+        // 3. Keyword Check (Drop parts/downpayments early)
+        const t = (r.title || '').toLowerCase()
+        if (t.includes('part out') || t.includes('parting out') || t.includes('down payment')) {
+            return false
+        }
+
+        return true
+      })
+
+      info(`[OPTIMIZATION] Pre-filtered DOM candidates: ${preEnrichCount} -> ${candidates.length} (Dropped ${preEnrichCount - candidates.length} cheap/old items before opening tabs)`)
+
       if (candidates.length > WINDOW_COLLECTION_LIMIT) {
         candidates = candidates.slice(0, WINDOW_COLLECTION_LIMIT)
         info(`[SCROLL-WINDOW] Limiting to ${WINDOW_COLLECTION_LIMIT} candidates before enrichment`)
@@ -3104,7 +3201,7 @@ async function upsertListings(rows: ListingRow[]): Promise<{ inserted: number; u
 // ============================================================================
 // DOM Chronological Session Runner - Separate from GraphQL mode
 // ============================================================================
-async function runDomChronoSession(sessionId?: string, regionName?: string): Promise<ListingRow[]> {
+async function runDomChronoSession(sessionId?: string, regionName?: string, radiusMeters?: number): Promise<ListingRow[]> {
   let browser: Browser | null = null
   lastLoginWallDetected = false
 
@@ -3201,12 +3298,13 @@ async function runDomChronoSession(sessionId?: string, regionName?: string): Pro
     await page.goto(baseUrl, { waitUntil: "domcontentloaded", timeout: 45_000 })
     await page.waitForTimeout(randInt(800, 1500))
 
-    // THEN change region via UI if provided
+    // [FIX] SKIP setRegionViaUI - it corrupts the sort order
+    // The location dialog interaction causes Facebook to reset to relevance ranking
+    // In dom_chrono mode, we rely on the user's profile location (set in Facebook account)
     if (regionName) {
-      await setRegionViaUI(page, regionName)
-
-      // [FIX] Force sort order back to "Newest" because changing location resets it
-      await forceSortByNewest(page)
+      warn(`[DOM-CHRONO-SESSION] Multi-region mode: skipping UI location change to preserve chronological sort`)
+      warn(`[DOM-CHRONO-SESSION] Location is set via browser geolocation (${process.env.OU_LAT}, ${process.env.OU_LNG})`)
+      warn(`[DOM-CHRONO-SESSION] Note: Facebook may still use your profile location. For best results, run single-region mode.`)
     }
 
     // Now run the extraction/scrolling logic (skip navigation since we already navigated)
@@ -3219,7 +3317,7 @@ async function runDomChronoSession(sessionId?: string, regionName?: string): Pro
   }
 }
 
-async function scrapeRegion(regionName?: string) {
+async function scrapeRegion(regionName?: string, radiusMeters?: number) {
   const usingProxy = !!(process.env.FB_PROXY_SERVER && process.env.FB_PROXY_USERNAME)
   const baseSession = (process.env.FB_PROXY_SESSION_ID || 'la01').trim()
   let session = baseSession
@@ -3241,10 +3339,11 @@ async function scrapeRegion(regionName?: string) {
 
     let rows: ListingRow[] = []
     if (FB_MODE === 'dom_chrono') {
-      rows = await runDomChronoSession(session, regionName)
+      // Pass radiusMeters down
+      rows = await runDomChronoSession(session, regionName, radiusMeters)
     } else {
-      // [FIX] Pass regionName here so the interceptor can change the UI
-      rows = await interceptFacebookGraphQL(session, regionName)
+      // [FIX] Pass regionName and radiusMeters here so the interceptor can change the UI
+      rows = await interceptFacebookGraphQL(session, regionName, radiusMeters)
     }
 
     if (FB_DEBUG) console.log(`[FB] Attempt ${attempt}: captured ${rows.length} rows`)
@@ -3400,7 +3499,8 @@ async function scrapeRegion(regionName?: string) {
 async function main() {
   if (!FB_MULTI_REGION) {
     // Single region mode - run once
-    await scrapeRegion()
+    const radiusMeters = parseInt(process.env.FB_REGION_RADIUS_METERS || '16000', 10);
+    await scrapeRegion(undefined, radiusMeters)
     return
   }
 
@@ -3426,7 +3526,11 @@ async function main() {
     process.env.OU_LNG = region.lng.toString()
 
     try {
-      const stats = await scrapeRegion(region.name)
+      // PASS THE RADIUS HERE:
+      // Note: We use 16000 meters (10 miles) as defined in your prompt/env
+      const radiusMeters = parseInt(process.env.FB_REGION_RADIUS_METERS || '16000', 10);
+      
+      const stats = await scrapeRegion(region.name, radiusMeters)
       results.push({
         region: region.name,
         inserted: stats.inserted,
