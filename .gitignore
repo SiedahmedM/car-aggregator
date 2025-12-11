@@ -47,3 +47,9 @@ secrets/
 debug/facebook/
 # Claude Code configuration
 .claude/
+
+# Temporary build artifacts
+*.tar.xz
+nvm_install.sh
+offerup.js
+test_la_hourly.js
