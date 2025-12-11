@@ -34,8 +34,8 @@ const logError = (msg: string, meta?: Record<string, unknown>) => log('error', m
 
 // ---------- Env knobs ----------
 // Note: legacy OFFERUP_URL is ignored; we now rely solely on GraphQL active feed.
-// Item cap (increased from 60 to 200 for better coverage)
-const MAX_ITEMS = parseInt(process.env.OU_MAX_ITEMS || '200', 10);
+// Item cap (increased from 60 to 800 for better coverage/recency mining)
+const MAX_ITEMS = parseInt(process.env.OU_MAX_ITEMS || '800', 10);
 // UI scroll passes removed
 const HEADLESS = (process.env.OU_HEADLESS ?? 'true').toLowerCase() === 'true';
 
@@ -44,12 +44,13 @@ const OU_MULTI_REGION = (process.env.OU_MULTI_REGION ?? '0') === '1';
 const OU_REGION_COUNT = parseInt(process.env.OU_REGION_COUNT || '6', 10);
 const OU_REGION_DELAY_MS = parseInt(process.env.OU_REGION_DELAY_MS || '5000', 10);
 
-// Major regions for multi-region scraping (Southern California + Arizona)
+// Major regions for multi-region scraping (Southern California + Arizona + Nevada - within ~500mi of LA)
 const US_REGIONS = [
   { name: 'Los Angeles, CA', lat: 34.0522, lng: -118.2437 },
-  { name: 'San Francisco, CA', lat: 37.7749, lng: -122.4194 },
-  { name: 'San Diego, CA', lat: 32.7157, lng: -117.1611 },
   { name: 'Orange County, CA', lat: 33.7175, lng: -117.8311 },
+  { name: 'San Diego, CA', lat: 32.7157, lng: -117.1611 },
+  { name: 'Las Vegas, NV', lat: 36.1699, lng: -115.1398 },
+  { name: 'San Francisco, CA', lat: 37.7749, lng: -122.4194 },
   { name: 'Phoenix, AZ', lat: 33.4484, lng: -112.0740 },
   { name: 'Scottsdale, AZ', lat: 33.4942, lng: -111.9261 },
 ];
@@ -70,7 +71,7 @@ if (OU_MULTI_REGION) {
   console.log('  OU_REGION_DELAY_MS =', OU_REGION_DELAY_MS);
 }
 const DETAIL_CONCURRENCY = Math.min(3, parseInt(process.env.OU_DETAIL_CONCURRENCY || '3', 10) || 3);
-const PAGINATE_PAGES = parseInt(process.env.OU_PAGINATE_PAGES || '6', 10);
+const PAGINATE_PAGES = parseInt(process.env.OU_PAGINATE_PAGES || '20', 10);
 // UI/scroll/mobile fallbacks removed entirely
 
 // ---------- Optional filter knobs (applied before upsert) ----------
@@ -264,6 +265,11 @@ async function fetchActiveFeedPagesFromSaved(maxPages: number): Promise<ModularF
     const li = params.findIndex((p: any) => String(p?.key || '').toUpperCase() === 'LIMIT');
     if (li >= 0) params[li].value = String(cap); else params.push({ key: 'LIMIT', value: String(cap) });
 
+    // Enforce sort by newest if possible
+    const sortIdx = params.findIndex((p: any) => String(p?.key || '').toLowerCase() === 'sort');
+    if (sortIdx >= 0) params[sortIdx].value = '-posted';
+    else params.push({ key: 'sort', value: '-posted' });
+
     if (cursor) params.push({ key: 'PAGE_CURSOR', value: cursor });
     body.variables.searchParams = params;
 
@@ -325,17 +331,41 @@ const VEHICLE_DICTIONARY: { makes: Record<string, string[]> } = {
     "jaguar": ["xf","xe","f-type","f-pace","e-pace"],
     "mini": ["cooper","countryman"],
     // Ultra-Luxury & Exotic Brands
-    "lamborghini": ["aventador","huracan","urus","gallardo","murcielago"],
-    "ferrari": ["488","458","f430","california","portofino","812","f8","sf90","roma","296","laferrari"],
-    "rolls royce": ["phantom","ghost","wraith","cullinan","dawn"],
-    "bentley": ["continental","flying spur","bentayga","mulsanne"],
-    "aston martin": ["db9","db11","vantage","dbs","rapide","vanquish"],
-    "maserati": ["ghibli","quattroporte","levante","granturismo","grancabrio"],
-    "mclaren": ["720s","570s","650s","540c","600lt","gt","artura","p1"],
-    "bugatti": ["veyron","chiron"],
-    "lotus": ["elise","exige","evora","emira"],
-    "alfa romeo": ["giulia","stelvio","4c"],
-    "maybach": ["s class","gls"]
+    "lamborghini": ["aventador","huracan","urus","gallardo","murcielago","revuelto","countach","diablo","sian","centenario","veneno","reventon","jalpa","lm002"],
+    "ferrari": ["488","458","f430","california","portofino","812","f8","sf90","roma","296","laferrari","enzo","f50","f40","288","gtc4","lusso","ff","scuderia","pista","superfast","tdf","daytona","monza"],
+    "rolls royce": ["phantom","ghost","wraith","cullinan","dawn","spectre","corniche","camargue","silver shadow","silver spirit","silver spur","silver seraph"],
+    "bentley": ["continental","flying spur","bentayga","mulsanne","arnage","azure","brooklands","bacalar","batur"],
+    "aston martin": ["db9","db11","vantage","dbs","rapide","vanquish","valkyrie","valhalla","one-77","vulcan","dbx","virage","lagonda","cygnet"],
+    "maserati": ["ghibli","quattroporte","levante","granturismo","grancabrio","mc20","mc12","grecale"],
+    "mclaren": ["720s","570s","650s","540c","600lt","gt","artura","p1","senna","speedtail","elva","765lt","675lt","12c","f1","solus"],
+    "bugatti": ["veyron","chiron","divo","centodieci","mistral","bolide","eb110"],
+    "lotus": ["elise","exige","evora","emira","eletre","evija","esprit"],
+    "alfa romeo": ["giulia","stelvio","4c","8c","33 stradale"],
+    "maybach": ["s class","gls","57","62","zeppelin","exelero"],
+    "koenigsegg": ["agera","regera","jesko","gemera","one:1","ccx","ccxr","cc8s"],
+    "pagani": ["zonda","huayra","utopia","codalunga"],
+    "rimac": ["nevera","concept_one"],
+    "hennessey": ["venom"],
+    "ssc": ["tuatara","ultimate aero"],
+    "spyker": ["c8","d12","d8"],
+    "fisker": ["karma","ocean"],
+    "karma": ["revero","gs-6"],
+    "lucid": ["air","gravity"],
+    "rivian": ["r1t","r1s"],
+    "polestar": ["1","2","3","4","5","6"],
+    "alpina": ["b7","b8","xb7","b3","b4","b5","d3","d4","d5","xd3","xd4"],
+    "brabus": ["rocket","800","900","700"],
+    "mansory": ["cullinan","urus","g-class"],
+    "ruf": ["ctr","rgt","scr"],
+    "singer": ["911","dls"],
+    "gunther werks": ["400r"],
+    "saleen": ["s7"],
+    "zenvo": ["tsr","ts1","st1"],
+    "noble": ["m600","m400","m12"],
+    "gumpert": ["apollo"],
+    "w motors": ["lykan","fenyr"],
+    "delorean": ["dmc-12","alpha5"],
+    "shelby": ["cobra","series 1"]
   }
 };
 
@@ -642,19 +672,35 @@ function extractSellerInfo(jsonLd: any[], nd: any): {
   businessName?: string | null;
   truYouVerified?: boolean;
 } | null {
+  // Common dealer keywords
+  const isDealerName = (name: string | null | undefined) => {
+    if (!name) return false;
+    const n = name.toLowerCase();
+    return n.includes('auto') || n.includes('motor') || n.includes('sale') || n.includes('deal') ||
+           n.includes('llc') || n.includes('inc') || n.includes('group') || n.includes('export') ||
+           n.includes('cars') || n.includes('truck') || n.includes('toyota') || n.includes('honda') ||
+           n.includes('ford') || n.includes('chevy') || n.includes('nissan');
+  };
+
   // Try __NEXT_DATA__ first (most reliable source)
   if (nd?.props?.pageProps?.listing?.seller) {
     const seller = nd.props.pageProps.listing.seller;
+    
+    // Check dealer flag AND name heuristics
+    const name = seller.name || '';
+    const nameHeuristic = isDealerName(name);
+    
     const isDealer = !!(
       seller.businessName ||
       seller.isBusiness ||
       seller.isDealer ||
-      seller.dealerName
+      seller.dealerName ||
+      nameHeuristic
     );
     return {
       isDealer,
       sellerName: seller.name || null,
-      businessName: seller.businessName || seller.dealerName || null,
+      businessName: seller.businessName || seller.dealerName || (isDealer ? seller.name : null),
       truYouVerified: seller.truYouVerified || false,
     };
   }
@@ -666,7 +712,10 @@ function extractSellerInfo(jsonLd: any[], nd: any): {
       const isOrg = seller['@type'] === 'Organization' ||
                     seller['@type'] === 'AutoDealer' ||
                     seller['@type'] === 'LocalBusiness';
-      const isDealer = isOrg || !!seller.businessName;
+      const name = seller.name || '';
+      const nameHeuristic = isDealerName(name);
+      
+      const isDealer = isOrg || !!seller.businessName || nameHeuristic;
       return {
         isDealer,
         sellerName: seller.name || null,
@@ -1234,6 +1283,9 @@ function buildSearchParamsWithFilters(baseParams: any[], q: string): any[] {
     else params.push({ key, value });
   };
 
+  // Force sort=-posted for newest listings
+  setParam('sort', '-posted');
+
   const deleteParam = (key: string) => {
     for (let i = params.length - 1; i >= 0; i--) {
       const k = String(params[i]?.key || '');
@@ -1725,15 +1777,10 @@ async function runRegion(regionName?: string) {
 
   if (accepted.length) {
     // Require minimal fields: remote_id, source, url
-    const sinceMs = F_POSTED_WITHIN_HOURS != null ? (Date.now() - (F_POSTED_WITHIN_HOURS * 3600_000)) : null;
+    // Relaxed final filter: Trust the loop's decision.
+    // Only filter if posted_at is missing entirely (which loop should catch, but safety first)
     const finalRows = accepted
-      .filter(r => {
-        if (sinceMs == null) return r.posted_at != null;
-        if (!r.posted_at) return false;
-        const ts = new Date(r.posted_at).getTime();
-        if (!Number.isFinite(ts)) return false;
-        return ts >= sinceMs;
-      })
+      .filter(r => r.posted_at)
       .map(c => ({
         source: c.source,
         remote_slug: c.remote_id,
@@ -1747,6 +1794,11 @@ async function runRegion(regionName?: string) {
         make: c.make,
         model: c.model,
         posted_at: c.posted_at,
+        // Include dealer info in upsert payload for debugging/future use
+        is_dealer: c.is_dealer,
+        seller_name: c.seller_name,
+        seller_business_name: c.seller_business_name,
+        seller_verified: c.seller_verified,
       }));
 
     // DEBUG: Log cities found in scraped listings
@@ -1926,6 +1978,9 @@ async function resolveTimestampFallback(url: string): Promise<string | null> {
   return null;
 }
 
+// Target insert count (optional global stop)
+const TARGET_INSERT_COUNT = parseInt(process.env.OU_TARGET_INSERT_COUNT || '0', 10);
+
 async function main() {
   if (!OU_MULTI_REGION) {
     // Single region mode - run once
@@ -1939,13 +1994,23 @@ async function main() {
   console.log('='.repeat(70));
   console.log(`Regions: ${OU_REGION_COUNT}`);
   console.log(`Delay between regions: ${OU_REGION_DELAY_MS}ms`);
+  if (TARGET_INSERT_COUNT > 0) {
+    console.log(`Target Insert Count: ${TARGET_INSERT_COUNT}`);
+  }
   console.log('='.repeat(70) + '\n');
 
   const regionsToScrape = US_REGIONS.slice(0, OU_REGION_COUNT);
   const startTime = Date.now();
   const results: Array<{ region: string; inserted: number; skipped: number }> = [];
+  let globalInserted = 0;
 
   for (let i = 0; i < regionsToScrape.length; i++) {
+    // Check if we hit the target
+    if (TARGET_INSERT_COUNT > 0 && globalInserted >= TARGET_INSERT_COUNT) {
+      console.log(`\n[MULTI-REGION] Reached target insert count (${globalInserted} >= ${TARGET_INSERT_COUNT}). Stopping early.`);
+      break;
+    }
+
     const region = regionsToScrape[i];
     console.log(`\n[${i + 1}/${OU_REGION_COUNT}] Scraping: ${region.name}`);
     console.log('─'.repeat(70));
@@ -1962,6 +2027,7 @@ async function main() {
         inserted: stats.inserted,
         skipped: stats.skipped,
       });
+      globalInserted += stats.inserted;
     } catch (err) {
       console.error(`[MULTI-REGION] Error scraping ${region.name}:`, err);
       results.push({
@@ -1971,8 +2037,8 @@ async function main() {
       });
     }
 
-    // Delay before next region (except for last)
-    if (i < regionsToScrape.length - 1) {
+    // Delay before next region (except for last, and only if we haven't hit target)
+    if (i < regionsToScrape.length - 1 && (TARGET_INSERT_COUNT === 0 || globalInserted < TARGET_INSERT_COUNT)) {
       console.log(`\n[MULTI-REGION] Waiting ${OU_REGION_DELAY_MS / 1000}s before next region...\n`);
       await new Promise(resolve => setTimeout(resolve, OU_REGION_DELAY_MS));
     }
@@ -1981,7 +2047,7 @@ async function main() {
   // Summary
   const endTime = Date.now();
   const durationSec = Math.round((endTime - startTime) / 1000);
-  const totalInserted = results.reduce((sum, r) => sum + r.inserted, 0);
+  const totalInserted = globalInserted; // Use accumulated global
   const totalSkipped = results.reduce((sum, r) => sum + r.skipped, 0);
 
   console.log('\n' + '='.repeat(70));

@@ -108,7 +108,7 @@ function ListingCard({ r, onWatch, onDelete }: { r: ListingRow, onWatch?: (id: s
         <div className="flex-1">
           <div className="text-sm text-neutral-400 flex items-center gap-2">
             {r.source || '—'}
-            <span className="text-[10px] text-neutral-500">• {getTimeAgo(displayDate)}</span>
+            <span className="text-[10px] text-neutral-500">• {r.posted_at ? getTimeAgo(r.posted_at) : (r.first_seen_at ? `Found ${getTimeAgo(r.first_seen_at)}` : '')}</span>
           </div>
           <h3 className="mt-0.5 text-base font-medium text-neutral-100">
             {r.year ? `${r.year} ` : ''}
@@ -486,7 +486,7 @@ export function LiveMarketFeed({
                 {exotics.map((e) => (
                   <tr key={e.id} className="group hover:bg-white/5 transition">
                     <td className="py-3 pl-4 pr-2 text-neutral-400 text-xs whitespace-nowrap">
-                      {e.first_seen_at ? getTimeAgo(e.first_seen_at) : '—'}
+                      {e.posted_at ? getTimeAgo(e.posted_at) : (e.first_seen_at ? `Found ${getTimeAgo(e.first_seen_at)}` : '—')}
                     </td>
                     <td className="py-3 pr-2 font-medium text-neutral-200">
                       {e.title || `${e.year || ''} ${e.make || ''} ${e.model || ''}`.trim() || '—'}
@@ -751,7 +751,7 @@ export function LiveMarketFeed({
                       />
                     </td>
                     <td className="py-3 pr-2 text-neutral-400 text-xs whitespace-nowrap">
-                      {getTimeAgo(displayDate)}
+                      {r.posted_at ? getTimeAgo(r.posted_at) : (r.first_seen_at ? `Found ${getTimeAgo(r.first_seen_at)}` : '—')}
                     </td>
                     <td className="py-3 pr-2 font-medium text-neutral-200">
                       {r.title || `${r.year || ''} ${r.make || ''} ${r.model || ''}`.trim() || '—'}

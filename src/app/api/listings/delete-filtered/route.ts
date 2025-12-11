@@ -62,10 +62,10 @@ export async function POST(request: NextRequest) {
 
     const ids = items.map(item => item.id)
 
-    // Delete in batches of 100
+    // Delete in batches of 500
     let totalDeleted = 0
-    for (let i = 0; i < ids.length; i += 100) {
-      const batch = ids.slice(i, i + 100)
+    for (let i = 0; i < ids.length; i += 500) {
+      const batch = ids.slice(i, i + 500)
       const { count, error } = await supaAdmin
         .from('listings')
         .delete({ count: 'exact' })

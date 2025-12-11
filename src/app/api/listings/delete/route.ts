@@ -17,10 +17,10 @@ export async function DELETE(request: NextRequest) {
     const deleteCount = listingIds?.length || 1
 
     // Safety check: Prevent accidental mass deletes
-    if (deleteCount > 100) {
+    if (deleteCount > 500) {
       return NextResponse.json({
-        error: 'Bulk delete limit exceeded. Maximum 100 per request.',
-        limit: 100,
+        error: 'Bulk delete limit exceeded. Maximum 500 per request.',
+        limit: 500,
         requested: deleteCount
       }, { status: 400 })
     }

@@ -427,7 +427,7 @@ export async function installMarketplaceGraphQLInterceptor(context: BrowserConte
         for (const k of Object.keys(obj)) { const v = (obj as any)[k]; if (v && typeof v === 'object') { if (trySet(v)) return true } }
         return false
       }
-      if (!trySet(variables)) variables.filterSortingParams = { sort_by_filter: 'CREATION_TIME', sort_order: 'DESCEND', sortBy: 'creation_time_descend', sort_by: 'creation_time_descend' }
+      if (!trySet(variables)) variables.filterSortingParams = { sort_by_filter: 'CREATION_TIME', sort_order: 'DESCEND' }
     }
     setSort()
     variables.topLevelVehicleType = 'car_truck'
@@ -582,8 +582,8 @@ async function patchMarketplaceVars(route: Route, body: string, dbg?: (...args: 
   variables.filterSortingParams = variables.filterSortingParams || {}
   variables.filterSortingParams.sort_by_filter = 'CREATION_TIME'
   variables.filterSortingParams.sort_order = 'DESCEND'
-  variables.filterSortingParams.sortBy = 'creation_time_descend'
-  variables.filterSortingParams.sort_by = 'creation_time_descend'
+  // variables.filterSortingParams.sortBy = 'creation_time_descend'
+  // variables.filterSortingParams.sort_by = 'creation_time_descend'
 
   // Use taxonomy IDs for filtering instead of params.query to preserve chronological sorting
   const makeId = WANT_MAKE && MAKE_TAXONOMY_IDS[WANT_MAKE] ? MAKE_TAXONOMY_IDS[WANT_MAKE] : null
@@ -2062,9 +2062,11 @@ async function interceptFacebookGraphQL(sessionId?: string, regionName?: string,
         try {
           const errMsg = parsedPayloads.map(p => p?.errors?.[0]?.message).filter(Boolean)[0]
           if (errMsg) {
-            const msg = sanitize(String(errMsg)).slice(0, 300)
+            const fullMsg = sanitize(String(errMsg))
+            const msg = fullMsg.slice(0, 300)
             debug('GQL errors present (batched):', msg)
-            if (/noncoercible_variable_value/i.test(msg)) {
+            if (/noncoercible_variable_value/i.test(fullMsg)) {
+              console.error('[FB:ERROR] Full Non-Coercible Error:', fullMsg)
               // Disable further patching for this session to avoid UI banner spam
               try { marketplacePatchDisabled = true } catch {}
               warn('Disabling Marketplace patch for this session due to variable type error')
