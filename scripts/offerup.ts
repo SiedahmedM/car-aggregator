@@ -685,18 +685,31 @@ function extractSellerInfo(jsonLd: any[], nd: any): {
   // Try __NEXT_DATA__ first (most reliable source)
   if (nd?.props?.pageProps?.listing?.seller) {
     const seller = nd.props.pageProps.listing.seller;
-    
+
+    // Strong dealer signals from structured flags
+    const dealerSignals = [
+      seller.isBusiness,
+      seller.isDealer,
+      seller.dealer,
+      seller.dealerId,
+      seller.dealerName,
+      seller.businessId,
+      seller.businessName,
+      seller.businessProfileImage,
+      (typeof seller.accountCategory === 'string' && seller.accountCategory.toLowerCase().includes('business')),
+      (typeof seller.userType === 'string' && seller.userType.toLowerCase().includes('business')),
+      (typeof seller.sellerType === 'string' && seller.sellerType.toLowerCase().includes('business')),
+      (typeof seller.role === 'string' && seller.role.toLowerCase().includes('business')),
+      (typeof seller.badge === 'string' && seller.badge.toLowerCase().includes('dealer')),
+      (Array.isArray(seller.badges) && seller.badges.some((b: any) => String(b).toLowerCase().includes('dealer'))),
+      (Array.isArray(seller.tags) && seller.tags.some((t: any) => String(t).toLowerCase().includes('dealer')))
+    ];
+
     // Check dealer flag AND name heuristics
     const name = seller.name || '';
     const nameHeuristic = isDealerName(name);
-    
-    const isDealer = !!(
-      seller.businessName ||
-      seller.isBusiness ||
-      seller.isDealer ||
-      seller.dealerName ||
-      nameHeuristic
-    );
+
+    const isDealer = dealerSignals.some(Boolean) || nameHeuristic;
     return {
       isDealer,
       sellerName: seller.name || null,
