@@ -36,7 +36,7 @@ async function runScraper(region: {name: string, lat: string, lng: string}, make
       OU_FILTER_MODELS: '',
       OU_SEARCH_QUERY: make,
       OU_FILTER_POSTED_WITHIN_HOURS: '1',
-      OU_DETAIL_CONCURRENCY: '2',
+      OU_DETAIL_CONCURRENCY: '1',
       OU_HEADLESS: 'true',
       OU_LOG_LEVEL: 'info',
     };
