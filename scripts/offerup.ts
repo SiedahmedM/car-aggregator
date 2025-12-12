@@ -672,20 +672,25 @@ function extractSellerInfo(jsonLd: any[], nd: any): {
   businessName?: string | null;
   truYouVerified?: boolean;
 } | null {
-  // Common dealer keywords
+  // Common dealer keywords (expanded)
   const isDealerName = (name: string | null | undefined) => {
     if (!name) return false;
     const n = name.toLowerCase();
-    return n.includes('auto') || n.includes('motor') || n.includes('sale') || n.includes('deal') ||
-           n.includes('llc') || n.includes('inc') || n.includes('group') || n.includes('export') ||
-           n.includes('cars') || n.includes('truck') || n.includes('toyota') || n.includes('honda') ||
-           n.includes('ford') || n.includes('chevy') || n.includes('nissan');
+    return [
+      'auto','autos','motor','motors','motorsports','sale','sales','deal','dealer','dealership',
+      'llc','inc','group','export','imports','cars','car','truck','trucks','fleet','wholesale',
+      'finance','credit','leasing','lease','rent','rental','rentals','showroom','corp','corporation',
+      'autonation','drivetime','carmax','carvana','carshop','carfax','autocenter','automall',
+      'toyota','honda','ford','chevy','chevrolet','nissan','gmc','cadillac','kia','hyundai',
+      'bmw','mercedes','benz','audi','vw','volkswagen','subaru','mazda','lexus','acura','infiniti','dodge','jeep','ram'
+    ].some(k => n.includes(k));
   };
 
-  // Try __NEXT_DATA__ first (most reliable source)
-  if (nd?.props?.pageProps?.listing?.seller) {
-    const seller = nd.props.pageProps.listing.seller;
+  const listing = nd?.props?.pageProps?.listing;
+  const seller = listing?.seller;
 
+  // Try __NEXT_DATA__ first (most reliable source)
+  if (seller) {
     // Strong dealer signals from structured flags
     const dealerSignals = [
       seller.isBusiness,
@@ -696,24 +701,60 @@ function extractSellerInfo(jsonLd: any[], nd: any): {
       seller.businessId,
       seller.businessName,
       seller.businessProfileImage,
+      seller.storefrontId,
+      seller.storefrontName,
+      seller.storefrontUrl,
+      listing?.dealerId,
+      listing?.dealerName,
+      listing?.dealer,
+      listing?.businessId,
+      listing?.businessName,
+      listing?.business?.id,
+      listing?.business?.name,
+      listing?.storefrontId,
+      listing?.storefrontName,
       (typeof seller.accountCategory === 'string' && seller.accountCategory.toLowerCase().includes('business')),
       (typeof seller.userType === 'string' && seller.userType.toLowerCase().includes('business')),
       (typeof seller.sellerType === 'string' && seller.sellerType.toLowerCase().includes('business')),
       (typeof seller.role === 'string' && seller.role.toLowerCase().includes('business')),
       (typeof seller.badge === 'string' && seller.badge.toLowerCase().includes('dealer')),
       (Array.isArray(seller.badges) && seller.badges.some((b: any) => String(b).toLowerCase().includes('dealer'))),
-      (Array.isArray(seller.tags) && seller.tags.some((t: any) => String(t).toLowerCase().includes('dealer')))
+      (Array.isArray(seller.tags) && seller.tags.some((t: any) => String(t).toLowerCase().includes('dealer'))),
+      (typeof listing?.listingType === 'string' && listing.listingType.toLowerCase().includes('dealer')),
+      (typeof listing?.sellerType === 'string' && listing.sellerType.toLowerCase().includes('business')),
+      (typeof listing?.userType === 'string' && listing.userType.toLowerCase().includes('business')),
+      (typeof listing?.accountCategory === 'string' && listing.accountCategory.toLowerCase().includes('business')),
+      (typeof listing?.badge === 'string' && listing.badge.toLowerCase().includes('dealer')),
+      (Array.isArray(listing?.badges) && listing.badges.some((b: any) => String(b).toLowerCase().includes('dealer'))),
+      (Array.isArray(listing?.tags) && listing.tags.some((t: any) => String(t).toLowerCase().includes('dealer')))
     ];
 
-    // Check dealer flag AND name heuristics
-    const name = seller.name || '';
-    const nameHeuristic = isDealerName(name);
+    const candidateNames = [
+      seller.name,
+      seller.businessName,
+      seller.dealerName,
+      seller.storefrontName,
+      listing?.dealerName,
+      listing?.businessName,
+      listing?.storefrontName,
+      listing?.business?.name,
+      listing?.sellerName
+    ];
+
+    const nameHeuristic = candidateNames.some(n => isDealerName(n || ''));
 
     const isDealer = dealerSignals.some(Boolean) || nameHeuristic;
     return {
       isDealer,
-      sellerName: seller.name || null,
-      businessName: seller.businessName || seller.dealerName || (isDealer ? seller.name : null),
+      sellerName: seller.name || listing?.sellerName || null,
+      businessName:
+        listing?.businessName ||
+        listing?.dealerName ||
+        listing?.storefrontName ||
+        seller.businessName ||
+        seller.dealerName ||
+        seller.storefrontName ||
+        (isDealer ? seller.name || listing?.sellerName || null : null),
       truYouVerified: seller.truYouVerified || false,
     };
   }
