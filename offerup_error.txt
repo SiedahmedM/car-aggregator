@@ -1,3 +1,14 @@
-browserContext.newPage: Target page, context or browser has been closed
-    at runOne (/Users/mohamedsiedahmed/car-aggregator/scripts/offerup.ts:1414:36)
-    at run (/Users/mohamedsiedahmed/car-aggregator/scripts/offerup.ts:1534:54)
+browserType.launch: Executable doesn't exist at /home/ubuntu/.cache/ms-playwright/chromium_headless_shell-1194/chrome-linux/headless_shell
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+    at runRegion (/workspace/scripts/offerup.ts:1530:34)
+    at main (/workspace/scripts/offerup.ts:1987:11)
+    at fs (/workspace/scripts/offerup.ts:2077:1)
+    at Object.<anonymous> (/workspace/scripts/offerup.ts:2083:2)
+    at Object.transformer (/workspace/node_modules/tsx/dist/register-D46fvsV_.cjs:3:1104)
