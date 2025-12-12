@@ -1767,6 +1767,16 @@ async function runRegion(regionName?: string) {
         const make = parsed.make ?? null;
         const year = parsed.year ?? null;
 
+        // Optional strict vehicle gate to avoid non-vehicle items (e.g., couches)
+        const REQUIRE_VEHICLE = (process.env.OU_REQUIRE_VEHICLE ?? 'false').toLowerCase() === 'true';
+        if (REQUIRE_VEHICLE) {
+          const looksLikeVehicle = !!(make || model || year);
+          if (!looksLikeVehicle) {
+            logInfo('[NON-VEHICLE] Skipping non-vehicle listing', { url, title });
+            continue;
+          }
+        }
+
         // City extraction
         let city: string | null = item.city || null;
         if (!city) {
