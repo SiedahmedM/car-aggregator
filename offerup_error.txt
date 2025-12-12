@@ -1,3 +1,4 @@
-browserContext.newPage: Target page, context or browser has been closed
-    at runRegion (/workspace/scripts/offerup.ts:1532:30)
+browserContext.newPage: Protocol error (Target.createTarget): Not supported
+    at runOne (/workspace/scripts/offerup.ts:1644:36)
+    at async runRegion (/workspace/scripts/offerup.ts:1764:3)
     at async main (/workspace/scripts/offerup.ts:1987:5)
