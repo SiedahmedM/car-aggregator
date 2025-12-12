@@ -1,4 +1,4 @@
 browserContext.newPage: Protocol error (Target.createTarget): Not supported
-    at runOne (/workspace/scripts/offerup.ts:1644:36)
-    at async runRegion (/workspace/scripts/offerup.ts:1764:3)
-    at async main (/workspace/scripts/offerup.ts:1987:5)
+    at runOne (/workspace/scripts/offerup.ts:1647:36)
+    at async runRegion (/workspace/scripts/offerup.ts:1767:3)
+    at async main (/workspace/scripts/offerup.ts:1990:5)

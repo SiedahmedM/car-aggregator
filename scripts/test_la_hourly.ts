@@ -26,6 +26,7 @@ async function runLAHourlyTest() {
       OU_FILTER_DEALERS: 'true',
       OU_TARGET_INSERT_COUNT: '35',
       OU_LOG_LEVEL: 'info',
+      OU_DETAIL_CONCURRENCY: '1',
       // Deep mining settings
       OU_MAX_ITEMS: '800',
       OU_PAGINATE_PAGES: '20',
