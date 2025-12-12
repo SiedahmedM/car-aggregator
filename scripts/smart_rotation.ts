@@ -52,7 +52,12 @@ async function runScraper(region: {name: string, lat: string, lng: string}, make
     child.stdout?.on('data', (data) => {
       const chunk = data.toString();
       stdoutData += chunk;
-      process.stdout.write(chunk); // Echo to console
+      // Avoid direct pipe to process.stdout to prevent EPIPE
+      // process.stdout.write(chunk); 
+      // Instead, just log key info if needed or rely on final summary
+      if (chunk.includes('[INFO]') || chunk.includes('[WARN]') || chunk.includes('[ERROR]')) {
+          console.log(chunk.trim());
+      }
     });
 
     child.on('close', (code) => {
