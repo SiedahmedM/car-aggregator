@@ -1527,7 +1527,10 @@ async function collectActiveFeedGraphQL(q: string): Promise<FeedItem[]> {
 async function runRegion(regionName?: string) {
   const t0 = Date.now();
   resetFilterHints();
-  const browser = await chromium.launch({ headless: HEADLESS });
+  const browser = await chromium.launch({ 
+    headless: HEADLESS,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'] 
+  });
   const context = await browser.newContext({ userAgent: DESKTOP_UA });
   const page = await context.newPage();
 
@@ -1641,7 +1644,14 @@ async function runRegion(regionName?: string) {
       if (processedCount % 10 === 0) {
         logInfo('[DETAIL-PHASE] Progress', { processed: processedCount, remaining: queue.length });
       }
-      const detail = await context.newPage();
+      let detail: Page;
+      try {
+        detail = await context.newPage();
+      } catch (e: any) {
+        logError('[CRITICAL] Could not open new page (browser crash?)', { error: e.message });
+        break; // Stop processing queue
+      }
+
       await detail.waitForTimeout(75 + Math.random() * 75);
       const url = item.url;
       const remote_id = item.id;
